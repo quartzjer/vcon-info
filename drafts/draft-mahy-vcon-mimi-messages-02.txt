@@ -1,0 +1,1064 @@
+
+
+
+
+Virtualized Conversations                                        R. Mahy
+Internet-Draft                            Rohan Mahy Consulting Services
+Intended status: Informational                          24 February 2025
+Expires: 28 August 2025
+
+
+                         VCON for MIMI Messages
+                    draft-mahy-vcon-mimi-messages-02
+
+Abstract
+
+   This document describes extensions to the Virtualized Conversation
+   (VCON) syntax for instant messaging systems using the More Instant
+   Messaging Interoperability (MIMI) content format.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://rohanmahy.github.io/vcon-mimi-messages/draft-mahy-vcon-mimi-
+   messages.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-mahy-vcon-mimi-messages/.
+
+   Discussion of this document takes place on the Virtualized
+   Conversations Working Group mailing list (mailto:vcon@ietf.org),
+   which is archived at https://mailarchive.ietf.org/arch/browse/vcon/.
+   Subscribe at https://www.ietf.org/mailman/listinfo/vcon/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/rohanmahy/vcon-mimi-messages.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 28 August 2025.
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 1]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+Copyright Notice
+
+   Copyright (c) 2025 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Conventions and Definitions . . . . . . . . . . . . . . . . .   3
+   3.  Syntax  . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     3.1.  Room information  . . . . . . . . . . . . . . . . . . . .   4
+     3.2.  Parties . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     3.3.  The dialog object (text type) . . . . . . . . . . . . . .   5
+       3.3.1.  Semantics of the existing fields for text . . . . . .   5
+       3.3.2.  Extensions to the dialog object for text  . . . . . .   5
+       3.3.3.  MultiPart objects . . . . . . . . . . . . . . . . . .   6
+       3.3.4.  Part objects  . . . . . . . . . . . . . . . . . . . .   6
+       3.3.5.  ExternalPart objects  . . . . . . . . . . . . . . . .   7
+     3.4.  Changes to the parties  . . . . . . . . . . . . . . . . .   8
+     3.5.  Changes to the room . . . . . . . . . . . . . . . . . . .   9
+     3.6.  Attachments . . . . . . . . . . . . . . . . . . . . . . .   9
+     3.7.  Message tombstones  . . . . . . . . . . . . . . . . . . .   9
+   4.  Examples  . . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     4.1.  MIMI examples as a VCON . . . . . . . . . . . . . . . . .  10
+     4.2.  MIMI VCON with an Attachment  . . . . . . . . . . . . . .  16
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  17
+   7.  Normative References  . . . . . . . . . . . . . . . . . . . .  17
+   Appendix A.  CDDL changes . . . . . . . . . . . . . . . . . . . .  18
+   Appendix B.  Change list  . . . . . . . . . . . . . . . . . . . .  18
+     B.1.  Changes in draft-mahy-vcon-mimi-messages-02 . . . . . . .  19
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .  19
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  19
+
+
+
+
+
+
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 2]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+1.  Introduction
+
+   VCON [I-D.ietf-vcon-vcon-container] is a format for recording and
+   transmitting conversations.  MIMI content [I-D.ietf-mimi-content] is
+   a format for conveying Instant Messages in an interoperable way when
+   end-to-end encrypted.  This document describes a way to translate a
+   set of MIMI messages in a conversation or part of a conversation into
+   a VCON.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   The examples in this document may contain base64url encoded values
+   that have extra whitespace added for readability, and to conform with
+   Internet-Draft formatting conventions.  That whitespace should be
+   ignored.
+
+   Some metadata about a MIMI content message is conveyed in the
+   encryption protocol Messaging Layer Security (MLS) [RFC9420] or in
+   the MIMI protocol [I-D.ietf-mimi-protocol].
+
+   For example, the sender, recipient, date, and message ID are not
+   mandatory fields in a MIMI content message.  The recipient is the
+   MIMI room ID associated with the corresponding MLS group.  The
+   participants in the group are calculated from the MLS group state and
+   MIMI participant list during the MLS "epoch" in which the message was
+   sent.  The sender is conveyed in MLS.  The MIMI "Hub" received
+   timestamp is conveyed in the MIMI protocol.  The MIMI content message
+   ID is constructed by hashing fields from the MIMI content, and the
+   sender and room URIs (see Section 3.3 of [I-D.ietf-mimi-content]).
+
+   When message franking is enabled, as defined in Section 5.4.1 of
+   [I-D.ietf-mimi-protocol], the franking_tag is conveyed in the MLS
+   message's Additional Authenticated Data (AAD) field, while the MIMI
+   protocol conveys the Frank structure generated by the MIMI Hub.
+
+   The room metadata described in this document comes from Section 3 of
+   [I-D.mahy-mimi-app-components], while the names of the parties comes
+   from the participant list defined in Section 4 of the same document.
+
+
+
+
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 3]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+3.  Syntax
+
+   A MIMI conversation (or portion thereof) is represented in VCON with
+   a mandatory list of parties and dialogs, a new top-level room object,
+   and optionally attachment objects.
+
+3.1.  Room information
+
+   This document adds a mandatory, top-level room object.  It contains
+   metadata known about the room at the start of the VCON period.
+
+   *  id is the MIMI room ID URL.  It is mandatory.
+
+   *  name is the textual name of the room.  It is optional.
+
+   *  avatar is a URL referencing the room image.  It is optional.
+
+   *  subject is the room subject.  It is optional.
+
+   *  mood is the room mood.  It is optional
+
+   *  description is an array of room_description objects.  It is
+      optional.  Each object can contain:
+
+      -  a type- a media type or an empty string.  It is optional.  It's
+         default value is text/plain;charset=UTF-8.
+
+      -  a lang - a Language-tag as defined by [RFC5646].  It is
+         optional.
+
+      -  a content - if the type begins with "text" or is empty, the
+         content the is UTF-8 text description of the room.  Otherwise
+         it is the base64url encoding of whatever type is described.
+         The content field is mandatory in a room_description object.
+
+3.2.  Parties
+
+   The parties array MUST contain all the participants who were in the
+   conversation at any point in time during the period represented by
+   the VCON.  The first party in the array is the MIMI room URI.
+
+   This document adds a new party_object_type: im_uri.  It is mandatory.
+   The name field is optional.  The role indicates the MIMI role and is
+   optional.  The document also adds a thumbprint party_object_type,
+   which is the JWK thumbprint of the public key of the party.  If there
+   are multiple parties (clients) with the same im_uri then the
+   thumbprint is required, otherwise it is optional.
+
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 4]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+3.3.  The dialog object (text type)
+
+   The following section refers to changes and additions to the dialog
+   object when the type field is "text".
+
+3.3.1.  Semantics of the existing fields for text
+
+   The dialog object consists of an array of instant messages of type
+   "text".  The start time is set to the hub received timestamp when
+   available.  The duration is zero.  The originator is set to the
+   parties index of the sender of the message.
+
+   The first MIMI message represented in a MIMI VCON should contain the
+   complete list of parties who were participants in the room at that
+   time.  For subsequent messages, a parties array consisting of index
+   zero, indicates the recipients of the message are the active
+   participants of the room.  Changes to the roster can be tracked if
+   party_history is present for those changes (see Section 3.4).
+
+3.3.2.  Extensions to the dialog object for text
+
+   The parties array consist of the party indexes of those who were
+   active participants when the message was sent.
+
+   *  message_id is the base64url encoding of the MIMI content message
+      ID.  It is mandatory.
+
+   *  salt is the base64url encoding of the MIMI content salt.  It is
+      mandatory.
+
+   *  replaces is the base64url encoding of the MIMI content message_id
+      of the message this message replaces.  It is optional if empty.
+
+   *  topic_id is the base64url encoding of the MIMI topic_id.  It is
+      optional if empty.
+
+   *  expires is optional if empty in MIMI.  It contains null or a map
+      with the following items:
+
+      -  relative is a boolean that is true if the time is expressed
+         relative to the recipient read time, and false if it is
+         expressed as an absolute date/time.  It is mandatory when
+         expires is present.
+
+      -  relative_time is an integer number of seconds.  If relative is
+         true, once the message has been read, the client is expected to
+         delete the message after relative_time seconds.  It is
+         mandatory if relative is true.
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 5]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+      -  absolute_time is the expiration date/time of the message
+         expressed as a VCON (text) date_type.  It is mandatory if
+         relative is false and optional otherwise.
+
+   *  in_reply_to is the base64url encoding of the MIMI content
+      message_id of the message to which this message is replying (or
+      reacting).  It is optional if empty.
+
+   *  mimi_extensions is a base64 encoding of the CBOR MIMI content
+      extensions map or null.  It is optional if not present in the MIMI
+      content.
+
+   *  franking_tag is a base64url encoding of the MIMI franking_tag, or
+      null.  It is optional if not present.
+
+   *  frank is a base64url encoding of the MIMI protocol Frank TLS
+      struct, or null.  It is optional if not present.
+
+   VCON typically expresses message content using the body, encoding,
+   and mediatype fields.  In order to preserve this convention we use
+   these fields directly for a MIMI SinglePart structure, but use new
+   MultiPart and ExternalPart objects for those corresponding MIMI
+   structures.  For a SinglePart these two fields with the same
+   semantics as their MIMI content counterparts could be present.
+
+   *  disposition - optional if set to the default value ("render")
+
+   *  language - optional if absent
+
+   If there is only a single part its part_index is 0, and in this case
+   it is optional.
+
+3.3.3.  MultiPart objects
+
+   A MultiPart object is designed to carry multiple items, as with the
+   MultiPart structure in MIMI content or the top level multipart media
+   types.  It contains the following fields.
+
+   *  part_semantics is one of "chooseOne", "singleUnit", or
+      "processAll".  It is mandatory.
+
+   *  parts is an array of Parts.  It is mandatory in a MultiPart
+      object.
+
+3.3.4.  Part objects
+
+   The following fields can be in a Part object.  They have the same
+   meaning as their MIMI content counterparts.
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 6]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+   *  disposition optional if set to the default value ("render")
+
+   *  language - optional if absent
+
+   *  part_index is an unsigned integer.  It is mandatory in a Part
+      object.
+
+   *  cardinality is one of "nullpart", "single", "external", or
+      "multi". mandatory.
+
+   If cardinality is "single" or "external", then body, encoding, and
+   mediatype fields are included directly in the Part object.
+
+3.3.5.  ExternalPart objects
+
+   The ExternalPart object can contain the following fields with similar
+   meanings to those in MIMI content, with exceptions noted below.
+
+   *  mediatype is the value of the contentType in MIMI.  It is
+      mandatory if present in the MIMI message and recommended
+      otherwise.
+
+   *  url is the URL of the content as a text string.  It is mandatory
+
+   *  expires is a date_type (text) date.  It is optional if not
+      present.
+
+   *  size is an integer number of octets.  It is optional if not
+      present.
+
+   *  description is a text string.  It is optional if not present.
+
+   *  filename is a text string.  It is optional if not present.
+
+   *  content_hash is the base64url encoded string of the MIMI
+      contentHash of the ExternalPart, prefixed with the name of the
+      hash algorithm corresponding to hashAlg and a colon (for example
+      "sha256:"). content_hash is mandatory if it was included in the
+      MIMI content ExternalPart, and omitted otherwise.
+
+   In addition, the following fields are unique to MIMI VCON.
+
+   *  cached is a boolean.  It is mandatory if it is true, which means
+      that a copy of the external content is available in a vcon
+      attachment object (see Section 3.6).  If cache is true and no
+      content_hash is present, a new content hash is calculated for the
+      attachment and placed the cache_ref field (which can only be
+      present in this case).
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 7]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+   ExternalPart has several fields for the decryption of the referenced
+   content.  If it is not necessary to reconstruct the original MIMI
+   content (for example to allow later verification of the message ID),
+   these fields can be omitted once the content has been downloaded,
+   decrypted, verified, and included in the VCON attachments array.
+   Otherwise they are mandatory if present in the MIMI content.  All of
+   these fields are base64url encoded strings.
+
+   *  encAlg
+
+   *  key
+
+   *  nonce
+
+   *  aad
+
+3.4.  Changes to the parties
+
+   The party_history object can be interleaved with text objects in the
+   dialog objects array.  It indicates when changes have been made to
+   the participants represented by party index zero, as well as
+   properties of individual parties (such as their role or name).
+
+   The party_history object contains the following fields.
+
+   *  party is the party index of the modified party.  It is mandatory.
+
+   *  originator is the party that originated the change.  It is
+      optional.
+
+   *  time is the time that the change was effected
+
+   *  event is the type of change.  It is mandatory and for MIMI VCONs
+      can be one of the following new event types:
+
+      -  add: user added by someone else
+
+      -  self_add: user added herself directly
+
+      -  leave: user leaves of their own accord
+
+      -  remove: user is removed by another user
+
+      -  ban: user is banned from the group
+
+      -  update:
+
+
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 8]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+   *  name is the new name of the user.  It is only permitted for an
+      update event.
+
+   *  role is the new role assigned to the user.  It is only permitted
+      for an update event.
+
+3.5.  Changes to the room
+
+   Changes to the room metadata should be accompanied by a new room
+   dialog type.  The room dialog type can contain anything in the top-
+   level room object except for the id (which cannot change).  It must
+   contain a time field to convey the time of the change, and may
+   contain an originator field to convey who made that change.
+
+3.6.  Attachments
+
+   An attachment consists of the following fields:
+
+   *  start: is the time when the attachment was downloaded.  It is
+      mandatory.
+
+   *  party: is the party that downloaded the attachment.  It is
+      mandatory.
+
+   *  content_hash: is the base64url encoded hash using the hash name
+      prefixed with a colon before the hash (ex: "sha256:").  It is
+      mandatory.
+
+   *  dialog_object_ref is a string consisting of: "mid:" (representing
+      the message ID URI), the message_id of the message in the dialog
+      object, a colon, the part_index of the Part (or "0" if the
+      ExternalPart is at the top level), and the string "@anon.invalid"
+
+   The mediatype, filename, encoding, and body fields are as they are
+   defined in VCON and are all mandatory.
+
+3.7.  Message tombstones
+
+   When a message has been deleted/retracted, or it expires, it can be
+   valuable to present a record that such a message was previously
+   present, by generating a dialog object with the following fields
+   (which are all mandatory):
+
+   *  type is "tombstone"
+
+   *  start is the time the tombstone was generated
+
+   *  message_id is the message ID of the message.
+
+
+
+Mahy                     Expires 28 August 2025                 [Page 9]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+   *  status is the status of the former message, either "retracted" or
+      "expired".
+
+4.  Examples
+
+4.1.  MIMI examples as a VCON
+
+   The example vcon consists of the example messages from Section 5 of
+   the MIMI content specification plus a party_history object adding two
+   new participants, and a single multipart message at the end.
+
+{
+  "vcon": "0.0.1",
+  "room": {
+    "id": "mimi://example.com/r/engineering_team",
+    "name": "Engineering Team",
+    "avatar": "https://example.com/images/tHMqLMAkmCzNmweL",
+    "subject": None,
+    "mood": None,
+    "description": [
+        {"type":"", "lang":"en", "content":"Engineering Team Internal Chat"},
+        {  "type":"",
+          "lang":"fr",
+          "content":"Chat de l'équipe interne des ingénieurs"
+        }
+    ]
+  }
+  "parties": [
+    {
+      "imUri": "mimi://example.com/r/engineering_team",
+    },
+    {
+      "im_uri": "mimi://example.com/u/alice-smith",
+      "name": "Alice Smith",
+      "role": "moderator",
+      "thumbprint": "TODOFIXDZXCog_FfQp-xLemZkD5GKB9H7Z-Y41O4jEw"
+    },
+    {
+      "im_uri": "mimi://example.com/u/bob-jones",
+      "name": "Bob Jones",
+      "role": "member",
+      "thumbprint": "TODOFIXYUFE7bV9pXAHZHi5bwSWzLJqjncevs9aLKDg"
+    },
+    {
+      "im_uri": "mimi://example.com/u/cathy-washington",
+      "name": "Cathy Washington",
+      "role": "member",
+      "thumbprint": "TODOFIXzH3EeOGbI0-oiDGTXlgKmkMzQyQ2W_Y-TB1U"
+
+
+
+Mahy                     Expires 28 August 2025                [Page 10]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+    },
+    {
+      "im_uri": "mimi://example.com/u/doug-king",
+      "name": "Doug King",
+      "role": "member",
+      "thumbprint": "TODOFIX3fdpORnHwncbdOS5XieH-z1m5r61u14WyNkj"
+    },
+    {
+      "im_uri": "mimi://example.com/u/liz-roberts",
+      "name": "Elizabeth Roberts",
+      "role": "member",
+      "thumbprint": "TODOFIX7qR7oFriyKfKgIJ43ZdANoObICqH0kN9g82J"
+    }
+  ],
+  "dialog": [
+    {
+      "type": "text",
+      "start": "2022-02-08T22:13:45.019-00:00",
+      "duration": 0,
+      "parties": [
+        1, 2, 3
+      ],
+      "franking_tag": null,
+      "frank": null,
+      "originator": 1,
+      "salt": "PC16IkqDbGRiffzjeyPKIg"
+      "message_id": "yjetjodyYNLBto8YDnwLkEc89W09rOuEivbnxKGfHLQ",
+      "mimi_extensions": "oQGiAXgrbWltaTovL2h1Yi5leGFtcGxlL3IvU
+          mwzM0ZXTENZV093eEhyWW5wV0RRZwJ4GG1pbWk6Ly9iLmV4YW1wbG
+          UvdS9hbGljZQ",
+      "mimetype": "text/markdown;variant=GFM",
+      "encoding": "none"
+      "body":
+        "Hi everyone, we just shipped release 2.0. __Good work__!",
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:13:57.492-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 2,
+      "salt": "PVeWNQrjJej4AjhqkGlSkw"
+      "message_id": "Ygye96VUeBhTO6U3D0ZllYsSwSdKB3SiRJgxAb3cdAo",
+      "in_reply_to": "yjetjodyYNLBto8YDnwLkEc89W09rOuEivbnxKGfHLQ",
+      "mimetype": "text/markdown;variant=GFM",
+
+
+
+Mahy                     Expires 28 August 2025                [Page 11]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+      "encoding": "none"
+      "body": "Right on! _Congratulations_ \'all!",
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:13:57.728-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 3,
+      "salt": "lV7CoeiFmX4ALPSKOdrR0w"
+      "message_id": "2YF0k6blW9ZbJ8sgXJgMCTJOlofazdKwVRvf6ZUORFA",
+      "in_reply_to": "yjetjodyYNLBto8YDnwLkEc89W09rOuEivbnxKGfHLQ",
+      "disposition": "reaction",
+      "mimetype": "text/plain;charset=utf-8",
+      "encoding": "none"
+      "body": "❤",
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:14:03.008-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 3,
+      "salt": "pkL5Tr0pLla5EiLUOfVDJw"
+      "message_id": "rF4iS5BcJ-aFfisoFDCrnTE9pZZBGCxGCoXGJ9VXnck",
+      "mimetype": "text/markdown;variant=GFM",
+      "encoding": "none"
+      "body":
+        "Kudos to [@Alice Smith](mimi://example.com/alice-smith) for
+making the release happen!",
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:14:08.621-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 2,
+      "salt": "26QI8adeG9TDfPvh-j1Stg"
+      "message_id": "-GqJXuoaJu1Xosu-N8nt6NWzA2RLmIRY0q9jf_kvWkM",
+
+
+
+Mahy                     Expires 28 August 2025                [Page 12]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+      "replaces": "Ygye96VUeBhTO6U3D0ZllYsSwSdKB3SiRJgxAb3cdAo",
+      "in_reply_to": "yjetjodyYNLBto8YDnwLkEc89W09rOuEivbnxKGfHLQ",
+      "mimetype": "text/markdown;variant=GFM",
+      "encoding": "none"
+      "body": "Right on! _Congratulations_ y'all"
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:14:08.621-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 2,
+      "salt": "HbkjCnTRrhn84LPT86VvYg"
+      "message_id": "8cqo1B9IA6nnB63oPEnmWxIqr7uk7WvQTBgVVlD_Q2c",
+      "replaces": "Ygye96VUeBhTO6U3D0ZllYsSwSdKB3SiRJgxAb3cdAo",
+      "in_reply_to": "yjetjodyYNLBto8YDnwLkEc89W09rOuEivbnxKGfHLQ"
+    },
+    {
+      "party_history": [
+        {
+          "party": 4,
+          "event": "add",
+          "originator": 1,
+          "time": "2022-02-08T22:14:09.277-00:00"
+        },
+        {
+          "party": 5,
+          "event": "add",
+          "originator": 1,
+          "time": "2022-02-08T22:14:09.277-00:00"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "start": "2022-02-08T22:14:10.389-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 3,
+      "salt": "IrAeojgZcZGiQjjBbmqVhw"
+      "message_id": "bYZ2NHaryq0WS2pq5IE9fMc4zltUyE6WrKJ7bNB5tMc",
+      "replaces": "Ygye96VUeBhTO6U3D0ZllYsSwSdKB3SiRJgxAb3cdAo",
+      "in_reply_to": "yjetjodyYNLBto8YDnwLkEc89W09rOuEivbnxKGfHLQ",
+
+
+
+Mahy                     Expires 28 August 2025                [Page 13]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+      "disposition": "reaction"
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:49:06.227-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 1,
+      "salt": "8xnQi9hjVw4N8cRGEm4X1A"
+      "message_id": "GkblzkXJxyar0lTgkfcMQ0wo8qpbcU0MqtTg-gM1FiY",
+      "expiring": {
+        "relative": false,
+        "expires": "2022-02-08T22:59:06.227-00:00"
+      },
+      "status": "expired"
+    },
+
+    {
+      "type": "text",
+      "start": "2022-02-08T22:53:41.134-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 2,
+      "salt": "bqhJBqYaTyDmgTj-QtdZPA"
+      "message_id": "Tdt8UCUl1ugSLRmuObvib_4bvu_Hz3NSwaYuy-TtET4",
+      "disposition": "attachment",
+      "language": "en",
+      "ExternalPart": {
+        "mimetype": "video/mp4",
+        "url": "https://example.com/storage/8ksB4bSrrRE.mp4",
+        "size": 708234961,
+        "description": "2 hours of key signing video",
+        "filename": "bigfile.mp4",
+        "content_hash":
+            "sha256:OczZYpW_L0B1DsMSLJqL2jTRJKoj7fTUJ2jhnX70-00",
+        "enc_alg": 1,
+        "key": "aZISOs306M7n_3csR-J1cw",
+        "nonce": "5VM0QcZI3PNmnquV6CUgxg",
+        "aad": ""
+      }
+    },
+
+    {
+
+
+
+Mahy                     Expires 28 August 2025                [Page 14]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+      "type": "text",
+      "start": "2022-02-08T22:54:09.972-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 3,
+      "salt": "dPEJAGOdZGeX6_OCp0RUzA"
+      "message_id": "KgDTc29ZP4YyYmXtaYyxpZNrnigjvCjrCYuLTz19zWc",
+      "disposition": "session",
+      "ExternalPart": {
+        "url": "https://example.com/join/12345",
+        "description": "Join the Foo 118 conference"
+      }
+    },
+    {
+      "type": "text",
+      "start": "2022-02-08T22:57:14.084-00:00",
+      "duration": 0,
+      "parties": [
+        0
+      ],
+      "originator": 1,
+      "salt": "YSbs-8jeoXfI6Z4lQRUWQw"
+      "message_id": "sD19bKRmu4mA9SHznfQOLQQzKnx1Q4mEtSNQhvzqCZw",
+      "disposition": "render",
+      "part_index": 0,
+      "MultiPart": {
+        "part_semantics": "chooseOne",
+        "parts": [
+          "Part": {
+            "disposition": "render",
+            "language": "en",
+            "part_index": 1,
+            "mimetype": "text/markdown;variant=GFM",
+            "encoding": "none"
+            "body": "Hello!"
+          },
+          "Part": {
+            "disposition": "render",
+            "language": "fr",
+            "part_index": 2,
+            "mimetype": "text/markdown;variant=GFM",
+            "encoding": "none"
+            "body": "Bonjour!"
+          }
+        ]
+      }
+
+
+
+Mahy                     Expires 28 August 2025                [Page 15]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+    },
+  ]
+}
+
+4.2.  MIMI VCON with an Attachment
+
+   This example vcon consists of a single message in a dialog which
+   references an attachment.
+
+   {
+     "vcon": "0.0.1",
+     "room": {
+       "id": "mimi://example.com/r/engineering_team",
+       "name": "Engineering Team",
+     }
+     "parties": [
+       {
+         "imUri": "mimi://example.com/r/engineering_team",
+       },
+       {
+         "im_uri": "mimi://example.com/u/alice-smith",
+         "name": "Alice Smith",
+         "role": "moderator",
+         "thumbprint": "TODOFIXDZXCog_FfQp-xLemZkD5GKB9H7Z-Y41O4jEw"
+       },
+       {
+         "im_uri": "mimi://example.com/u/bob-jones",
+         "name": "Bob Jones",
+         "role": "member",
+         "thumbprint": "TODOFIXYUFE7bV9pXAHZHi5bwSWzLJqjncevs9aLKDg"
+       },
+       {
+         "im_uri": "mimi://example.com/u/cathy-washington",
+         "name": "Cathy Washington",
+         "role": "member",
+         "thumbprint": "TODOFIXzH3EeOGbI0-oiDGTXlgKmkMzQyQ2W_Y-TB1U"
+       }
+     ],
+     "dialog": [
+       {
+         "type": "text",
+         "start": "2022-02-08T22:53:41.134-00:00",
+         "duration": 0,
+         "parties": [
+           0, 1, 2, 3
+         ],
+         "originator": 1,
+         "salt": "jaPfwAWReuvBdfayWkSvtQ"
+
+
+
+Mahy                     Expires 28 August 2025                [Page 16]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+         "message_id": "Tdt8UCUl1ugSLRmuObvib_4bvu_Hz3NSwaYuy-TtET4",
+         "disposition": "attachment",
+         "language": "en",
+         "ExternalPart": {
+           "mimetype": "video/mp4",
+           "url": "https://example.com/storage/8ksB4bSrrRE.mp4",
+           "size": 708234961,
+           "description": "2 hours of key signing video",
+           "filename": "bigfile.mp4",
+           "content_hash":
+               "sha256:OczZYpW_L0B1DsMSLJqL2jTRJKoj7fTUJ2jhnX70-00",
+           "cached": true
+         }
+       },
+     ],
+     "attachments": [
+       {
+         "start": "2022-02-08T22:53:41.134-00:00",
+         "party": 1,
+         "content_hash":
+             "sha256:OczZYpW_L0B1DsMSLJqL2jTRJKoj7fTUJ2jhnX70-00",
+         "dialogObjectRef":
+     "mid:Tdt8UCUl1ugSLRmuObvib_4bvu_Hz3NSwaYuy-TtET4:0@anon.invalid",
+         "mimetype": "video/mp4",
+         "filename": "bigfile.mp4",
+         "encoding": "base64url",
+         "body": "Ma0hHSr0f_iUk_RSShTgtY...nSQbZEip5danJYQqsvwWQ"
+       }
+     ]
+   }
+
+5.  Security Considerations
+
+   TODO Security
+
+6.  IANA Considerations
+
+   This document has no IANA actions.
+
+7.  Normative References
+
+   [I-D.ietf-mimi-content]
+              Mahy, R., "More Instant Messaging Interoperability (MIMI)
+              message content", Work in Progress, Internet-Draft, draft-
+              ietf-mimi-content-05, 20 December 2024,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-mimi-
+              content-05>.
+
+
+
+
+Mahy                     Expires 28 August 2025                [Page 17]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+   [I-D.ietf-mimi-protocol]
+              Barnes, R., Hodgson, M., Kohbrok, K., Mahy, R., Ralston,
+              T., and R. Robert, "More Instant Messaging
+              Interoperability (MIMI) using HTTPS and MLS", Work in
+              Progress, Internet-Draft, draft-ietf-mimi-protocol-02, 21
+              October 2024, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-mimi-protocol-02>.
+
+   [I-D.ietf-vcon-vcon-container]
+              Petrie, D. and T. McCarthy-Howe, "The JSON format for vCon
+              - Conversation Data Container", Work in Progress,
+              Internet-Draft, draft-ietf-vcon-vcon-container-01, 20
+              October 2024, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-vcon-vcon-container-01>.
+
+   [I-D.mahy-mimi-app-components]
+              Mahy, R., "Application State Components for More Instant
+              Messaging Interoperability (MIMI)", Work in Progress,
+              Internet-Draft, draft-mahy-mimi-app-components-01, 11
+              February 2025, <https://datatracker.ietf.org/doc/html/
+              draft-mahy-mimi-app-components-01>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC5646]  Phillips, A., Ed. and M. Davis, Ed., "Tags for Identifying
+              Languages", BCP 47, RFC 5646, DOI 10.17487/RFC5646,
+              September 2009, <https://www.rfc-editor.org/rfc/rfc5646>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9420]  Barnes, R., Beurdouche, B., Robert, R., Millican, J.,
+              Omara, E., and K. Cohn-Gordon, "The Messaging Layer
+              Security (MLS) Protocol", RFC 9420, DOI 10.17487/RFC9420,
+              July 2023, <https://www.rfc-editor.org/rfc/rfc9420>.
+
+Appendix A.  CDDL changes
+
+   *TODO*
+
+Appendix B.  Change list
+
+
+
+
+
+
+Mahy                     Expires 28 August 2025                [Page 18]
+
+Internet-Draft                VCON for MIMI                February 2025
+
+
+B.1.  Changes in draft-mahy-vcon-mimi-messages-02
+
+   *  adjust to make consistent with new syntax of MIMI content (add
+      salt, removed lastSeen, in_reply_to is just a message id, expires
+      is an object to handle relative expiration, added
+      mimi_extensions).
+
+   *  use a different field from content_hash when attaching an
+      ExternalPart that did not have a hash in the MIMI message.
+
+   *  allow the parties list of 0 to indicate sending to every active
+      participant in the room.
+
+   *  added a description of using party_history to track changes to the
+      participant list.
+
+   *  added room metadata, and a way to modify it
+
+   *  added support for message "tombstones"
+
+   *  use mediatype instead of mimetype throughout
+
+   *  make the case of field names more consistent
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Author's Address
+
+   Rohan Mahy
+   Rohan Mahy Consulting Services
+   Email: rohan.ietf@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mahy                     Expires 28 August 2025                [Page 19]
