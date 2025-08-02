@@ -35,43 +35,42 @@ git clone https://github.com/your-username/vcon-info.git
 cd vcon-info
 
 # Install dependencies
-npm install
+bun install
 
 # Start development server (opens at http://localhost:3000)
-npm run dev
+bun dev
 
 # Build for production
-npm run build
+bun run build
 
 # Preview production build
-npm run preview
+bun run preview
 ```
 
 ## Development
 
 ### Prerequisites
 
-- **Node.js**: Version 18 or higher
-- **npm**: Latest stable version
+- **Bun**: Version 1.0 or higher
 - **Git**: For version control
 
 ### Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run deploy` | Build and deploy to GitHub Pages |
+| `bun dev` | Start development server with hot reload |
+| `bun run build` | Build for production |
+| `bun run preview` | Preview production build locally |
+| `bun run deploy` | Build and deploy to GitHub Pages |
 
 ### Development Workflow
 
-1. **Start Development**: Run `npm run dev` to start the development server
+1. **Start Development**: Run `bun dev` to start the development server
 2. **Make Changes**: Edit files in the `src/` directory
 3. **Hot Reload**: Changes are automatically reflected in the browser
 4. **Test**: Use the sample vCon data or paste your own vCon structures
-5. **Build**: Run `npm run build` to create production build
-6. **Deploy**: Push to main branch or run `npm run deploy`
+5. **Build**: Run `bun run build` to create production build
+6. **Deploy**: Push to main branch or run `bun run deploy`
 
 ## Project Architecture
 
@@ -122,7 +121,7 @@ vcon-info/
 - **Styling**: Tailwind CSS (utility-first CSS framework)
 - **Icons**: Lucide React (consistent icon library)
 - **Deployment**: GitHub Pages with GitHub Actions
-- **Package Manager**: npm
+- **Package Manager**: Bun
 
 ### Design Patterns
 
@@ -354,9 +353,9 @@ The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) 
 
 **Workflow Steps:**
 1. **Checkout**: Retrieves the latest code
-2. **Setup Node.js**: Installs Node.js 18 and caches npm dependencies
-3. **Install**: Runs `npm ci` for clean dependency installation
-4. **Build**: Executes `npm run build` to create production assets
+2. **Setup Bun**: Installs Bun and caches dependencies
+3. **Install**: Runs `bun install` for clean dependency installation
+4. **Build**: Executes `bun run build` to create production assets
 5. **Deploy**: Uses `peaceiris/actions-gh-pages` to deploy to GitHub Pages
 
 **Configuration:**
@@ -369,10 +368,10 @@ For manual deployment or other hosting services:
 
 ```bash
 # Build production assets
-npm run build
+bun run build
 
 # Deploy to GitHub Pages (requires gh-pages package)
-npm run deploy
+bun run deploy
 
 # Or copy ./dist contents to your hosting service
 ```
@@ -388,11 +387,11 @@ The Vite configuration (`vite.config.js`) includes:
 ### Development Setup
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally
-3. **Install** dependencies with `npm install`
+3. **Install** dependencies with `bun install`
 4. **Create** a feature branch: `git checkout -b feature/your-feature-name`
-5. **Develop** your changes with `npm run dev`
+5. **Develop** your changes with `bun dev`
 6. **Test** thoroughly with various vCon formats
-7. **Build** to ensure production compatibility: `npm run build`
+7. **Build** to ensure production compatibility: `bun run build`
 8. **Commit** your changes with descriptive messages
 9. **Push** to your fork and create a pull request
 
