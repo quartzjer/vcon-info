@@ -1,6 +1,7 @@
 export const sampleVcon = {
-  "vcon": "0.0.2",
+  "vcon": "0.3.0",
   "uuid": "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",
+  "created_at": "2024-03-15T10:23:45.123Z",
   "parties": [
     {
       "tel": "+1-555-123-4567",
@@ -67,7 +68,7 @@ export const sampleVcon = {
       "type": "order-details",
       "mediatype": "application/pdf",
       "url": "https://example.com/orders/12345.pdf",
-      "content_hash": "sha256:abcd1234..."
+      "content_hash": "sha512-abcd1234efgh5678ijkl9012mnop3456qrst7890uvwx1234yzab5678cdef9012ghij3456klmn7890pqrs1234tuvw5678xyza9012bcde3456fghi7890"
     }
   ]
 };
