@@ -31,8 +31,8 @@ describe('vconValidator', () => {
 
     it('should detect unsigned vCon', () => {
       const unsignedVcon = JSON.stringify({
-        vcon: "0.0.1",
-        uuid: "test-uuid"
+        vcon: "0.0.2",
+        uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14"
       })
       expect(detectVconType(unsignedVcon)).toBe('unsigned')
     })
@@ -59,9 +59,8 @@ describe('vconValidator', () => {
 
     it('should return valid for proper unsigned vCon', () => {
       const validVcon = JSON.stringify({
-        vcon: "0.0.1",
-        uuid: "test-uuid-123",
-        created_at: "2024-01-01T00:00:00Z"
+        vcon: "0.0.2",
+        uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14"
       })
       expect(validateVcon(validVcon)).toBe('valid')
     })
@@ -84,7 +83,7 @@ describe('vconValidator', () => {
 
     it('should return invalid for objects missing required fields', () => {
       const invalidVcon = JSON.stringify({
-        vcon: "0.0.1"
+        vcon: "0.0.2"
         // missing uuid
       })
       expect(validateVcon(invalidVcon)).toBe('invalid')
@@ -101,7 +100,7 @@ describe('vconValidator', () => {
 
   describe('parseVcon', () => {
     it('should parse valid JSON', () => {
-      const testObject = { vcon: "0.0.1", uuid: "test" }
+      const testObject = { vcon: "0.0.2", uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14" }
       const jsonString = JSON.stringify(testObject)
       expect(parseVcon(jsonString)).toEqual(testObject)
     })
@@ -117,8 +116,8 @@ describe('vconValidator', () => {
 
     it('should handle complex nested objects', () => {
       const complexVcon = {
-        vcon: "0.0.1",
-        uuid: "test-uuid",
+        vcon: "0.0.2",
+        uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",
         parties: [
           { tel: "+1234567890", name: "Party 1" }
         ],

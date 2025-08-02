@@ -1,9 +1,6 @@
 export const sampleVcon = {
-  "vcon": "1.0.0",
+  "vcon": "0.0.2",
   "uuid": "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",
-  "created_at": "2024-03-15T10:23:45.123Z",
-  "updated_at": "2024-03-15T10:45:12.456Z",
-  "subject": "Customer Support Call - Order #12345",
   "parties": [
     {
       "tel": "+1-555-123-4567",
@@ -23,7 +20,7 @@ export const sampleVcon = {
       "start": "2024-03-15T10:23:45.123Z",
       "duration": 245.5,
       "parties": [0, 1],
-      "mimetype": "audio/mp3",
+      "mediatype": "audio/mp3",
       "encoding": "base64url",
       "body": "UklGRiQAAABXQVZFZm10..."
     },
@@ -32,7 +29,7 @@ export const sampleVcon = {
       "start": "2024-03-15T10:24:00.000Z",
       "duration": 30.0,
       "parties": [0],
-      "mimetype": "text/plain",
+      "mediatype": "text/plain",
       "body": "Hello, I'm calling about my order that hasn't arrived yet."
     },
     {
@@ -40,7 +37,7 @@ export const sampleVcon = {
       "start": "2024-03-15T10:24:30.000Z",
       "duration": 45.0,
       "parties": [1],
-      "mimetype": "text/plain",
+      "mediatype": "text/plain",
       "body": "I'd be happy to help you with that. Can you please provide your order number?"
     }
   ],
@@ -48,7 +45,7 @@ export const sampleVcon = {
     {
       "type": "transcript",
       "dialog": 0,
-      "mimetype": "application/json",
+      "mediatype": "application/json",
       "body": {
         "vendor": "transcription-service.example",
         "confidence": 0.95,
@@ -58,7 +55,7 @@ export const sampleVcon = {
     {
       "type": "sentiment",
       "dialog": [1, 2],
-      "mimetype": "application/json",
+      "mediatype": "application/json",
       "body": {
         "overall": "neutral",
         "customer_satisfaction": 0.65
@@ -68,7 +65,7 @@ export const sampleVcon = {
   "attachments": [
     {
       "type": "order-details",
-      "mimetype": "application/pdf",
+      "mediatype": "application/pdf",
       "url": "https://example.com/orders/12345.pdf",
       "content_hash": "sha256:abcd1234..."
     }
