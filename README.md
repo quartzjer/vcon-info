@@ -1,4 +1,4 @@
-# vCon Inspector
+# vCon Info
 
 A static SPA developer tool for the new vCon standards, serving a similar utility as JWT.io does for the OAUTH/JOSE dev community. This tool allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures in a user-friendly interface.
 

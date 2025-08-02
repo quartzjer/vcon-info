@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-vCon Inspector is a static single-page application (SPA) developer tool for vCon standards - similar to JWT.io for OAUTH/JOSE. It allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures with support for unsigned, JWS signed, and JWE encrypted formats.
+vCon Info is a static single-page application (SPA) developer tool for vCon standards - similar to JWT.io for OAUTH/JOSE. It allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures with support for unsigned, JWS signed, and JWE encrypted formats.
 
 ## Development Commands
 
