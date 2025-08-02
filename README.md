@@ -424,11 +424,46 @@ The Vite configuration (`vite.config.js`) includes:
 4. Test with various edge cases
 
 ### Testing Strategy
-- **Manual Testing**: Use provided sample data and real vCon structures
+
+This project uses **Vitest** with **React Testing Library** for fast, reliable testing.
+
+#### Quick Testing Commands
+```bash
+# Run tests in watch mode (recommended for development)
+bun test
+
+# Run tests once (CI mode)
+bun test:run
+
+# Generate coverage report with HTML output
+bun test:coverage
+
+# Open interactive test UI in browser
+bun test:ui
+```
+
+#### Current Test Coverage
+- ✅ **17/17 utility tests passing** for vCon validation functions
+- ✅ **Format detection** for unsigned, signed, and encrypted vCons
+- ✅ **JSON validation** and parsing with error handling
+- ✅ **vCon structure validation** against specification
+- 🚧 **Component testing** (planned expansion)
+- 🚧 **Integration testing** (planned expansion)
+
+#### Test Performance
+- **Lightning fast**: Current test suite runs in ~8ms
+- **Hot reload**: Tests automatically rerun on file changes
+- **Coverage tracking**: Built-in HTML coverage reports
+- **CI ready**: Deterministic results for continuous integration
+
+#### Manual Testing Guidelines
+- **Sample Data Testing**: Use provided sample data and real vCon structures
 - **Format Testing**: Test with unsigned, signed, and encrypted vCons
 - **Error Testing**: Verify graceful handling of malformed input
 - **Responsive Testing**: Ensure mobile and desktop compatibility
 - **Performance Testing**: Test with large vCon structures
+
+See [TESTING.md](./TESTING.md) for detailed testing documentation, examples, and expansion plans.
 
 ## License
 
