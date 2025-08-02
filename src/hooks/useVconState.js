@@ -7,7 +7,7 @@ export const useVconState = () => {
   const [activeTab, setActiveTab] = useState('inspector');
   const [expandedNodes, setExpandedNodes] = useState(new Set(['parties', 'dialog', 'analysis', 'attachments']));
   const [selectedParty, setSelectedParty] = useState(null);
-  const [validationStatus, setValidationStatus] = useState('idle');
+  const [validationResult, setValidationResult] = useState({ status: 'idle' });
   const [vconType, setVconType] = useState('unsigned');
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [publicKey, setPublicKey] = useState('');
@@ -17,14 +17,16 @@ export const useVconState = () => {
   // Auto-detect format and validate
   useEffect(() => {
     const detectedType = detectVconType(input);
-    const status = validateVcon(input);
+    const result = validateVcon(input);
     
     if (detectedType) {
       setVconType(detectedType);
+    } else if (result.type) {
+      setVconType(result.type);
     }
-    setValidationStatus(status);
+    setValidationResult(result);
     
-    if (status === 'valid') {
+    if (result.status === 'valid') {
       setVconData(parseVcon(input));
     } else {
       setVconData(null);
@@ -60,7 +62,8 @@ export const useVconState = () => {
     setSelectedParty,
     
     // Validation state
-    validationStatus,
+    validationResult,
+    validationStatus: validationResult.status,
     vconType,
     vconData,
     

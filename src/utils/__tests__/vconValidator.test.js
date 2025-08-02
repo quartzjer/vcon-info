@@ -48,13 +48,18 @@ describe('vconValidator', () => {
 
   describe('validateVcon', () => {
     it('should return idle for empty input', () => {
-      expect(validateVcon('')).toBe('idle')
-      expect(validateVcon('   ')).toBe('idle')
+      expect(validateVcon('')).toEqual({ status: 'idle' })
+      expect(validateVcon('   ')).toEqual({ status: 'idle' })
     })
 
     it('should return invalid for malformed JSON', () => {
-      expect(validateVcon('invalid json')).toBe('invalid')
-      expect(validateVcon('{"incomplete": ')).toBe('invalid')
+      const result1 = validateVcon('invalid json')
+      expect(result1.status).toBe('invalid')
+      expect(result1.errors).toBeDefined()
+      
+      const result2 = validateVcon('{"incomplete": ')
+      expect(result2.status).toBe('invalid')
+      expect(result2.errors).toBeDefined()
     })
 
     it('should return valid for proper unsigned vCon', () => {
@@ -65,7 +70,7 @@ describe('vconValidator', () => {
           { tel: "+1234567890", name: "Test Party" }
         ]
       })
-      expect(validateVcon(validVcon)).toBe('valid')
+      expect(validateVcon(validVcon)).toEqual({ status: 'valid', type: 'unsigned' })
     })
 
     it('should return valid for JWS format', () => {
@@ -73,7 +78,7 @@ describe('vconValidator', () => {
         payload: "eyJ2Y29uIjoiMC4wLjEifQ",
         signatures: [{ signature: "test-signature" }]
       })
-      expect(validateVcon(jwsVcon)).toBe('valid')
+      expect(validateVcon(jwsVcon)).toEqual({ status: 'valid', type: 'signed' })
     })
 
     it('should return valid for JWE format', () => {
@@ -81,7 +86,7 @@ describe('vconValidator', () => {
         ciphertext: "encrypted-data",
         protected: "header-data"
       })
-      expect(validateVcon(jweVcon)).toBe('valid')
+      expect(validateVcon(jweVcon)).toEqual({ status: 'valid', type: 'encrypted' })
     })
 
     it('should return invalid for objects missing required fields', () => {
@@ -89,7 +94,9 @@ describe('vconValidator', () => {
         vcon: "0.3.0"
         // missing uuid and parties
       })
-      expect(validateVcon(invalidVcon)).toBe('invalid')
+      const result = validateVcon(invalidVcon)
+      expect(result.status).toBe('invalid')
+      expect(result.errors).toBeDefined()
     })
 
     it('should return invalid for completely unrelated objects', () => {
@@ -97,7 +104,9 @@ describe('vconValidator', () => {
         name: "test",
         data: "value"
       })
-      expect(validateVcon(unrelatedObject)).toBe('invalid')
+      const result = validateVcon(unrelatedObject)
+      expect(result.status).toBe('invalid')
+      expect(result.errors).toContain('Not a valid vCon format')
     })
   })
 
@@ -129,6 +138,73 @@ describe('vconValidator', () => {
       }
       const jsonString = JSON.stringify(complexVcon)
       expect(parseVcon(jsonString)).toEqual(complexVcon)
+    })
+  })
+
+  describe('enhanced dialog validation', () => {
+    it('should validate party references in dialog', () => {
+      const vconWithInvalidPartyRef = JSON.stringify({
+        vcon: "0.3.0",
+        uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",
+        parties: [
+          { tel: "+1234567890", name: "Party 1" }
+        ],
+        dialog: [
+          {
+            type: "text",
+            parties: [0, 1], // party 1 doesn't exist
+            mediatype: "text/plain",
+            body: "test"
+          }
+        ]
+      })
+      
+      const result = validateVcon(vconWithInvalidPartyRef)
+      expect(result.status).toBe('invalid')
+      expect(result.errors.some(e => e.includes('invalid party reference 1'))).toBe(true)
+    })
+
+    it('should validate mediatype format', () => {
+      const vconWithInvalidMediatype = JSON.stringify({
+        vcon: "0.3.0",
+        uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",
+        parties: [
+          { tel: "+1234567890", name: "Party 1" }
+        ],
+        dialog: [
+          {
+            type: "text",
+            parties: [0],
+            mediatype: "invalid-mediatype", // invalid format
+            body: "test"
+          }
+        ]
+      })
+      
+      const result = validateVcon(vconWithInvalidMediatype)
+      expect(result.status).toBe('invalid')
+      expect(result.errors.some(e => e.includes('invalid mediatype format'))).toBe(true)
+    })
+
+    it('should require mediatype when body is present', () => {
+      const vconWithMissingMediatype = JSON.stringify({
+        vcon: "0.3.0",
+        uuid: "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",
+        parties: [
+          { tel: "+1234567890", name: "Party 1" }
+        ],
+        dialog: [
+          {
+            type: "text",
+            parties: [0],
+            body: "test" // body present but no mediatype
+          }
+        ]
+      })
+      
+      const result = validateVcon(vconWithMissingMediatype)
+      expect(result.status).toBe('invalid')
+      expect(result.errors.some(e => e.includes('missing mediatype when body is present'))).toBe(true)
     })
   })
 })

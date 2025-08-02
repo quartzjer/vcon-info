@@ -2,6 +2,7 @@ import React from 'react';
 import { CheckCircle, XCircle, AlertCircle, Key, Unlock } from 'lucide-react';
 
 const ValidationStatusBar = ({ 
+  validationResult,
   validationStatus, 
   vconType, 
   showKeyInput, 
@@ -23,7 +24,8 @@ const ValidationStatusBar = ({
       case 'valid':
         return `Valid ${vconType} vCon`;
       case 'invalid':
-        return 'Invalid JSON';
+        const errorCount = validationResult?.errors?.length || 0;
+        return errorCount > 0 ? `${errorCount} validation error${errorCount === 1 ? '' : 's'}` : 'Invalid JSON';
       default:
         return 'Paste a vCon to begin';
     }
@@ -78,6 +80,21 @@ const ValidationStatusBar = ({
             </button>
           )}
         </div>
+        
+        {/* Error Details */}
+        {validationStatus === 'invalid' && validationResult?.errors && (
+          <div className="mt-2 p-3 bg-red-900/20 border border-red-600/30 rounded">
+            <div className="text-red-400 text-sm font-medium mb-2">Validation Errors:</div>
+            <ul className="text-red-300 text-sm space-y-1">
+              {validationResult.errors.map((error, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-red-500 mt-0.5">•</span>
+                  <span>{error}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
