@@ -21,6 +21,16 @@ const isValidUUID = (uuid) => {
   return uuidRegex.test(uuid);
 };
 
+const isValidRFC3339Date = (dateString) => {
+  if (!dateString) return false;
+  try {
+    const date = new Date(dateString);
+    return date.toISOString() === dateString;
+  } catch {
+    return false;
+  }
+};
+
 const validateDialogObject = (dialog) => {
   if (!dialog.type) return false;
   const validTypes = ['recording', 'text', 'transfer', 'incomplete'];
@@ -51,12 +61,27 @@ export const validateVcon = (input) => {
     // Basic vCon validation for unsigned format
     if (parsed.vcon && parsed.uuid) {
       // Validate vCon version
-      if (parsed.vcon !== '0.0.2') {
+      if (parsed.vcon !== '0.3.0') {
         return 'invalid';
       }
       
       // Validate UUID format
       if (!isValidUUID(parsed.uuid)) {
+        return 'invalid';
+      }
+
+      // Validate required parties field
+      if (!parsed.parties || !Array.isArray(parsed.parties) || parsed.parties.length === 0) {
+        return 'invalid';
+      }
+
+      // Validate created_at if present (MUST be valid RFC3339 if provided)
+      if (parsed.created_at && !isValidRFC3339Date(parsed.created_at)) {
+        return 'invalid';
+      }
+
+      // Validate updated_at if present (MUST be valid RFC3339 if provided)
+      if (parsed.updated_at && !isValidRFC3339Date(parsed.updated_at)) {
         return 'invalid';
       }
       
