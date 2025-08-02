@@ -1,4 +1,4 @@
-# Testing Strategy for vCon Inspector
+# Testing Strategy for vCon Info
 
 ## Overview
 This project uses **Vitest** with **React Testing Library** for a modern, lightweight testing approach optimized for React + Vite applications.
