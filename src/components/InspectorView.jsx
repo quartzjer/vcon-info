@@ -26,14 +26,6 @@ const InspectorView = ({
           <span className="text-gray-400">UUID:</span>
           <span className="font-mono text-sm">{vconData.uuid}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-gray-400">Created:</span>
-          <span className="font-mono text-sm">{new Date(vconData.created_at).toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-400">Subject:</span>
-          <span className="text-sm">{vconData.subject}</span>
-        </div>
       </div>
 
       {/* Tree View */}
@@ -75,20 +67,20 @@ const InspectorView = ({
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">[{i}]</span>
                 <span className="text-xs bg-gray-700 px-2 py-1 rounded">{item.type}</span>
-                <span className="text-xs text-gray-400">{item.mimetype}</span>
+                <span className="text-xs text-gray-400">{item.mediatype}</span>
               </div>
               <div className="text-sm text-gray-400 mt-1">
                 <div>🕐 {new Date(item.start).toLocaleTimeString()} ({item.duration}s)</div>
                 <div><PartyLink parties={item.parties} setSelectedParty={setSelectedParty} /></div>
-                {item.body && typeof item.body === 'string' && item.mimetype === 'text/plain' && (
+                {item.body && typeof item.body === 'string' && item.mediatype === 'text/plain' && (
                   <div className="mt-2 p-2 bg-gray-900 rounded text-xs">
                     {item.body}
                   </div>
                 )}
-                {item.mimetype?.startsWith('audio/') && (
+                {item.mediatype?.startsWith('audio/') && (
                   <div className="mt-2">
                     <audio controls className="w-full h-8">
-                      <source src="#" type={item.mimetype} />
+                      <source src="#" type={item.mediatype} />
                     </audio>
                   </div>
                 )}
@@ -134,7 +126,7 @@ const InspectorView = ({
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">[{i}]</span>
                 <span className="text-xs bg-gray-700 px-2 py-1 rounded">{item.type}</span>
-                <span className="text-xs text-gray-400">{item.mimetype}</span>
+                <span className="text-xs text-gray-400">{item.mediatype}</span>
               </div>
               <div className="text-sm text-gray-400 mt-1">
                 {item.url && (
