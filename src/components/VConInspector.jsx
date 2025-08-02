@@ -17,6 +17,7 @@ const VConInspector = () => {
     toggleNode,
     selectedParty,
     setSelectedParty,
+    validationResult,
     validationStatus,
     vconType,
     vconData,
@@ -33,6 +34,7 @@ const VConInspector = () => {
       <Header />
       
       <ValidationStatusBar 
+        validationResult={validationResult}
         validationStatus={validationStatus}
         vconType={vconType}
         showKeyInput={showKeyInput}
