@@ -12,9 +12,8 @@ const Header = () => {
             <span className="text-sm text-gray-400">Decode • Inspect • Validate</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="#" className="text-sm text-blue-400 hover:text-blue-300">IETF Draft</a>
-            <a href="#" className="text-sm text-blue-400 hover:text-blue-300">Documentation</a>
-            <a href="#" className="text-sm text-blue-400 hover:text-blue-300">GitHub</a>
+            <a href="https://datatracker.ietf.org/group/vcon/documents/" className="text-sm text-blue-400 hover:text-blue-300">IETF vCon WG</a>
+            <a href="https://github.com/quartzjer/vcon-info" className="text-sm text-blue-400 hover:text-blue-300">GitHub</a>
           </div>
         </div>
       </div>
