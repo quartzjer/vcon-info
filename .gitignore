@@ -5,6 +5,7 @@ node_modules/
 
 # Production build
 build/
+docs/
 
 # Environment variables
 .env

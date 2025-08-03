@@ -12,7 +12,7 @@ vCon Info is a static single-page application (SPA) developer tool for vCon stan
 
 ### Primary Commands
 - `bun dev` - Start development server on http://localhost:3000 with hot reload
-- `bun run build` - Build production bundle to `./dist`
+- `bun run build` - Build production bundle to `./docs`
 - `bun run preview` - Preview production build locally
 - `bun install` - Install dependencies
 
