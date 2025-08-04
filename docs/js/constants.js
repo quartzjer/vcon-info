@@ -21,8 +21,7 @@ export const DIALOG_TYPES = {
 
 export const TABS = {
   INSPECTOR: 'inspector',
-  TIMELINE: 'timeline',
-  RAW: 'raw'
+  TIMELINE: 'timeline'
 };
 
 export const TYPE_COLORS = {
