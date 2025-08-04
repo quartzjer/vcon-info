@@ -1,3 +1,4 @@
+// Sample vCon data for testing and initialization
 export const sampleVcon = {
   "vcon": "0.3.0",
   "uuid": "018e3f72-c3a8-8b8e-b468-6ebf2e2e8c14",

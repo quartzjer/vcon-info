@@ -1,15 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/shield.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>vCon Info - Decode • Inspect • Validate</title>
-    <meta name="description" content="A developer tool for vCon standards. Decode, inspect, and validate vCon data structures similar to JWT.io for OAUTH/JOSE." />
-    <script type="module" crossorigin src="/assets/index-DM0DIGb6.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Boi9Yd_K.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="shield.svg" type="image/svg+xml">
+</head>
+<body>
+    <div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+        <!-- Header -->
+        <header class="bg-gray-800 border-b border-gray-700 flex-shrink-0">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <svg id="shield-icon" class="w-8 h-8 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                            <h1 class="text-2xl font-bold">vCon Info</h1>
+                            <span class="text-sm text-gray-400">Decode • Inspect • Validate</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm">
+                        <a href="https://datatracker.ietf.org/group/vcon/documents/" class="text-blue-400 hover:text-blue-300 transition-colors">IETF vCon WG</a>
+                        <a href="https://github.com/quartzjer/vcon-info" class="text-blue-400 hover:text-blue-300 transition-colors">GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Validation Status Bar -->
+        <div id="validation-status-bar" class="bg-gray-850 border-b border-gray-700 flex-shrink-0">
+            <div class="container mx-auto px-4 py-2">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div id="status-indicator" class="w-3 h-3 rounded-full bg-gray-600"></div>
+                        <span id="status-text" class="text-sm">Ready</span>
+                        <span id="vcon-type-badge" class="px-2 py-1 rounded text-xs bg-gray-700 text-gray-300 hidden">Unsigned</span>
+                    </div>
+                    <button id="key-input-toggle" class="px-3 py-1 rounded text-xs bg-purple-600 hover:bg-purple-700 transition-colors hidden">
+                        🔐 Keys
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Input Panel (Hidden by default) -->
+        <div id="key-input-panel" class="bg-gray-800 border-b border-gray-700 flex-shrink-0 hidden">
+            <div class="container mx-auto px-4 py-4 space-y-4">
+                <h3 class="font-semibold">Cryptographic Keys</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Public Key</label>
+                        <textarea id="public-key-input" 
+                                  class="w-full h-24 p-3 font-mono text-sm bg-gray-700 border border-gray-600 rounded resize-none focus:outline-none" 
+                                  placeholder="Paste public key for signature verification..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Private Key</label>
+                        <textarea id="private-key-input" 
+                                  class="w-full h-24 p-3 font-mono text-sm bg-gray-700 border border-gray-600 rounded resize-none focus:outline-none" 
+                                  placeholder="Paste private key for decryption..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 container mx-auto px-4 py-6 min-h-0">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                
+                <!-- Input Pane -->
+                <div class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
+                    <div class="p-3 border-b border-gray-700">
+                        <h2 class="font-semibold">Input vCon</h2>
+                    </div>
+                    <div class="flex-1">
+                        <textarea id="input-textarea" 
+                                  class="flex-1 w-full h-full p-4 font-mono text-sm resize-none focus:outline-none overflow-auto bg-transparent" 
+                                  placeholder="Paste your vCon here (unsigned, JWS, or JWE format)..." 
+                                  spellcheck="false"></textarea>
+                    </div>
+                </div>
+
+                <!-- Inspector Pane -->
+                <div class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
+                    
+                    <!-- Tab Navigation -->
+                    <div class="border-b border-gray-700">
+                        <div class="flex">
+                            <button id="tab-inspector" class="px-4 py-3 font-medium text-sm border-b-2 border-blue-600 text-blue-400 transition-colors">
+                                Inspector
+                            </button>
+                            <button id="tab-timeline" class="px-4 py-3 font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors">
+                                Timeline
+                            </button>
+                            <button id="tab-raw" class="px-4 py-3 font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors">
+                                Raw
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-auto">
+                        
+                        <!-- Inspector View -->
+                        <div id="inspector-view" class="p-4">
+                            <div id="vcon-tree"></div>
+                        </div>
+
+                        <!-- Timeline View -->
+                        <div id="timeline-view" class="p-4 hidden">
+                            <div id="timeline-content">
+                                <p class="text-gray-400 text-sm">No timeline data available</p>
+                            </div>
+                        </div>
+
+                        <!-- Raw View -->
+                        <div id="raw-view" class="p-4 hidden">
+                            <pre id="raw-content" class="font-mono text-xs whitespace-pre-wrap text-gray-300 leading-[1.2]"></pre>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-850 border-t border-gray-700 flex-shrink-0">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+                    <div class="flex items-center gap-4">
+                        <span>vCon Info v1.0 - Pure Vanilla JS</span>
+                        <a href="https://datatracker.ietf.org/doc/draft-ietf-vcon-vcon-container/" class="hover:text-blue-400">vCon Spec</a>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span>Built with ❤️ for the vCon community</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/main.js"></script>
+</body>
 </html>
