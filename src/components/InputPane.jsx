@@ -34,7 +34,7 @@ const InputPane = ({ input, setInput }) => {
           </div>
         ) : null}
         <textarea
-          className={`flex-1 w-full h-full p-4 font-mono text-sm resize-none focus:outline-none ${
+          className={`flex-1 w-full h-full p-4 font-mono text-sm resize-none focus:outline-none overflow-auto ${
             showHighlighting && input ? 'bg-transparent text-transparent caret-white' : 'bg-transparent'
           }`}
           placeholder="Paste your vCon here (unsigned, JWS, or JWE format)..."

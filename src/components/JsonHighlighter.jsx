@@ -63,23 +63,23 @@ const JsonHighlighter = ({ jsonText }) => {
         );
       });
 
-      // Apply subtle section content coloring
+      // Apply section content coloring for the entire value
       Object.keys(sectionColors).forEach(section => {
         const colorClass = sectionColors[section];
         
-        // Match section content - from "section": [ to the closing ]
-        const sectionRegex = new RegExp(
-          `(<span class="${colorClass} font-semibold">"${section}"</span><span class="text-gray-400">\\s*:\\s*</span><span class="text-gray-400">\\[</span>)([\\s\\S]*?)(<span class="text-gray-400">\\]</span>(?=\\s*<span class="text-gray-400">[,}]</span>))`, 
+        // Match the section key and its complete value (array, object, or primitive)
+        const sectionValueRegex = new RegExp(
+          `(<span class="${colorClass} font-semibold">"${section}"</span><span class="text-gray-400">\\s*:\\s*</span>)([\\s\\S]*?)(?=,\\s*<span class="text-blue-200">"|\\s*<span class="text-gray-400">}</span>|$)`,
           'g'
         );
         
-        highlighted = highlighted.replace(sectionRegex, (match, start, content, end) => {
-          // Apply section-specific tinting to strings within this section
-          const coloredContent = content.replace(
-            /<span class="text-green-200">("[^"]*")<\/span>/g, 
-            `<span class="text-green-200 ${colorClass}/60">$1</span>`
+        highlighted = highlighted.replace(sectionValueRegex, (match, keyPart, valuePart) => {
+          // Color the entire value with the section color
+          const coloredValue = valuePart.replace(
+            /<span class="([^"]*)">/g,
+            `<span class="$1 ${colorClass}/80">`
           );
-          return `${start}${coloredContent}${end}`;
+          return `${keyPart}${coloredValue}`;
         });
       });
 
