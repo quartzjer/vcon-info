@@ -224,4 +224,35 @@ describe("Integration: App Integration", () => {
       expect(inputExists).toBe(true);
     });
   });
+
+  describe("Snapshot Test", () => {
+    test("generates full page screenshot", async () => {
+      // Load sample data to have content in the UI
+      await page.evaluate(() => {
+        if (window.vconApp && window.vconApp.loadSample) {
+          window.vconApp.loadSample();
+        }
+      });
+
+      // Wait for content to load and render
+      await page.waitForTimeout(1000);
+
+      // Set viewport to capture full content
+      await page.setViewport({ width: 1200, height: 800 });
+
+      // Get full page height for screenshot
+      const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+      await page.setViewport({ width: 1200, height: bodyHeight });
+
+      // Take full page screenshot
+      await page.screenshot({
+        path: 'tests/snapshot.png',
+        fullPage: true,
+        type: 'png'
+      });
+
+      // Test passes if screenshot was created successfully (no exception thrown)
+      expect(true).toBe(true);
+    });
+  });
 });
