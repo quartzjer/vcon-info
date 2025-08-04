@@ -1,6 +1,6 @@
 # vCon Info
 
-A static SPA developer tool for the new vCon standards, serving a similar utility as JWT.io does for the OAUTH/JOSE dev community. This tool allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures in a user-friendly interface.
+A static developer tool for the new vCon standards, serving a similar utility as JWT.io does for the OAUTH/JOSE dev community. This tool allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures in a user-friendly interface.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ A static SPA developer tool for the new vCon standards, serving a similar utilit
 - **🔒 Client-Side Only**: All processing happens in your browser - your data never leaves your device
 - **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
 - **🎨 Dark Theme**: Professional dark theme optimized for developer workflows
-- **🚀 Fast Performance**: Built with Vite for lightning-fast development and optimized builds
+- **🚀 Fast Performance**: Pure vanilla JavaScript with zero dependencies for lightning-fast performance
 
 ## Quick Start
 
@@ -34,43 +34,29 @@ A static SPA developer tool for the new vCon standards, serving a similar utilit
 git clone https://github.com/your-username/vcon-info.git
 cd vcon-info
 
-# Install dependencies
-bun install
+# Start development server
+python3 -m http.server 8080
+# or use any static file server
+npx serve docs/
 
-# Start development server (opens at http://localhost:3000)
-bun dev
-
-# Build for production
-bun run build
-
-# Preview production build
-bun run preview
+# Open http://localhost:8080 in your browser
 ```
 
 ## Development
 
 ### Prerequisites
 
-- **Bun**: Version 1.0 or higher
+- **Modern Web Browser**: Chrome, Firefox, Safari, or Edge
+- **Static File Server**: Python, Node.js, or any web server
 - **Git**: For version control
-
-### Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `bun dev` | Start development server with hot reload |
-| `bun run build` | Build for production |
-| `bun run preview` | Preview production build locally |
-| `bun run deploy` | Build and deploy to GitHub Pages |
 
 ### Development Workflow
 
-1. **Start Development**: Run `bun dev` to start the development server
-2. **Make Changes**: Edit files in the `src/` directory
-3. **Hot Reload**: Changes are automatically reflected in the browser
+1. **Start Development**: Serve the `docs/` directory with any static file server
+2. **Make Changes**: Edit HTML, CSS, or JavaScript files directly
+3. **Refresh Browser**: Changes are reflected immediately on page refresh
 4. **Test**: Use the sample vCon data or paste your own vCon structures
-5. **Build**: Run `bun run build` to create production build
-6. **Deploy**: Push to main branch or run `bun run deploy`
+5. **Deploy**: Push changes to main branch for automatic GitHub Pages deployment
 
 ## Project Architecture
 
@@ -81,168 +67,119 @@ vcon-info/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml          # GitHub Actions deployment workflow
-├── public/
-│   └── shield.svg              # Favicon and app icon
-├── src/
-│   ├── components/             # React components (UI building blocks)
-│   │   ├── Header.jsx          # Site header with navigation
-│   │   ├── ValidationStatusBar.jsx  # Status display with actions
-│   │   ├── KeyInput.jsx        # Cryptographic key input form
-│   │   ├── InputPane.jsx       # JSON input textarea
-│   │   ├── InspectorPane.jsx   # Tabbed inspector container
-│   │   ├── InspectorView.jsx   # Main tree view for vCon structure
-│   │   ├── TimelineView.jsx    # Dialog timeline visualization
-│   │   ├── RawView.jsx         # Raw JSON display with formatting
-│   │   ├── TreeNode.jsx        # Reusable collapsible tree component
-│   │   ├── PartyLink.jsx       # Interactive party reference links
-│   │   ├── Footer.jsx          # Site footer with privacy info
-│   │   └── VConInspector.jsx   # Main orchestrating component
-│   ├── hooks/
-│   │   └── useVconState.js     # Custom hook for vCon state management
-│   ├── utils/
-│   │   └── vconValidator.js    # Validation and parsing utilities
-│   ├── data/
-│   │   └── sampleData.js       # Sample vCon data for testing
-│   ├── App.jsx                 # Root application component
-│   ├── main.jsx                # Application entry point
-│   └── index.css               # Global styles and Tailwind imports
-├── index.html                  # HTML template
-├── package.json                # Dependencies and scripts
-├── vite.config.js              # Vite build configuration
-├── tailwind.config.js          # Tailwind CSS configuration
-├── postcss.config.js           # PostCSS configuration
-└── README.md                   # This file
+├── docs/                       # Production site files (served by GitHub Pages)
+│   ├── index.html             # Main HTML structure
+│   ├── css/
+│   │   └── styles.css         # Compiled Tailwind CSS styles
+│   ├── js/
+│   │   ├── main.js            # Application entry point
+│   │   ├── state-manager.js   # Custom state management system
+│   │   ├── vcon-validator.js  # Pure vCon validation logic
+│   │   ├── sample-data.js     # Sample vCon data for testing
+│   │   └── components/
+│   │       ├── inspector-tree.js    # Tree view component
+│   │       ├── timeline-view.js     # Timeline visualization
+│   │       ├── validation-status.js # Status bar component
+│   │       └── tab-manager.js       # Tab switching logic
+│   └── shield.svg             # App icon
+├── CLAUDE.md                  # Development guidelines for AI assistants
+└── README.md                  # This file
 ```
 
 ### Technology Stack
 
-- **Frontend Framework**: React 18 with JSX
-- **Build Tool**: Vite (fast builds, hot module replacement)
-- **Styling**: Tailwind CSS (utility-first CSS framework)
-- **Icons**: Lucide React (consistent icon library)
+- **Frontend**: Pure vanilla JavaScript with ES6 modules
+- **Styling**: Tailwind CSS (utility-first CSS framework)  
+- **Icons**: Lucide icons (inline SVG)
+- **State Management**: Custom event-driven state system
 - **Deployment**: GitHub Pages with GitHub Actions
-- **Package Manager**: Bun
+- **Dependencies**: Zero external dependencies
 
 ### Design Patterns
 
-- **Component Composition**: Small, focused components that compose into larger features
-- **Custom Hooks**: Logic extraction using React hooks for reusability
+- **Modular Architecture**: ES6 modules for clean separation of concerns
+- **Event-Driven State**: Custom state management with subscribe/notify pattern
+- **Component Classes**: Reusable component classes with lifecycle methods
 - **Separation of Concerns**: Clear separation between UI, logic, and data
-- **Prop Drilling Avoidance**: State management through custom hooks
-- **Functional Components**: Modern React with hooks (no class components)
+- **Progressive Enhancement**: Works without JavaScript, enhanced with it
 
 ## Component Documentation
 
 ### Core Components
 
-#### `VConInspector.jsx` - Main Application
-The root component that orchestrates the entire application. It uses the `useVconState` hook to manage state and renders all major UI sections.
+#### `main.js` - Application Entry Point
+The main application controller that initializes all components and coordinates the overall application lifecycle.
 
 **Key Responsibilities:**
-- State management coordination
-- Layout structure
-- Event handling delegation
+- Component initialization and coordination
+- Sample data loading
+- Global event handler setup
+- Application state orchestration
 
-#### `Header.jsx` - Site Header
-Displays the application title, tagline, and navigation links.
+#### `state-manager.js` - State Management System
+Custom state management system that replaces React hooks with an event-driven architecture.
 
-**Props:** None (static component)
 **Features:**
-- Shield icon with app branding
-- Navigation links to IETF drafts and documentation
-- Responsive design
+- Event-driven state updates with subscribe/notify pattern
+- Automatic validation on input changes
+- State persistence and synchronization
+- Debounced input handling for performance
 
-#### `ValidationStatusBar.jsx` - Status Display
+**Key Methods:**
+- `subscribe(property, callback)`: Listen to state changes
+- `setInput(value)`: Update input with validation
+- `setActiveTab(tab)`: Switch between inspector tabs
+- `toggleNode(nodeKey)`: Expand/collapse tree nodes
+
+#### `validation-status.js` - Status Display Component
 Shows the current validation status of the input vCon and provides action buttons for cryptographic operations.
-
-**Props:**
-- `validationStatus`: Current validation state ('idle', 'valid', 'invalid')
-- `vconType`: Detected vCon type ('unsigned', 'signed', 'encrypted')
-- `showKeyInput`: Boolean for key input visibility
-- `setShowKeyInput`: Function to toggle key input
 
 **Features:**
 - Color-coded status indicators
-- Context-aware action buttons
+- Context-aware action buttons  
 - Signature verification and decryption triggers
+- Real-time validation feedback
 
-#### `InputPane.jsx` - JSON Input Area
-Provides a textarea for users to paste vCon data with syntax highlighting and formatting.
-
-**Props:**
-- `input`: Current input text
-- `setInput`: Function to update input text
-
-**Features:**
-- Monospace font for JSON readability
-- Auto-resize functionality
-- Placeholder text with format hints
-
-#### `InspectorPane.jsx` - Tabbed Inspector
-Container component that manages the tabbed interface for different views of vCon data.
-
-**Props:**
-- `activeTab`: Currently selected tab
-- `setActiveTab`: Function to change active tab
-- `vconData`: Parsed vCon data object
-- `vconType`: Type of vCon being displayed
-- `validationStatus`: Current validation state
-- `expandedNodes`: Set of expanded tree nodes
-- `toggleNode`: Function to toggle node expansion
-- `selectedParty`: Currently selected party index
-- `setSelectedParty`: Function to select a party
+#### `tab-manager.js` - Tabbed Interface Controller
+Manages the tabbed interface for different views of vCon data with automatic content switching.
 
 **Tabs:**
 - **Inspector**: Interactive tree view of vCon structure
 - **Timeline**: Visual timeline of dialog events
-- **Raw**: Formatted JSON display
+- **Raw**: Formatted JSON display with syntax highlighting
+
+**Features:**
+- Dynamic tab content loading
+- State-aware tab activation
+- Syntax highlighting for raw JSON view
 
 ### Specialized Components
 
-#### `TreeNode.jsx` - Collapsible Tree Structure
-Reusable component for creating expandable/collapsible tree structures.
-
-**Props:**
-- `label`: Display text for the node
-- `children`: Child nodes/content
-- `icon`: Lucide icon component
-- `nodeKey`: Unique identifier for expansion state
-- `expandedNodes`: Set of expanded nodes
-- `toggleNode`: Function to toggle expansion
+#### `inspector-tree.js` - Interactive Tree View
+Creates expandable/collapsible tree structures for visualizing vCon data hierarchy.
 
 **Features:**
-- Chevron indicators for expand/collapse state
-- Icon support for visual hierarchy
+- Expandable/collapsible tree nodes
+- Icon-based visual hierarchy
+- Party reference linking
 - Hover effects and accessibility
+- Real-time tree state management
 
-#### `PartyLink.jsx` - Interactive Party References
-Displays party references with hover interactions for highlighting relationships.
-
-**Props:**
-- `parties`: Array of party indices
-- `setSelectedParty`: Function to highlight a party
+#### `timeline-view.js` - Dialog Timeline Visualization
+Visualizes the chronological flow of dialog events in a conversation with advanced filtering.
 
 **Features:**
-- Hover highlighting of referenced parties
-- Visual indication of party relationships
-- Click/hover interactions
-
-#### `TimelineView.jsx` - Dialog Timeline
-Visualizes the chronological flow of dialog events in a conversation.
-
-**Props:**
-- `vconData`: Complete vCon data object
-
-**Features:**
-- Chronological event ordering
+- Chronological event ordering by timestamps
 - Visual timeline with connecting lines
-- Party participation indicators
-- Duration and timestamp display
+- Party participation indicators and filtering
+- Duration and metadata display
+- Content preview with truncation
+- Type-based color coding for different dialog types
 
 ## State Management
 
-### `useVconState.js` - Custom Hook
-Centralized state management for the entire vCon inspector application.
+### `state-manager.js` - Custom State System
+Event-driven state management system that provides centralized application state without external dependencies.
 
 **State Variables:**
 ```javascript
@@ -252,9 +189,9 @@ Centralized state management for the entire vCon inspector application.
   vconData: object|null,      // Parsed vCon data
   
   // UI state
-  activeTab: string,          // Current inspector tab
+  activeTab: string,          // Current inspector tab ('inspector', 'timeline', 'raw')
   expandedNodes: Set,         // Expanded tree nodes
-  selectedParty: number|null, // Highlighted party
+  selectedParty: number|null, // Highlighted party for filtering
   
   // Validation
   validationStatus: string,   // 'idle' | 'valid' | 'invalid'
@@ -267,14 +204,18 @@ Centralized state management for the entire vCon inspector application.
 }
 ```
 
-**Effects:**
-- **Format Detection**: Automatically detects vCon type from input
-- **Validation**: Real-time validation of JSON structure
-- **Sample Data**: Loads sample vCon on application start
+**Event System:**
+- **Subscribe/Notify Pattern**: Components subscribe to state changes
+- **Automatic Validation**: Input changes trigger validation and parsing
+- **Debounced Updates**: Input handling is debounced for performance
+- **State Persistence**: Maintains state across user interactions
 
-**Functions:**
-- `toggleNode(nodeKey)`: Toggles expansion state of tree nodes
-- All state setters for controlled components
+**Key Methods:**
+- `subscribe(property, callback)`: Register listener for state changes
+- `setInput(value)`: Update input with automatic validation
+- `setActiveTab(tab)`: Switch between inspector tabs
+- `toggleNode(nodeKey)`: Toggle tree node expansion state
+- `getState(property)`: Get current value of state property
 
 ## Utilities
 
@@ -349,112 +290,78 @@ Custom Tailwind configuration extends the default theme:
 ## Deployment
 
 ### Automatic GitHub Pages Deployment
-The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically builds and deploys the application when changes are pushed to the main branch.
+The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically deploys the application when changes are pushed to the main branch.
 
 **Workflow Steps:**
-1. **Checkout**: Retrieves the latest code
-2. **Setup Bun**: Installs Bun and caches dependencies
-3. **Install**: Runs `bun install` for clean dependency installation
-4. **Build**: Executes `bun run build` to create production assets
-5. **Deploy**: Uses `peaceiris/actions-gh-pages` to deploy to GitHub Pages
+1. **Checkout**: Retrieves the latest code from the repository
+2. **Deploy**: Directly deploys the `docs/` directory to GitHub Pages
 
 **Configuration:**
-- **Trigger**: Push to main branch or pull requests
-- **Build Output**: `./dist` directory
+- **Trigger**: Push to main branch
+- **Source Directory**: `./docs/` directory (no build step required)
 - **Base Path**: Configured for GitHub Pages subdirectory deployment
 
 ### Manual Deployment
 For manual deployment or other hosting services:
 
 ```bash
-# Build production assets
-bun run build
+# Copy docs/ contents to your hosting service
+cp -r docs/* /path/to/webserver/
 
-# Deploy to GitHub Pages (requires gh-pages package)
-bun run deploy
-
-# Or copy ./dist contents to your hosting service
+# Or serve directly with any static file server
+python3 -m http.server 8080 --directory docs/
+npx serve docs/
 ```
 
 ### Environment Configuration
-The Vite configuration (`vite.config.js`) includes:
-- **Base Path**: `/vcon-info/` for GitHub Pages compatibility
-- **Asset Directory**: `assets/` for organized build output
-- **Development Server**: Port 3000 with auto-open browser
+The application is configured for GitHub Pages deployment:
+- **Base Path**: Automatically detects GitHub Pages subdirectory structure
+- **Static Assets**: All assets are included in the `docs/` directory
+- **Zero Dependencies**: No build process or external dependencies required
 
 ## Contributing
 
 ### Development Setup
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally
-3. **Install** dependencies with `bun install`
-4. **Create** a feature branch: `git checkout -b feature/your-feature-name`
-5. **Develop** your changes with `bun dev`
+3. **Create** a feature branch: `git checkout -b feature/your-feature-name`
+4. **Develop** your changes by editing files in `docs/`
+5. **Test** locally with a static file server
 6. **Test** thoroughly with various vCon formats
-7. **Build** to ensure production compatibility: `bun run build`
-8. **Commit** your changes with descriptive messages
-9. **Push** to your fork and create a pull request
+7. **Commit** your changes with descriptive messages
+8. **Push** to your fork and create a pull request
 
 ### Code Style Guidelines
-- **Components**: Use functional components with hooks
-- **Naming**: PascalCase for components, camelCase for functions/variables
-- **File Organization**: One component per file, co-locate related utilities
-- **Props**: Use object destructuring and provide PropTypes/TypeScript types
+- **Components**: Use ES6 classes with clear lifecycle methods
+- **Naming**: PascalCase for classes, camelCase for functions/variables
+- **File Organization**: One component per file, modular imports/exports
+- **State Management**: Use the central state manager for all shared state
 - **Styling**: Prefer Tailwind utility classes over custom CSS
-- **State**: Use custom hooks for complex state logic
+- **Events**: Use event delegation and the state manager's event system
 
 ### Adding New Features
 
 #### Adding a New Inspector Tab
-1. Create a new view component in `src/components/`
-2. Add the tab button to `InspectorPane.jsx`
-3. Include the view in the conditional rendering logic
-4. Update the `activeTab` state management
+1. Create a new view component class in `docs/js/components/`
+2. Add the tab button to the HTML in `index.html`
+3. Register the new tab in `tab-manager.js`
+4. Update the state manager to handle the new tab type
 
 #### Adding New vCon Format Support
-1. Update `detectVconType()` in `vconValidator.js`
+1. Update `detectVconType()` in `vcon-validator.js`
 2. Add validation logic to `validateVcon()`
-3. Update the UI to handle the new format
-4. Add sample data for testing
+3. Update the UI components to handle the new format
+4. Add sample data for testing in `sample-data.js`
 
 #### Extending Validation Rules
-1. Modify `validateVcon()` function
+1. Modify `validateVcon()` function in `vcon-validator.js`
 2. Add specific error messages and status types
-3. Update the UI to display new validation states
-4. Test with various edge cases
+3. Update validation status component to display new states
+4. Test with various edge cases and malformed input
 
 ### Testing Strategy
 
-This project uses **Vitest** with **React Testing Library** for fast, reliable testing.
-
-#### Quick Testing Commands
-```bash
-# Run tests in watch mode (recommended for development)
-bun test
-
-# Run tests once (CI mode)
-bun test:run
-
-# Generate coverage report with HTML output
-bun test:coverage
-
-# Open interactive test UI in browser
-bun test:ui
-```
-
-#### Current Test Coverage
-- ✅ **17/17 utility tests passing** for vCon validation functions
-- ✅ **Format detection** for unsigned, signed, and encrypted vCons
-- ✅ **JSON validation** and parsing with error handling
-- ✅ **vCon structure validation** against specification
-- 🚧 **Component testing** (planned expansion)
-- 🚧 **Integration testing** (planned expansion)
-
-#### Test Performance
-- **Lightning fast**: Current test suite runs in ~8ms
-- **Hot reload**: Tests automatically rerun on file changes
-- **Coverage tracking**: Built-in HTML coverage reports
-- **CI ready**: Deterministic results for continuous integration
+This project uses manual testing and browser-based validation for quality assurance.
 
 #### Manual Testing Guidelines
 - **Sample Data Testing**: Use provided sample data and real vCon structures
@@ -462,8 +369,32 @@ bun test:ui
 - **Error Testing**: Verify graceful handling of malformed input
 - **Responsive Testing**: Ensure mobile and desktop compatibility
 - **Performance Testing**: Test with large vCon structures
+- **Cross-browser Testing**: Verify compatibility across modern browsers
 
-See [TESTING.md](./TESTING.md) for detailed testing documentation, examples, and expansion plans.
+#### Browser Console Testing
+The application provides console debugging tools:
+```javascript
+// Load sample data
+vconApp.loadSample()              // Unsigned vCon
+vconApp.loadSample('signed')      // JWS signed vCon
+
+// Debug application state
+vconApp.getAppState()             // Current app state
+console.log(stateManager.state)   // Raw state object
+
+// Test validation functions
+import('./js/vcon-validator.js').then(validator => {
+  console.log(validator.validateVcon(yourVconString));
+});
+```
+
+#### Testing Checklist
+- ✅ **Format Detection**: Validates unsigned, signed, and encrypted vCons
+- ✅ **JSON Validation**: Handles malformed JSON gracefully
+- ✅ **vCon Structure Validation**: Validates against vCon v0.3.0 specification
+- ✅ **Interactive Features**: Tree expansion, tab switching, party filtering
+- ✅ **Responsive Design**: Mobile and desktop layouts
+- ✅ **Error Handling**: Graceful degradation for all error states
 
 ## License
 
@@ -475,6 +406,5 @@ MIT License - see LICENSE file for details
 
 - **vCon Specification**: [IETF vCon Working Group](https://datatracker.ietf.org/wg/vcon/about/)
 - **JWT.io**: [JWT.io](https://jwt.io/) - Inspiration for this tool
-- **React Documentation**: [React.dev](https://react.dev/)
 - **Tailwind CSS**: [TailwindCSS.com](https://tailwindcss.com/)
-- **Vite**: [Vitejs.dev](https://vitejs.dev/)
+- **MDN Web Docs**: [JavaScript Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)

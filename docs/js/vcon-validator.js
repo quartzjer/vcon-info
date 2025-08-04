@@ -1,3 +1,6 @@
+// Pure JavaScript vCon validation utilities
+// Extracted from React version - no dependencies
+
 export const detectVconType = (input) => {
   if (!input.trim()) return null;
   

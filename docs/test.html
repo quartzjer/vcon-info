@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>vCon Vanilla Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #333; }
+        .pass { border-color: green; }
+        .fail { border-color: red; }
+        .info { color: #888; }
+    </style>
+</head>
+<body>
+    <h1>🧪 vCon Vanilla JS Test Suite</h1>
+    <div id="test-results"></div>
+    
+    <script type="module">
+        import { detectVconType, validateVcon, parseVcon } from './js/vcon-validator.js';
+        import { sampleVcon, sampleJWS } from './js/sample-data.js';
+        
+        const results = document.getElementById('test-results');
+        
+        function addTest(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${name}</strong>
+                ${details ? `<div class="info">${details}</div>` : ''}
+            `;
+            results.appendChild(div);
+        }
+        
+        // Test 1: vCon Type Detection
+        const unsignedType = detectVconType(JSON.stringify(sampleVcon));
+        const signedType = detectVconType(JSON.stringify(sampleJWS));
+        addTest('vCon Type Detection', 
+            unsignedType === 'unsigned' && signedType === 'signed',
+            `Unsigned: ${unsignedType}, Signed: ${signedType}`
+        );
+        
+        // Test 2: vCon Validation
+        const unsignedValidation = validateVcon(JSON.stringify(sampleVcon));
+        const signedValidation = validateVcon(JSON.stringify(sampleJWS));
+        addTest('vCon Validation',
+            unsignedValidation.status === 'valid' && signedValidation.status === 'valid',
+            `Unsigned: ${unsignedValidation.status}, Signed: ${signedValidation.status}`
+        );
+        
+        // Test 3: vCon Parsing
+        const parsedUnsigned = parseVcon(JSON.stringify(sampleVcon));
+        addTest('vCon Parsing',
+            parsedUnsigned && parsedUnsigned.vcon === '0.3.0',
+            `Parsed version: ${parsedUnsigned?.vcon}`
+        );
+        
+        // Test 4: Error Handling
+        const invalidValidation = validateVcon('{"invalid": "json"}');
+        addTest('Error Handling',
+            invalidValidation.status === 'invalid' && invalidValidation.errors,
+            `Status: ${invalidValidation.status}, Errors: ${invalidValidation.errors?.length || 0}`
+        );
+        
+        // Test 5: Sample Data Structure
+        addTest('Sample Data Structure',
+            sampleVcon.parties && sampleVcon.dialog && sampleVcon.uuid,
+            `Parties: ${sampleVcon.parties?.length}, Dialog: ${sampleVcon.dialog?.length}`
+        );
+        
+        console.log('🧪 All tests completed. Check the page for results.');
+        
+        // Dynamic module loading test
+        try {
+            const { stateManager } = await import('./js/state-manager.js');
+            addTest('State Manager Loading', 
+                stateManager && typeof stateManager.setInput === 'function',
+                'State manager loaded and functional'
+            );
+        } catch (error) {
+            addTest('State Manager Loading', false, `Error: ${error.message}`);
+        }
+    </script>
+</body>
+</html>
