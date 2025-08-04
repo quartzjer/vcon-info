@@ -14,36 +14,72 @@ const JsonHighlighter = ({ jsonText }) => {
     if (!text) return text;
 
     try {
-      // Simple regex-based highlighting for better performance
       let highlighted = text;
 
-      // Highlight section names with their respective colors
+      // First apply general JSON syntax highlighting
+      // Highlight strings (but exclude keys for now)
+      highlighted = highlighted.replace(
+        /:\s*("(?:[^"\\]|\\.)*")/g,
+        ': <span class="text-green-200">$1</span>'
+      );
+
+      // Highlight numbers
+      highlighted = highlighted.replace(
+        /:\s*(-?\d+\.?\d*(?:[eE][+-]?\d+)?)\b/g,
+        ': <span class="text-yellow-300">$1</span>'
+      );
+
+      // Highlight booleans
+      highlighted = highlighted.replace(
+        /:\s*(true|false)\b/g,
+        ': <span class="text-orange-300">$1</span>'
+      );
+
+      // Highlight null
+      highlighted = highlighted.replace(
+        /:\s*(null)\b/g,
+        ': <span class="text-red-300">$1</span>'
+      );
+
+      // Highlight object/array keys (all quoted strings before colons)
+      highlighted = highlighted.replace(
+        /("(?:[^"\\]|\\.)*")(\s*:)/g,
+        '<span class="text-blue-200">$1</span><span class="text-gray-400">$2</span>'
+      );
+
+      // Highlight structural characters
+      highlighted = highlighted.replace(
+        /([{}[\],])/g,
+        '<span class="text-gray-400">$1</span>'
+      );
+
+      // Now apply special highlighting for vCon section names with their colors
       Object.keys(sectionColors).forEach(section => {
         const colorClass = sectionColors[section];
-        const regex = new RegExp(`("${section}")(\\s*:)`, 'g');
+        const regex = new RegExp(`<span class="text-blue-200">("${section}")</span>`, 'g');
         highlighted = highlighted.replace(
           regex, 
-          `<span class="${colorClass} font-semibold">$1</span><span class="${colorClass}/60">$2</span>`
+          `<span class="${colorClass} font-semibold">$1</span>`
         );
       });
 
-      // Add subtle coloring to the content within each section
+      // Apply subtle section content coloring
       Object.keys(sectionColors).forEach(section => {
         const colorClass = sectionColors[section];
         
         // Match section content - from "section": [ to the closing ]
         const sectionRegex = new RegExp(
-          `("${section}"\\s*:\\s*\\[)([\\s\\S]*?)(\\](?=\\s*[,}]))`, 
+          `(<span class="${colorClass} font-semibold">"${section}"</span><span class="text-gray-400">\\s*:\\s*</span><span class="text-gray-400">\\[</span>)([\\s\\S]*?)(<span class="text-gray-400">\\]</span>(?=\\s*<span class="text-gray-400">[,}]</span>))`, 
           'g'
         );
         
         highlighted = highlighted.replace(sectionRegex, (match, start, content, end) => {
-          // Color the content lightly
+          // Apply section-specific tinting to strings within this section
           const coloredContent = content.replace(
-            /("([^"\\]|\\.)*")/g, 
-            `<span class="${colorClass}/40">$1</span>`
+            /<span class="text-green-200">("[^"]*")<\/span>/g, 
+            `<span class="text-green-200 ${colorClass}/60">$1</span>`
           );
-          return `<span class="${colorClass}/60">${start}</span>${coloredContent}<span class="${colorClass}/60">${end}</span>`;
+          return `${start}${coloredContent}${end}`;
         });
       });
 
