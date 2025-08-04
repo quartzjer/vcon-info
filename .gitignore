@@ -106,3 +106,8 @@ Thumbs.db
 
 # Bun specific
 .bun/
+bun.lockb
+
+# Test outputs
+test-results/
+*.junit.xml

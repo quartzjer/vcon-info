@@ -1,0 +1,20 @@
+{
+  "name": "vcon-info",
+  "version": "1.0.0",
+  "description": "vCon Info - Developer tool for vCon standards",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "test:unit": "bun test --testNamePattern='Unit'",
+    "test:integration": "bun test --testNamePattern='Integration'",
+    "test:watch": "bun test --watch",
+    "serve": "bun run --bun serve.js",
+    "test:ci": "bun test --reporter=junit --coverage"
+  },
+  "devDependencies": {
+    "puppeteer": "^21.0.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
