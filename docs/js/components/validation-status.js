@@ -1,5 +1,8 @@
-// Validation Status Component - Vanilla JS replacement for React ValidationStatusBar
+// Validation Status Component - Refactored with constants and utilities
 import { stateManager } from '../state-manager.js';
+import { VALIDATION_STATUS, VCON_TYPES, STATUS_COLORS, VCON_TYPE_STYLES } from '../constants.js';
+import { createIcon } from '../utils/dom.js';
+import { ICONS } from '../constants.js';
 
 export class ValidationStatus {
   constructor() {
@@ -29,43 +32,39 @@ export class ValidationStatus {
     // Key input toggle button
     this.keyInputToggle.addEventListener('click', () => {
       const currentShow = stateManager.getState('showKeyInput');
-      stateManager.setShowKeyInput(!currentShow);
+      stateManager.updateShowKeyInput(!currentShow);
     });
   }
 
   updateStatus(result) {
     const { status, errors } = result;
+    const colors = STATUS_COLORS[status] || STATUS_COLORS[VALIDATION_STATUS.IDLE];
     
-    // Update indicator color and status text
+    // Update indicator and text using constants
+    this.statusIndicator.className = `w-3 h-3 rounded-full ${colors.indicator}`;
+    this.statusText.className = `text-sm ${colors.text}`;
+    
     switch (status) {
-      case 'idle':
-        this.statusIndicator.className = 'w-3 h-3 rounded-full bg-gray-600';
+      case VALIDATION_STATUS.IDLE:
         this.statusText.textContent = 'Ready';
-        this.statusText.className = 'text-sm text-gray-400';
         break;
         
-      case 'valid':
-        this.statusIndicator.className = 'w-3 h-3 rounded-full bg-green-500';
+      case VALIDATION_STATUS.VALID:
         this.statusText.textContent = 'Valid vCon';
-        this.statusText.className = 'text-sm text-green-300';
         break;
         
-      case 'invalid':
-        this.statusIndicator.className = 'w-3 h-3 rounded-full bg-red-500';
+      case VALIDATION_STATUS.INVALID:
         const errorCount = errors ? errors.length : 0;
         this.statusText.textContent = `Invalid - ${errorCount} error${errorCount !== 1 ? 's' : ''}`;
-        this.statusText.className = 'text-sm text-red-400';
         
-        // Show detailed errors in tooltip or expandable area
+        // Show detailed errors in tooltip
         if (errors && errors.length > 0) {
           this.statusText.title = errors.join('\n');
         }
         break;
         
       default:
-        this.statusIndicator.className = 'w-3 h-3 rounded-full bg-gray-600';
         this.statusText.textContent = 'Unknown status';
-        this.statusText.className = 'text-sm text-gray-400';
     }
   }
 
@@ -79,31 +78,32 @@ export class ValidationStatus {
     // Show the badge
     this.vconTypeBadge.classList.remove('hidden');
     
-    // Update badge content and styling
+    const typeStyle = VCON_TYPE_STYLES[type];
+    if (typeStyle) {
+      this.vconTypeBadge.textContent = typeStyle.text;
+      this.vconTypeBadge.className = `px-2 py-1 rounded text-xs ${typeStyle.classes}`;
+    } else {
+      this.vconTypeBadge.textContent = type;
+      this.vconTypeBadge.className = 'px-2 py-1 rounded text-xs bg-gray-700 text-gray-300';
+    }
+    
+    // Update key input toggle based on type
     switch (type) {
-      case 'unsigned':
-        this.vconTypeBadge.textContent = 'Unsigned';
-        this.vconTypeBadge.className = 'px-2 py-1 rounded text-xs bg-gray-700 text-gray-300';
+      case VCON_TYPES.UNSIGNED:
         this.keyInputToggle.classList.add('hidden');
         break;
         
-      case 'signed':
-        this.vconTypeBadge.textContent = 'JWS Signed';
-        this.vconTypeBadge.className = 'px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300';
+      case VCON_TYPES.SIGNED:
         this.keyInputToggle.classList.remove('hidden');
-        this.keyInputToggle.innerHTML = '🔐 Verify';
+        this.keyInputToggle.innerHTML = `${createIcon(ICONS.LOCK, 'w-4 h-4 inline mr-1')} Verify`;
         break;
         
-      case 'encrypted':
-        this.vconTypeBadge.textContent = 'JWE Encrypted';
-        this.vconTypeBadge.className = 'px-2 py-1 rounded text-xs bg-purple-500/20 text-purple-300';
+      case VCON_TYPES.ENCRYPTED:
         this.keyInputToggle.classList.remove('hidden');
-        this.keyInputToggle.innerHTML = '🔓 Decrypt';
+        this.keyInputToggle.innerHTML = `${createIcon(ICONS.UNLOCK, 'w-4 h-4 inline mr-1')} Decrypt`;
         break;
         
       default:
-        this.vconTypeBadge.textContent = type;
-        this.vconTypeBadge.className = 'px-2 py-1 rounded text-xs bg-gray-700 text-gray-300';
         this.keyInputToggle.classList.add('hidden');
     }
   }

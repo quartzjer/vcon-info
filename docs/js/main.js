@@ -29,13 +29,9 @@ class VConApp {
   setupInputHandlers() {
     const inputTextarea = document.getElementById('input-textarea');
     
-    // Input change handler with debouncing
-    let inputTimeout;
+    // Input change handler - debouncing now handled by state manager
     inputTextarea.addEventListener('input', (e) => {
-      clearTimeout(inputTimeout);
-      inputTimeout = setTimeout(() => {
-        stateManager.setInput(e.target.value);
-      }, 300); // 300ms debounce
+      stateManager.updateInput(e.target.value);
     });
 
     // Set initial value
@@ -55,12 +51,12 @@ class VConApp {
 
     // Public key input handler
     publicKeyInput.addEventListener('input', (e) => {
-      stateManager.setPublicKey(e.target.value);
+      stateManager.updatePublicKey(e.target.value);
     });
 
     // Private key input handler
     privateKeyInput.addEventListener('input', (e) => {
-      stateManager.setPrivateKey(e.target.value);
+      stateManager.updatePrivateKey(e.target.value);
     });
 
     // Listen for programmatic key changes
@@ -81,7 +77,7 @@ class VConApp {
   loadSample(type = 'unsigned') {
     import('./sample-data.js').then(({ sampleVcon, sampleJWS }) => {
       const sampleData = type === 'signed' ? sampleJWS : sampleVcon;
-      stateManager.setInput(JSON.stringify(sampleData, null, 2));
+      stateManager.updateInput(JSON.stringify(sampleData, null, 2));
     });
   }
 

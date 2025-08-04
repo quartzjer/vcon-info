@@ -1,19 +1,19 @@
-// Vanilla JS State Management System
-// Replaces React hooks with event-driven state management
+// Refactored State Management System with consistent naming and separation of concerns
 
-import { detectVconType, validateVcon, parseVcon } from './vcon-validator.js';
-import { sampleVcon } from './sample-data.js';
+import { validationService } from './services/validation-service.js';
+import { TABS, DEFAULT_EXPANDED_NODES, VALIDATION_STATUS, VCON_TYPES } from './constants.js';
+import { debounce } from './utils/dom.js';
 
 class StateManager {
   constructor() {
-    // Initialize state similar to React hook
+    // Initialize state with consistent naming
     this.state = {
       input: '',
-      activeTab: 'inspector',
-      expandedNodes: new Set(['parties', 'dialog', 'analysis', 'attachments']),
+      activeTab: TABS.INSPECTOR,
+      expandedNodes: new Set(DEFAULT_EXPANDED_NODES),
       selectedParty: null,
-      validationResult: { status: 'idle' },
-      vconType: 'unsigned',
+      validationResult: { status: VALIDATION_STATUS.IDLE },
+      vconType: VCON_TYPES.UNSIGNED,
       showKeyInput: false,
       publicKey: '',
       privateKey: '',
@@ -34,7 +34,8 @@ class StateManager {
       vconData: []
     };
     
-    // Sample data will be loaded by main.js after components are ready
+    // Debounced validation to improve performance
+    this._debouncedValidation = debounce(this._performValidation.bind(this), 300);
   }
   
   // Subscribe to state changes
@@ -65,23 +66,23 @@ class StateManager {
     return key ? this.state[key] : this.state;
   }
   
-  // State setters with validation and notification
-  setInput(value) {
+  // State setters with consistent naming and improved validation
+  updateInput(value) {
     const oldValue = this.state.input;
     this.state.input = value;
     this.notify('input', value, oldValue);
     
-    // Auto-validate on input change (like useEffect in React)
-    this.validateInput();
+    // Use debounced validation for better performance
+    this._debouncedValidation();
   }
   
-  setActiveTab(value) {
+  updateActiveTab(value) {
     const oldValue = this.state.activeTab;
     this.state.activeTab = value;
     this.notify('activeTab', value, oldValue);
   }
   
-  toggleNode(node) {
+  toggleNodeExpansion(node) {
     const newExpanded = new Set(this.state.expandedNodes);
     if (newExpanded.has(node)) {
       newExpanded.delete(node);
@@ -93,34 +94,34 @@ class StateManager {
     this.notify('expandedNodes', newExpanded, oldValue);
   }
   
-  setSelectedParty(value) {
+  updateSelectedParty(value) {
     const oldValue = this.state.selectedParty;
     this.state.selectedParty = value;
     this.notify('selectedParty', value, oldValue);
   }
   
-  setShowKeyInput(value) {
+  updateShowKeyInput(value) {
     const oldValue = this.state.showKeyInput;
     this.state.showKeyInput = value;
     this.notify('showKeyInput', value, oldValue);
   }
   
-  setPublicKey(value) {
+  updatePublicKey(value) {
     const oldValue = this.state.publicKey;
     this.state.publicKey = value;
     this.notify('publicKey', value, oldValue);
   }
   
-  setPrivateKey(value) {
+  updatePrivateKey(value) {
     const oldValue = this.state.privateKey;
     this.state.privateKey = value;
     this.notify('privateKey', value, oldValue);
   }
   
-  // Auto-validation (replaces useEffect)
-  validateInput() {
-    const detectedType = detectVconType(this.state.input);
-    const result = validateVcon(this.state.input);
+  // Private validation method using the validation service
+  _performValidation() {
+    const detectedType = validationService.detectVconType(this.state.input);
+    const result = validationService.validateVcon(this.state.input);
     
     // Update vconType
     let newType = this.state.vconType;
@@ -143,8 +144,8 @@ class StateManager {
     
     // Update vconData
     let newData = null;
-    if (result.status === 'valid') {
-      newData = parseVcon(this.state.input);
+    if (result.status === VALIDATION_STATUS.VALID) {
+      newData = validationService.parseVcon(this.state.input);
     }
     
     const oldData = this.state.vconData;
@@ -152,7 +153,7 @@ class StateManager {
     this.notify('vconData', newData, oldData);
   }
   
-  // Helper methods
+  // Helper methods with consistent naming
   isNodeExpanded(node) {
     return this.state.expandedNodes.has(node);
   }
@@ -160,6 +161,15 @@ class StateManager {
   getValidationStatus() {
     return this.state.validationResult.status;
   }
+
+  // Backward compatibility methods (deprecated - use update* methods)
+  setInput(value) { this.updateInput(value); }
+  setActiveTab(value) { this.updateActiveTab(value); }
+  toggleNode(node) { this.toggleNodeExpansion(node); }
+  setSelectedParty(value) { this.updateSelectedParty(value); }
+  setShowKeyInput(value) { this.updateShowKeyInput(value); }
+  setPublicKey(value) { this.updatePublicKey(value); }
+  setPrivateKey(value) { this.updatePrivateKey(value); }
 }
 
 // Create singleton instance
