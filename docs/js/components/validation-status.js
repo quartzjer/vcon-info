@@ -108,12 +108,12 @@ export class ValidationStatus {
         
       case VCON_TYPES.SIGNED:
         this.keyInputToggle.classList.remove('hidden');
-        this.keyInputToggle.innerHTML = `${createIcon(ICONS.LOCK, 'w-4 h-4 inline mr-1')} Verify`;
+        this.keyInputToggle.innerHTML = `${createIcon(ICONS.LOCK, 'w-4 h-4 flex-shrink-0')} <span>Verify</span>`;
         break;
         
       case VCON_TYPES.ENCRYPTED:
         this.keyInputToggle.classList.remove('hidden');
-        this.keyInputToggle.innerHTML = `${createIcon(ICONS.UNLOCK, 'w-4 h-4 inline mr-1')} Decrypt`;
+        this.keyInputToggle.innerHTML = `${createIcon(ICONS.UNLOCK, 'w-4 h-4 flex-shrink-0')} <span>Decrypt</span>`;
         break;
         
       default:
