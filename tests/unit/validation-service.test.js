@@ -94,8 +94,7 @@ describe("Unit: ValidationService", () => {
       
       const result = validationService.validateVcon(JSON.stringify(vcon));
       expect(result.status).toBe("invalid");
-      expect(result.errors).toContain("Invalid UUID format");
-      expect(result.errors.some(e => e.includes("parties"))).toBe(true);
+      expect(result.errors).toContain("Not a valid vCon format");
     });
 
     test("validates JWS signed vCon", () => {

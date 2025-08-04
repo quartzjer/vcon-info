@@ -174,3 +174,6 @@ class StateManager {
 
 // Create singleton instance
 export const stateManager = new StateManager();
+
+// Also export the StateManager class for testing
+export { StateManager };
