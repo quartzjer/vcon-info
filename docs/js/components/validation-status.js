@@ -11,6 +11,13 @@ export class ValidationStatus {
     this.vconTypeBadge = document.getElementById('vcon-type-badge');
     this.keyInputToggle = document.getElementById('key-input-toggle');
     this.keyInputPanel = document.getElementById('key-input-panel');
+    this.keysHeader = document.getElementById('keys-header');
+    this.keysContent = document.getElementById('keys-content');
+    this.keysChevron = document.getElementById('keys-chevron');
+    
+    // Initialize keys content as collapsed by default
+    this.keysExpanded = false;
+    this.updateKeysCollapse();
     
     this.setupEventListeners();
   }
@@ -33,6 +40,12 @@ export class ValidationStatus {
     this.keyInputToggle.addEventListener('click', () => {
       const currentShow = stateManager.getState('showKeyInput');
       stateManager.updateShowKeyInput(!currentShow);
+    });
+
+    // Keys header click handler for collapse/expand
+    this.keysHeader.addEventListener('click', () => {
+      this.keysExpanded = !this.keysExpanded;
+      this.updateKeysCollapse();
     });
   }
 
@@ -113,6 +126,16 @@ export class ValidationStatus {
       this.keyInputPanel.classList.remove('hidden');
     } else {
       this.keyInputPanel.classList.add('hidden');
+    }
+  }
+
+  updateKeysCollapse() {
+    if (this.keysExpanded) {
+      this.keysContent.classList.remove('hidden');
+      this.keysChevron.classList.add('rotate-90');
+    } else {
+      this.keysContent.classList.add('hidden');
+      this.keysChevron.classList.remove('rotate-90');
     }
   }
 }
