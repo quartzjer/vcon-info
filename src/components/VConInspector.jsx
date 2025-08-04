@@ -30,7 +30,7 @@ const VConInspector = () => {
   } = useVconState();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
       <Header />
       
       <ValidationStatusBar 
@@ -51,8 +51,8 @@ const VConInspector = () => {
         />
       )}
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 gap-6 h-[calc(100vh-240px)]">
+      <div className="flex-1 container mx-auto px-4 py-6 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           <InputPane 
             input={input}
             setInput={setInput}
