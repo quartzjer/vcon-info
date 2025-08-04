@@ -1,7 +1,6 @@
 import React from 'react';
 import InspectorView from './InspectorView';
 import TimelineView from './TimelineView';
-import RawView from './RawView';
 
 const InspectorPane = ({ 
   activeTab, 
@@ -15,7 +14,7 @@ const InspectorPane = ({
   setSelectedParty
 }) => {
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 flex flex-col">
+    <div className="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
       <div className="p-3 border-b border-gray-700">
         <div className="flex gap-4">
           <button
@@ -29,12 +28,6 @@ const InspectorPane = ({
             onClick={() => setActiveTab('timeline')}
           >
             Timeline
-          </button>
-          <button
-            className={`px-3 py-1 rounded text-sm ${activeTab === 'raw' ? 'bg-gray-700' : ''}`}
-            onClick={() => setActiveTab('raw')}
-          >
-            Raw
           </button>
         </div>
       </div>
@@ -53,10 +46,6 @@ const InspectorPane = ({
 
         {activeTab === 'timeline' && (
           <TimelineView vconData={vconData} />
-        )}
-
-        {activeTab === 'raw' && (
-          <RawView vconData={vconData} />
         )}
       </div>
     </div>

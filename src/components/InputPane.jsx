@@ -2,7 +2,7 @@ import React from 'react';
 
 const InputPane = ({ input, setInput }) => {
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 flex flex-col">
+    <div className="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
       <div className="p-3 border-b border-gray-700">
         <h2 className="font-semibold">Input vCon</h2>
       </div>

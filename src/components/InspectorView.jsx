@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, MessageSquare, BarChart3, Paperclip, Key, Link } from 'lucide-react';
 import TreeNode from './TreeNode';
 import PartyLink from './PartyLink';
 import { sampleJWS } from '../data/sampleData';
+import { formatTimestamp } from '../utils/timeUtils';
 
 const InspectorView = ({ 
   vconData, 
@@ -12,6 +13,19 @@ const InspectorView = ({
   selectedParty, 
   setSelectedParty 
 }) => {
+  const [timestampMode, setTimestampMode] = useState('ago');
+  
+  const cycleTimestampMode = () => {
+    setTimestampMode(current => {
+      switch (current) {
+        case 'ago': return 'full';
+        case 'full': return 'unix';
+        case 'unix': return 'ago';
+        default: return 'ago';
+      }
+    });
+  };
+
   if (!vconData) return null;
 
   return (
@@ -26,6 +40,18 @@ const InspectorView = ({
           <span className="text-gray-400">UUID:</span>
           <span className="font-mono text-sm">{vconData.uuid}</span>
         </div>
+        {vconData.created_at && (
+          <div className="flex justify-between">
+            <span className="text-gray-400">Created:</span>
+            <button 
+              onClick={cycleTimestampMode}
+              className="text-sm hover:text-blue-400 cursor-pointer transition-colors duration-200"
+              title="Click to cycle between formats: relative time → full date → unix timestamp"
+            >
+              {formatTimestamp(vconData.created_at, timestampMode)}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tree View */}
