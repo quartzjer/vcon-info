@@ -30,7 +30,7 @@ const VConInspector = () => {
   } = useVconState();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
+    <div className="h-screen bg-gray-900 text-gray-100 flex flex-col">
       <Header />
       
       <ValidationStatusBar 

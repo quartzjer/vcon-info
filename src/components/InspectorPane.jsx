@@ -39,7 +39,7 @@ const InspectorPane = ({
         </div>
       </div>
       
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 p-4 min-h-0 overflow-auto">
         {activeTab === 'inspector' && validationStatus === 'valid' && (
           <InspectorView 
             vconData={vconData}
@@ -56,7 +56,9 @@ const InspectorPane = ({
         )}
 
         {activeTab === 'raw' && (
-          <RawView vconData={vconData} />
+          <div className="h-full">
+            <RawView vconData={vconData} />
+          </div>
         )}
       </div>
     </div>
