@@ -14,7 +14,7 @@
             <div class="container mx-auto px-4 py-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <svg id="shield-icon" class="w-8 h-8 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="shield-icon" class="w-8 h-8 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -31,7 +31,7 @@
         </header>
 
         <!-- Validation Status Bar -->
-        <div id="validation-status-bar" class="bg-gray-850 border-b border-gray-700 flex-shrink-0">
+        <div id="validation-status-bar" class="bg-gray-800 border-b border-gray-700 flex-shrink-0">
             <div class="container mx-auto px-4 py-2">
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
@@ -40,7 +40,10 @@
                         <span id="vcon-type-badge" class="px-2 py-1 rounded text-xs bg-gray-700 text-gray-300 hidden">Unsigned</span>
                     </div>
                     <button id="key-input-toggle" class="px-3 py-1 rounded text-xs bg-purple-600 hover:bg-purple-700 transition-colors hidden">
-                        🔐 Keys
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        Keys
                     </button>
                 </div>
             </div>
@@ -68,68 +71,82 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 container mx-auto px-4 py-6 min-h-0">
+        <main class="flex-1 container mx-auto px-4 py-6 min-h-0">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                 
                 <!-- Input Pane -->
-                <div class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
-                    <div class="p-3 border-b border-gray-700">
+                <section class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
+                    <header class="p-3 border-b border-gray-700">
                         <h2 class="font-semibold">Input vCon</h2>
-                    </div>
+                    </header>
                     <div class="flex-1">
+                        <label for="input-textarea" class="sr-only">vCon Data Input</label>
                         <textarea id="input-textarea" 
                                   class="flex-1 w-full h-full p-4 font-mono text-sm resize-none focus:outline-none overflow-auto bg-transparent" 
                                   placeholder="Paste your vCon here (unsigned, JWS, or JWE format)..." 
-                                  spellcheck="false"></textarea>
+                                  spellcheck="false"
+                                  aria-label="vCon data input field"></textarea>
                     </div>
-                </div>
+                </section>
 
                 <!-- Inspector Pane -->
-                <div class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
+                <section class="bg-gray-800 rounded-lg border border-gray-700 flex flex-col h-full">
                     
                     <!-- Tab Navigation -->
-                    <div class="border-b border-gray-700">
+                    <nav class="border-b border-gray-700" role="tablist" aria-label="vCon view tabs">
                         <div class="flex">
-                            <button id="tab-inspector" class="px-4 py-3 font-medium text-sm border-b-2 border-blue-600 text-blue-400 transition-colors">
+                            <button id="tab-inspector" 
+                                    class="px-4 py-3 font-medium text-sm border-b-2 border-blue-600 text-blue-400 transition-colors"
+                                    role="tab" 
+                                    aria-selected="true" 
+                                    aria-controls="inspector-view">
                                 Inspector
                             </button>
-                            <button id="tab-timeline" class="px-4 py-3 font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors">
+                            <button id="tab-timeline" 
+                                    class="px-4 py-3 font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors"
+                                    role="tab" 
+                                    aria-selected="false" 
+                                    aria-controls="timeline-view">
                                 Timeline
                             </button>
-                            <button id="tab-raw" class="px-4 py-3 font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors">
+                            <button id="tab-raw" 
+                                    class="px-4 py-3 font-medium text-sm border-b-2 border-transparent text-gray-400 hover:text-gray-300 transition-colors"
+                                    role="tab" 
+                                    aria-selected="false" 
+                                    aria-controls="raw-view">
                                 Raw
                             </button>
                         </div>
-                    </div>
+                    </nav>
 
                     <!-- Tab Content -->
                     <div class="flex-1 overflow-auto">
                         
                         <!-- Inspector View -->
-                        <div id="inspector-view" class="p-4">
+                        <div id="inspector-view" class="p-4" role="tabpanel" aria-labelledby="tab-inspector">
                             <div id="vcon-tree"></div>
                         </div>
 
                         <!-- Timeline View -->
-                        <div id="timeline-view" class="p-4 hidden">
+                        <div id="timeline-view" class="p-4 hidden" role="tabpanel" aria-labelledby="tab-timeline">
                             <div id="timeline-content">
                                 <p class="text-gray-400 text-sm">No timeline data available</p>
                             </div>
                         </div>
 
                         <!-- Raw View -->
-                        <div id="raw-view" class="p-4 hidden">
+                        <div id="raw-view" class="p-4 hidden" role="tabpanel" aria-labelledby="tab-raw">
                             <pre id="raw-content" class="font-mono text-xs whitespace-pre-wrap text-gray-300 leading-[1.2]"></pre>
                         </div>
 
                     </div>
-                </div>
+                </section>
 
             </div>
-        </div>
+        </main>
 
         <!-- Footer -->
-        <footer class="bg-gray-850 border-t border-gray-700 flex-shrink-0">
+        <footer class="bg-gray-800 border-t border-gray-700 flex-shrink-0">
             <div class="container mx-auto px-4 py-4">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
                     <div class="flex items-center gap-4">
@@ -137,7 +154,7 @@
                         <a href="https://datatracker.ietf.org/doc/draft-ietf-vcon-vcon-container/" class="hover:text-blue-400">vCon Spec</a>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span>Built with ❤️ for the vCon community</span>
+                        <span>Built with <svg class="w-4 h-4 inline text-red-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg> for the vCon community</span>
                     </div>
                 </div>
             </div>

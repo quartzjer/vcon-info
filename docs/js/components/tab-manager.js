@@ -1,24 +1,24 @@
-// Tab Manager Component - Vanilla JS replacement for React tab switching
+// Tab Manager Component - Refactored with constants and utilities
 import { stateManager } from '../state-manager.js';
+import { TABS } from '../constants.js';
 
 export class TabManager {
   constructor() {
     this.tabs = {
-      inspector: {
+      [TABS.INSPECTOR]: {
         button: document.getElementById('tab-inspector'),
         content: document.getElementById('inspector-view')
       },
-      timeline: {
+      [TABS.TIMELINE]: {
         button: document.getElementById('tab-timeline'),
         content: document.getElementById('timeline-view')
       },
-      raw: {
+      [TABS.RAW]: {
         button: document.getElementById('tab-raw'),
         content: document.getElementById('raw-view')
       }
     };
     
-
     this.rawContent = document.getElementById('raw-content');
     this.setupEventListeners();
     
@@ -31,7 +31,7 @@ export class TabManager {
     // Tab button click handlers
     Object.entries(this.tabs).forEach(([tabName, tab]) => {
       tab.button.addEventListener('click', () => {
-        stateManager.setActiveTab(tabName);
+        stateManager.updateActiveTab(tabName);
       });
     });
 
@@ -69,7 +69,7 @@ export class TabManager {
     const activeTab = stateManager.getState('activeTab');
     
     // Only update if raw tab is active (performance optimization)
-    if (activeTab !== 'raw') {
+    if (activeTab !== TABS.RAW) {
       return;
     }
 
