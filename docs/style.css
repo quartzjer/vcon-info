@@ -301,12 +301,14 @@ body {
 .input-tab-content {
     flex: 1;
     display: flex;
+    /* Ensure no overflow constraints */
 }
 
 .input-tab-panel {
     display: none;
     width: 100%;
     flex: 1;
+    /* Remove any height constraints to allow natural expansion */
 }
 
 .input-tab-panel.active {
@@ -326,6 +328,8 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     overflow: hidden;
+    /* Ensure minimum height but allow expansion */
+    min-height: 400px;
 }
 
 .code-textarea {
@@ -338,8 +342,10 @@ body {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.875rem;
     line-height: 1.5;
-    resize: none;
+    resize: vertical;
     outline: none;
+    /* Allow natural height expansion */
+    min-height: 400px;
 }
 
 .code-textarea::placeholder {
@@ -491,12 +497,12 @@ body {
 /* Tab Content */
 .tab-content {
     flex: 1;
-    overflow-y: auto;
+    /* Remove overflow-y: auto; to prevent internal scrolling */
 }
 
 .tab-panel {
     display: none;
-    height: 100%;
+    /* Remove height: 100%; to allow natural content expansion */
 }
 
 .tab-panel.active {
@@ -506,6 +512,7 @@ body {
 /* Inspector Styles */
 #inspector {
     padding: var(--spacing-md) 0;
+    /* Remove any height constraints */
 }
 
 .inspector-section {
@@ -773,7 +780,8 @@ body {
 .timeline-container,
 .raw-container {
     padding: var(--spacing-lg);
-    height: 100%;
+    /* Remove height: 100%; to allow natural expansion */
+    min-height: 400px;
 }
 
 .timeline-placeholder {
