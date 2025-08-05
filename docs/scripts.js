@@ -6,6 +6,8 @@ const vconInput = document.getElementById('input-textarea');
 const tabButtons = document.querySelectorAll('.tab-button');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const collapseButtons = document.querySelectorAll('.collapse-button');
+const lockButton = document.getElementById('lock-button');
+const keyPanel = document.getElementById('key-panel');
 
 // Tab Switching Functionality
 tabButtons.forEach(button => {
@@ -60,6 +62,25 @@ document.querySelectorAll('.section-header, .party-header, .dialog-header, .atta
         }
     });
 });
+
+// Lock Button Toggle Functionality
+if (lockButton && keyPanel) {
+    lockButton.addEventListener('click', () => {
+        const isExpanded = keyPanel.classList.contains('expanded');
+        
+        if (isExpanded) {
+            // Collapse the panel
+            keyPanel.classList.remove('expanded');
+            lockButton.classList.remove('active');
+            lockButton.setAttribute('aria-expanded', 'false');
+        } else {
+            // Expand the panel
+            keyPanel.classList.add('expanded');
+            lockButton.classList.add('active');
+            lockButton.setAttribute('aria-expanded', 'true');
+        }
+    });
+}
 
 // Input Change Handler (Stub for future validation)
 vconInput.addEventListener('input', () => {
