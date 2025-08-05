@@ -105,138 +105,101 @@
                 <!-- Inspector Tab -->
                 <div class="tab-panel active" id="inspector-view">
                     <div id="vcon-tree">
-                    <!-- Parties Section -->
-                    <div class="inspector-section">
-                        <div class="section-header section-parties">
-                            <button class="collapse-button">�</button>
-                            <span class="section-icon">=e</span>
-                            <span class="section-title">parties (2)</span>
-                        </div>
-                        <div class="section-content">
-                            <div class="party-item">
-                                <div class="party-header">
-                                    <button class="collapse-button">�</button>
-                                    <span class="party-index">0</span>
-                                    <span class="party-identifier">anonymous</span>
-                                </div>
-                                <div class="party-details">
-                                    <div class="detail-row">
-                                        <span class="detail-key">tel:</span>
-                                        <span class="detail-value">"+1-555-123-4567"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">name:</span>
-                                        <span class="detail-value">"Alice Johnson"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">email:</span>
-                                        <span class="detail-value">"alice@example.com"</span>
-                                    </div>
-                                </div>
+                        <!-- About Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-about">
+                                <span class="section-icon">ℹ️</span>
+                                <span class="section-title">about</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
                             </div>
-                            <div class="party-item">
-                                <div class="party-header">
-                                    <button class="collapse-button">�</button>
-                                    <span class="party-index">1</span>
-                                    <span class="party-identifier">anonymous</span>
-                                </div>
-                                <div class="party-details">
-                                    <div class="detail-row">
-                                        <span class="detail-key">tel:</span>
-                                        <span class="detail-value">"+1-555-987-6543"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">name:</span>
-                                        <span class="detail-value">"Bob Smith"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">email:</span>
-                                        <span class="detail-value">"bob@example.com"</span>
-                                    </div>
-                                </div>
+                            <div class="section-content">
+                                <!-- About content will be implemented -->
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Dialog Section -->
-                    <div class="inspector-section">
-                        <div class="section-header section-dialog">
-                            <button class="collapse-button">�</button>
-                            <span class="section-icon">=�</span>
-                            <span class="section-title">dialog (1)</span>
-                        </div>
-                        <div class="section-content">
-                            <div class="dialog-item">
-                                <div class="dialog-header">
-                                    <button class="collapse-button">�</button>
-                                    <span class="dialog-index">0</span>
-                                    <span class="dialog-type">recording</span>
-                                    <span class="dialog-badge">participant</span>
-                                </div>
-                                <div class="dialog-details">
-                                    <div class="detail-row">
-                                        <span class="detail-key">type:</span>
-                                        <span class="detail-value">"recording"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">start:</span>
-                                        <span class="detail-value">"2023-12-14T18:59:50.100Z"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">parties:</span>
-                                        <span class="detail-value">[0, 1]</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">originator:</span>
-                                        <span class="detail-value">0</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">mimetype:</span>
-                                        <span class="detail-value">"audio/wav"</span>
-                                    </div>
-                                    <div class="detail-note">
-                                        This dialog lasted less than one minute. Per the vCon standard, the end time is optional for brief exchanges.
-                                    </div>
-                                </div>
+                        <!-- Parties Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-parties">
+                                <span class="section-icon">👥</span>
+                                <span class="section-title">parties</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="section-content">
+                                <!-- Parties content will be implemented -->
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Attachments Section -->
-                    <div class="inspector-section">
-                        <div class="section-header section-attachments">
-                            <button class="collapse-button">�</button>
-                            <span class="section-icon">=�</span>
-                            <span class="section-title">attachments (1)</span>
-                        </div>
-                        <div class="section-content">
-                            <div class="attachment-item">
-                                <div class="attachment-header">
-                                    <button class="collapse-button">�</button>
-                                    <span class="attachment-index">0</span>
-                                    <span class="attachment-type">transcript</span>
-                                    <span class="attachment-badge badge-text">text/plain</span>
-                                </div>
-                                <div class="attachment-details">
-                                    <div class="detail-row">
-                                        <span class="detail-key">type:</span>
-                                        <span class="detail-value">"transcript"</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">parties:</span>
-                                        <span class="detail-value">[0, 1]</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-key">mimetype:</span>
-                                        <span class="detail-value">"text/plain"</span>
-                                    </div>
-                                    <div class="attachment-note">
-                                        This attachment contains transcript data for parties 0 and 1. The standard allows various attachment types including transcripts, analysis, and related documents.
-                                    </div>
-                                </div>
+                        <!-- Dialog Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-dialog">
+                                <span class="section-icon">💬</span>
+                                <span class="section-title">dialog</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="section-content">
+                                <!-- Dialog content will be implemented -->
                             </div>
                         </div>
-                    </div>
+
+                        <!-- Attachments Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-attachments">
+                                <span class="section-icon">📎</span>
+                                <span class="section-title">attachments</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="section-content">
+                                <!-- Attachments content will be implemented -->
+                            </div>
+                        </div>
+
+                        <!-- Analysis Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-analysis">
+                                <span class="section-icon">📊</span>
+                                <span class="section-title">analysis</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="section-content">
+                                <!-- Analysis content will be implemented -->
+                            </div>
+                        </div>
+
+                        <!-- Extensions Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-extensions">
+                                <span class="section-icon">🔧</span>
+                                <span class="section-title">extensions</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="section-content">
+                                <!-- Extensions content will be implemented -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -5,7 +5,7 @@
 const vconInput = document.getElementById('input-textarea');
 const tabButtons = document.querySelectorAll('.tab-button');
 const tabPanels = document.querySelectorAll('.tab-panel');
-const collapseButtons = document.querySelectorAll('.collapse-button');
+const panelToggles = document.querySelectorAll('.panel-toggle');
 const lockButton = document.getElementById('lock-button');
 const keyPanel = document.getElementById('key-panel');
 
@@ -34,31 +34,28 @@ tabButtons.forEach(button => {
     });
 });
 
-// Collapse/Expand Functionality
-collapseButtons.forEach(button => {
+// Panel Toggle Functionality (Eye Icon)
+panelToggles.forEach(button => {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         
-        // Toggle collapsed state
-        const isCollapsed = button.textContent === '▶';
-        button.textContent = isCollapsed ? '▼' : '▶';
-        
-        // Find the content to toggle
-        const section = button.closest('.inspector-section, .party-item, .dialog-item, .attachment-item');
-        const content = section.querySelector('.section-content, .party-details, .dialog-details, .attachment-details');
+        // Find the section and content
+        const section = button.closest('.inspector-section');
+        const content = section.querySelector('.section-content');
         
         if (content) {
-            content.style.display = isCollapsed ? 'block' : 'none';
-        }
-    });
-});
-
-// Section Header Click to Toggle
-document.querySelectorAll('.section-header, .party-header, .dialog-header, .attachment-header').forEach(header => {
-    header.addEventListener('click', () => {
-        const button = header.querySelector('.collapse-button');
-        if (button) {
-            button.click();
+            // Toggle collapsed state
+            const isCollapsed = content.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                // Expand
+                content.classList.remove('collapsed');
+                button.classList.remove('collapsed');
+            } else {
+                // Collapse
+                content.classList.add('collapsed');
+                button.classList.add('collapsed');
+            }
         }
     });
 });
@@ -258,6 +255,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         updateValidationStatus('unknown');
     }
+    
+    // Initialize panel toggles (all panels expanded by default)
+    const panelToggles = document.querySelectorAll('.panel-toggle');
+    panelToggles.forEach(button => {
+        const section = button.closest('.inspector-section');
+        const content = section.querySelector('.section-content');
+        if (content) {
+            // Start expanded (remove collapsed class if present)
+            content.classList.remove('collapsed');
+            button.classList.remove('collapsed');
+        }
+    });
 });
 
 // Export for potential module usage
