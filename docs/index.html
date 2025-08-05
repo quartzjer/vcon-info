@@ -12,7 +12,6 @@
         <div class="header-container">
             <div class="header-brand">
                 <h1 class="brand-title">vCon Info</h1>
-                <span class="brand-tagline validation-status" id="validation-status">validation: unknown</span>
             </div>
             <nav class="header-nav">
                 <a href="https://datatracker.ietf.org/group/vcon/documents/" class="nav-link" target="_blank" rel="noopener noreferrer">IETF vCon WG</a>
@@ -144,6 +143,9 @@
             <div class="tabs">
                 <button class="tab-button active" id="tab-inspector" data-tab="inspector">Inspector</button>
                 <button class="tab-button" id="tab-timeline" data-tab="timeline">Timeline</button>
+                <button class="tab-button" id="tab-validation" data-tab="validation">
+                    <span id="validation-tab-icon">Validation ❓</span>
+                </button>
             </div>
 
             <!-- Tab Content -->
@@ -362,6 +364,54 @@
                     </div>
                 </div>
 
+                <!-- Validation Tab -->
+                <div class="tab-panel" id="validation-view">
+                    <div class="validation-container">
+                        <div class="validation-header">
+                            <h2 class="validation-title">
+                                <span id="validation-status-icon">❓</span>
+                                <span id="validation-status-text">Validation Status</span>
+                            </h2>
+                            <div class="validation-summary" id="validation-summary">
+                                No vCon data to validate
+                            </div>
+                        </div>
+                        
+                        <div class="validation-details" id="validation-details">
+                            <div class="validation-section">
+                                <h3 class="validation-section-title">Schema Validation</h3>
+                                <div class="validation-item" id="schema-validation">
+                                    <span class="validation-item-icon">⏳</span>
+                                    <span class="validation-item-text">Waiting for input...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="validation-section">
+                                <h3 class="validation-section-title">Required Fields</h3>
+                                <div class="validation-item" id="required-fields">
+                                    <span class="validation-item-icon">⏳</span>
+                                    <span class="validation-item-text">Waiting for input...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="validation-section">
+                                <h3 class="validation-section-title">Data Integrity</h3>
+                                <div class="validation-item" id="data-integrity">
+                                    <span class="validation-item-icon">⏳</span>
+                                    <span class="validation-item-text">Waiting for input...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="validation-section">
+                                <h3 class="validation-section-title">Security</h3>
+                                <div class="validation-item" id="security-validation">
+                                    <span class="validation-item-icon">⏳</span>
+                                    <span class="validation-item-text">Waiting for input...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>

@@ -102,15 +102,10 @@ if (lockButton && keyPanel) {
     });
 }
 
-// Input Change Handler (Stub for future validation)
+// Input Change Handler (Updated with detailed validation)
 vconInput.addEventListener('input', () => {
-    // Future implementation:
-    // - Parse and validate vCon JSON
-    // - Update inspector view
-    // - Update timeline view
     console.log('vCon input changed');
     
-    // Update validation status (stub implementation)
     const input = vconInput.value.trim();
     if (!input) {
         updateValidationStatus('unknown');
@@ -119,14 +114,34 @@ vconInput.addEventListener('input', () => {
     
     try {
         const parsed = JSON.parse(input);
-        // Basic validation - check if it has vcon property
-        if (parsed.vcon) {
-            updateValidationStatus('good');
-        } else {
-            updateValidationStatus('warning', 'missing vcon version');
+        
+        // Perform detailed validation
+        const validationResults = performDetailedValidation(parsed);
+        
+        // Determine overall status
+        let overallStatus = 'good';
+        let message = 'vCon data is valid';
+        
+        const hasErrors = Object.values(validationResults).some(r => r.status === 'fail');
+        const hasWarnings = Object.values(validationResults).some(r => r.status === 'warning');
+        
+        if (hasErrors) {
+            overallStatus = 'fail';
+            message = 'vCon data contains validation errors';
+        } else if (hasWarnings) {
+            overallStatus = 'warning';
+            message = 'vCon data is valid but has some warnings';
         }
+        
+        updateValidationStatus(overallStatus, message, validationResults);
+        
     } catch (e) {
-        updateValidationStatus('fail', 'invalid JSON');
+        updateValidationStatus('fail', 'Invalid JSON format', {
+            schema: { status: 'fail', message: `JSON parsing error: ${e.message}` },
+            required: { status: 'pending', message: 'Cannot validate - invalid JSON' },
+            integrity: { status: 'pending', message: 'Cannot validate - invalid JSON' },
+            security: { status: 'pending', message: 'Cannot validate - invalid JSON' }
+        });
     }
 });
 
@@ -168,35 +183,161 @@ function updateInspector(vcon) {
 
 /**
  * Update validation status indicator
- * @param {string} status - Status: "unknown", "good", "warning", "fail"
+ * @param {string} status - Status: "unknown", "good", "warning", "fail"  
  * @param {string} message - Optional validation message
+ * @param {object} details - Detailed validation results
  */
-function updateValidationStatus(status = "unknown", message = "") {
-    const statusElement = document.getElementById('validation-status');
-    if (!statusElement) return;
+function updateValidationStatus(status = "unknown", message = "", details = {}) {
+    const tabIcon = document.getElementById('validation-tab-icon');
+    const statusIcon = document.getElementById('validation-status-icon');
+    const statusText = document.getElementById('validation-status-text');
+    const summary = document.getElementById('validation-summary');
+    const validationContainer = document.querySelector('.validation-container');
     
-    // Remove all status classes
-    statusElement.classList.remove('unknown', 'good', 'warning', 'fail');
+    // Update validation container class for styling
+    if (validationContainer) {
+        validationContainer.classList.remove('validation-unknown', 'validation-good', 'validation-warning', 'validation-fail');
+        validationContainer.classList.add(`validation-${status}`);
+    }
     
-    // Add the new status class
-    statusElement.classList.add(status);
+    // Icon and text mapping
+    const statusConfig = {
+        unknown: { icon: '❓', text: 'Unknown', tabText: 'Validation ❓' },
+        good: { icon: '✅', text: 'Valid', tabText: 'Validation ✅' },
+        warning: { icon: '⚠️', text: 'Warning', tabText: 'Validation ⚠️' },
+        fail: { icon: '❌', text: 'Invalid', tabText: 'Validation ❌' }
+    };
     
-    // Update the text
-    const displayMessage = message || status;
-    statusElement.textContent = `validation: ${displayMessage}`;
+    const config = statusConfig[status] || statusConfig.unknown;
+    
+    // Update tab icon
+    if (tabIcon) {
+        tabIcon.textContent = config.tabText;
+    }
+    
+    // Update status display
+    if (statusIcon) {
+        statusIcon.textContent = config.icon;
+    }
+    
+    if (statusText) {
+        statusText.textContent = `${config.text} Status`;
+    }
+    
+    if (summary) {
+        summary.textContent = message || getDefaultMessage(status);
+    }
+    
+    // Update detailed validation sections
+    updateValidationDetails(status, details);
 }
 
 /**
- * Update timeline visualization
- * @param {object} vcon - Parsed vCon object
+ * Get default message for validation status
+ * @param {string} status - Validation status
+ * @returns {string} Default message
  */
-function updateTimeline(vcon) {
-    // TODO: Implement timeline visualization
-    // - Parse dialog entries
-    // - Create timeline elements
-    // - Handle party interactions
+function getDefaultMessage(status) {
+    const messages = {
+        unknown: 'No vCon data to validate',
+        good: 'vCon data is valid and conforms to the specification',
+        warning: 'vCon data is mostly valid but has some issues',
+        fail: 'vCon data contains errors and does not conform to the specification'
+    };
+    return messages[status] || messages.unknown;
 }
 
+/**
+ * Update detailed validation sections
+ * @param {string} status - Overall validation status
+ * @param {object} details - Detailed validation results
+ */
+function updateValidationDetails(status, details = {}) {
+    const sections = {
+        'schema-validation': details.schema || { status: 'pending', message: 'Checking JSON schema compliance...' },
+        'required-fields': details.required || { status: 'pending', message: 'Validating required fields...' },
+        'data-integrity': details.integrity || { status: 'pending', message: 'Checking data consistency...' },
+        'security-validation': details.security || { status: 'pending', message: 'Validating signatures and encryption...' }
+    };
+    
+    Object.entries(sections).forEach(([sectionId, sectionData]) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            const icon = element.querySelector('.validation-item-icon');
+            const text = element.querySelector('.validation-item-text');
+            
+            if (icon && text) {
+                const iconMap = {
+                    pending: '⏳',
+                    good: '✅',
+                    warning: '⚠️',
+                    fail: '❌'
+                };
+                
+                icon.textContent = iconMap[sectionData.status] || '⏳';
+                text.textContent = sectionData.message || 'Processing...';
+            }
+        }
+    });
+}
+
+/**
+ * Perform detailed validation of vCon data
+ * @param {object} vcon - Parsed vCon object
+ * @returns {object} Detailed validation results
+ */
+function performDetailedValidation(vcon) {
+    const results = {};
+    
+    // Schema validation
+    if (vcon.vcon) {
+        results.schema = { status: 'good', message: `Valid vCon v${vcon.vcon} format detected` };
+    } else {
+        results.schema = { status: 'fail', message: 'Missing required "vcon" version field' };
+    }
+    
+    // Required fields validation
+    const requiredFields = ['uuid', 'created_at'];
+    const missingFields = requiredFields.filter(field => !vcon[field]);
+    
+    if (missingFields.length === 0) {
+        results.required = { status: 'good', message: 'All required fields present' };
+    } else {
+        results.required = { status: 'fail', message: `Missing required fields: ${missingFields.join(', ')}` };
+    }
+    
+    // Data integrity validation
+    let integrityIssues = [];
+    
+    if (vcon.parties && vcon.dialog) {
+        // Check if dialog references valid party indices
+        vcon.dialog.forEach((dialog, index) => {
+            if (dialog.parties) {
+                const invalidParties = dialog.parties.filter(p => p >= vcon.parties.length);
+                if (invalidParties.length > 0) {
+                    integrityIssues.push(`Dialog ${index} references invalid party indices: ${invalidParties.join(', ')}`);
+                }
+            }
+        });
+    }
+    
+    if (integrityIssues.length === 0) {
+        results.integrity = { status: 'good', message: 'Data integrity checks passed' };
+    } else {
+        results.integrity = { status: 'warning', message: integrityIssues[0] }; // Show first issue
+    }
+    
+    // Security validation
+    if (vcon.signatures) {
+        results.security = { status: 'warning', message: 'Signatures present but not verified (provide public key)' };
+    } else if (vcon.encrypted) {
+        results.security = { status: 'warning', message: 'Encrypted content detected but not decrypted' };
+    } else {
+        results.security = { status: 'good', message: 'No security features detected' };
+    }
+    
+    return results;
+}
 
 // State Manager for test compatibility
 const stateManager = {

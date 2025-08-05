@@ -88,20 +88,12 @@ body {
     font-size: 0.875rem;
 }
 
-.validation-status.unknown {
-    color: var(--validation-unknown);
-}
-
-.validation-status.good {
-    color: var(--validation-good);
-}
-
-.validation-status.warning {
-    color: var(--validation-warning);
-}
-
+/* Remove validation status styles from header */
+.validation-status.unknown,
+.validation-status.good,
+.validation-status.warning,
 .validation-status.fail {
-    color: var(--validation-fail);
+    /* Remove these styles */
 }
 
 .header-nav {
@@ -808,6 +800,104 @@ body {
 
 .footer-link:hover {
     color: var(--text-primary);
+}
+
+/* Validation Tab Styles */
+.validation-container {
+    padding: var(--spacing-lg);
+    min-height: 400px;
+}
+
+.validation-header {
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.validation-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+#validation-status-icon {
+    font-size: 1.5rem;
+}
+
+.validation-summary {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.validation-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.validation-section {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: var(--spacing-md);
+}
+
+.validation-section-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.validation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.validation-item-icon {
+    font-size: 1rem;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.validation-item-text {
+    color: var(--text-secondary);
+}
+
+/* Validation tab icon colors */
+#validation-tab-icon,
+#validation-status-icon {
+    transition: all 0.2s ease;
+}
+
+.validation-unknown #validation-tab-icon,
+.validation-unknown #validation-status-icon {
+    filter: grayscale(1);
+}
+
+.validation-good #validation-tab-icon,
+.validation-good #validation-status-icon {
+    /* Green checkmark styling handled by emoji */
+}
+
+.validation-warning #validation-tab-icon,
+.validation-warning #validation-status-icon {
+    /* Warning emoji styling */
+}
+
+.validation-fail #validation-tab-icon,
+.validation-fail #validation-status-icon {
+    /* Error emoji styling */
 }
 
 /* Responsive Design */
