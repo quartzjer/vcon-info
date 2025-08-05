@@ -4,117 +4,123 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-vCon Info is a static developer tool for vCon standards - similar to JWT.io for OAUTH/JOSE. It allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures with support for unsigned, JWS signed, and JWE encrypted formats. Built with pure vanilla JavaScript for maximum performance and zero dependencies.
+vCon Info is a static developer tool for vCon standards - similar to JWT.io for OAUTH/JOSE. It allows developers to decode, inspect, and validate vCon (Virtual Conversation) data structures. Built as a simple vanilla JavaScript application with zero runtime dependencies.
 
 ## Development Commands
 
-**Important**: This is a static vanilla JavaScript project with zero dependencies. No build process is required.
+**Important**: This is a simple static website with zero runtime dependencies. Uses Bun for development and testing.
 
 ### Primary Commands
-- `python3 -m http.server 8080 --directory docs/` - Start development server on http://localhost:8080
-- `npx serve docs/` - Alternative static file server
-- No installation or build commands needed - just serve the `docs/` directory
+- `bun install` - Install test dependencies (Puppeteer)
+- `bun run serve` - Start Bun development server on http://localhost:8080
+- `bun test` - Run integration tests with Puppeteer
+- `bun test:watch` - Run tests in watch mode
+- Alternative static servers: `python3 -m http.server 8080 --directory docs/` or `npx serve docs/`
 
 ### Testing
-- Manual testing with browser developer tools
-- Use sample data and real vCon structures for validation
-- Browser console provides debugging utilities
+- Integration tests with Bun + Puppeteer in `tests/integration/`
+- Manual testing in browser with sample data
+- Screenshot testing for visual regression
+- Console testing with `vconApp` and `stateManager` global objects
 
 ### Deployment
-- Direct deployment of `docs/` directory to any static hosting
-- Automatic deployment via GitHub Actions on push to main branch
+- GitHub Pages deployment via `.github/workflows/deploy.yml`
+- Automatic deployment on push to main branch
+- Serves `docs/` directory directly
 
 ## Technology Stack
 
-- **Frontend**: Pure vanilla JavaScript with ES6 modules
-- **Styling**: Tailwind CSS utility-first framework
-- **Icons**: Lucide icons (inline SVG)
-- **State Management**: Custom event-driven state system
-- **Dependencies**: Zero external dependencies
+- **Frontend**: Pure vanilla JavaScript (single file application)
+- **Styling**: Custom CSS with responsive design
+- **Testing**: Bun test runner with Puppeteer browser automation
+- **Development**: Bun for development server and package management  
+- **Runtime Dependencies**: Zero (Puppeteer only for testing)
 - **Deployment**: GitHub Pages with GitHub Actions
 
 ## Architecture Overview
 
-### Core State Management
-The application uses a custom event-driven state management system:
-- `state-manager.js` - Central state manager with subscribe/notify pattern
-- All components subscribe to state changes and update accordingly
-- Automatic validation and parsing on input changes
+Simple single-page application with minimal architecture:
 
-### Component Structure
-- `main.js` - Application entry point and coordinator
-- `validation-status.js` - Real-time validation status display
-- `tab-manager.js` - Tabbed interface controller (Inspector/Timeline/Raw views)
-- `inspector-tree.js` - Interactive tree view component
-- `timeline-view.js` - Dialog timeline visualization
+### File Structure
+- `docs/index.html` - Main HTML with embedded vCon sample data and UI structure
+- `docs/scripts.js` - All JavaScript functionality in one file
+- `docs/style.css` - Custom CSS styling
+- `serve.js` - Bun development server
+- `tests/` - Integration test configuration
 
-### Data Flow
-1. User input → StateManager updates
-2. Automatic validation via `vcon-validator.js` utilities
-3. State changes trigger component updates via event system
-4. Interactive components (tree expansion, party selection) update shared state
+### Application Logic
+- **Tab Management**: Switch between Inspector and Timeline views
+- **UI Interactions**: Collapsible sections with expand/collapse functionality
+- **Input Processing**: Basic JSON parsing and validation stubs
+- **Sample Data**: Built-in vCon examples for testing and demonstration
+- **Test Compatibility**: Global objects (`vconApp`, `stateManager`) for testing
 
-## Key Utilities
+## Key Functions
 
-### vCon Validation (`docs/js/vcon-validator.js`)
-- `detectVconType(input)` - Detects 'unsigned', 'signed', or 'encrypted' vCon formats
-- `validateVcon(input)` - Comprehensive validation against vCon v0.3.0 specification
-- `parseVcon(input)` - Safe JSON parsing with error handling
+### Core Functions (in `docs/scripts.js`)
+- `parseVcon(input)` - Basic JSON parsing with error handling
+- `updateInspector(vcon)` - Placeholder for inspector updates (stub)
+- `updateValidationStatus(isValid, message)` - Validation status updates (stub) 
+- `updateTimeline(vcon)` - Timeline visualization updates (stub)
 
-### Sample Data (`docs/js/sample-data.js`)
-- Provides realistic sample vCon data for testing
-- Includes unsigned vCon and JWS signature examples
-- Used for demonstration and validation testing
+### Global Objects
+- `vconApp.loadSample()` - Load sample vCon data into textarea
+- `stateManager.updateInput(value)` - Update input and trigger validation
+- Sample vCon data embedded directly in `vconApp.loadSample()` function
 
 ## Development Patterns
 
-### Component Style
-- ES6 classes with clear lifecycle methods
-- Event-driven architecture with custom events
-- Tailwind utility classes over custom CSS
-- Inline SVG icons for consistent visual language
+### Code Style
+- Vanilla JavaScript with clear, readable functions
+- Event listeners for DOM interactions
+- Simple state management with basic objects
+- CSS classes for styling, no framework dependencies
 
-### State Management
-- Central StateManager class with subscribe/notify pattern
-- Event-driven updates avoid tight coupling
-- Set-based state for UI elements (expanded nodes)
-- Immutable state updates with validation
+### UI Patterns
+- Tab switching with active state management
+- Collapsible sections with toggle functionality
+- Event delegation for click handlers
+- Dynamic content updates via DOM manipulation
 
 ### File Organization
-- One component per file with kebab-case naming
-- Components organized in `docs/js/components/`
-- Utilities separated from UI components
-- Sample data isolated in `docs/js/sample-data.js`
+- Single HTML file with embedded structure and sample data
+- Single JavaScript file with all functionality
+- Single CSS file with custom styles
+- Test files organized in `tests/` directory
 
 ## vCon Format Support
 
-The application handles three vCon formats:
-1. **Unsigned vCon**: Direct JSON with `vcon` and `uuid` properties
-2. **Signed vCon (JWS)**: Contains `payload` and `signatures` 
-3. **Encrypted vCon (JWE)**: Contains `ciphertext` and `protected`
-
-Format detection is automatic via JSON structure analysis in `detectVconType()`.
+The application provides a foundation for vCon format support:
+1. **Sample Data**: Contains example unsigned vCon with standard properties
+2. **Input Processing**: Basic JSON parsing for any vCon format
+3. **UI Structure**: Inspector view designed to display vCon data hierarchically
+4. **Extensible Design**: Stub functions ready for validation logic implementation
 
 ## Configuration Files
 
-- `docs/index.html` - Main HTML structure and entry point
-- `docs/css/styles.css` - Compiled Tailwind CSS with custom extensions
-- `.github/workflows/deploy.yml` - GitHub Actions deployment configuration
-- No build configuration needed - static files only
+- `docs/index.html` - Main HTML structure with embedded sample data
+- `docs/style.css` - Custom CSS styling
+- `docs/scripts.js` - All JavaScript application logic
+- `package.json` - Bun dependencies and test scripts
+- `serve.js` - Development server configuration
+- `.github/workflows/deploy.yml` - GitHub Actions deployment
+- `tests/` - Integration test suite configuration
 
-## Deployment Configuration
+## Testing Framework
 
-- GitHub Pages deployment via `.github/workflows/deploy.yml`
-- Base path configured for GitHub Pages subdirectory structure
-- Automatic builds on main branch pushes
-- Manual deployment available via `bun run deploy`
+- **Bun Test Runner**: Uses Bun's built-in test runner
+- **Puppeteer Integration**: Browser automation for end-to-end testing
+- **Test Coverage**: Page load, input validation, tab navigation, UI interactions
+- **Screenshot Testing**: Visual regression testing with snapshot generation
+- **CI Integration**: Tests run automatically via GitHub Actions
 
 ## Development Tips
 
-- Use sample data from `docs/js/sample-data.js` for testing
-- Validation is real-time - changes reflect immediately
-- Tree expansion state persists across tab switches
-- All vCon processing happens client-side (no server required)
-- Browser console provides debugging utilities with `vconApp` global object
-- Use developer tools to inspect state: `console.log(stateManager.state)`
-- Load sample data via console: `vconApp.loadSample()` or `vconApp.loadSample('signed')`
+- Use `bun run serve` for local development server
+- Run `bun test` to validate changes with integration tests
+- Sample data available via `vconApp.loadSample()` in browser console
+- All processing happens client-side (no server required)
+- Global objects `vconApp` and `stateManager` available for debugging
+- UI state preserved during development (tab selection, collapsed sections)
+- Test new features by adding to `tests/integration/app-integration.test.js`
+- Visual changes can be verified with screenshot tests in `tests/snapshot.png`
