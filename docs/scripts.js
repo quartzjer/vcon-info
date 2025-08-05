@@ -193,8 +193,11 @@ function parseVcon(input) {
  * @param {object} result - Processed vCon result from VConProcessor
  */
 function updateInspectorPanels(result) {
-    // Update About section
-    updateAboutPanel(result.metadata);
+    // Update Metadata section
+    updateMetadataPanel(result.metadata);
+    
+    // Update Relationships section
+    updateRelationshipsPanel(result.metadata);
     
     // Update Parties section
     updatePartiesPanel(result.parties);
@@ -213,53 +216,178 @@ function updateInspectorPanels(result) {
 }
 
 /**
- * Update About panel with metadata
+ * Update Metadata panel with metadata
  */
-function updateAboutPanel(metadata) {
-    const section = document.querySelector('.section-about').parentElement;
+function updateMetadataPanel(metadata) {
+    const section = document.querySelector('.section-metadata').parentElement;
     const content = section.querySelector('.section-content');
     
     const html = `
-        <div class="vcon-metadata">
-            <div class="metadata-item">
-                <span class="metadata-label">Version:</span>
-                <span class="metadata-value">${escapeHtml(metadata.version)}</span>
+        <div class="content-placeholder">
+            <div class="detail-row">
+                <span class="detail-key">vCon Version:</span>
+                <span class="detail-value"><code>${escapeHtml(metadata.version || 'Unknown')}</code></span>
             </div>
-            <div class="metadata-item">
-                <span class="metadata-label">UUID:</span>
-                <span class="metadata-value uuid">${escapeHtml(metadata.uuid)}</span>
+            <div class="detail-row">
+                <span class="detail-key">UUID:</span>
+                <span class="detail-value"><code>${escapeHtml(metadata.uuid || 'Not specified')}</code></span>
             </div>
-            <div class="metadata-item">
-                <span class="metadata-label">Created:</span>
-                <span class="metadata-value">${metadata.created ? metadata.created.display : 'Not specified'}</span>
+            <div class="detail-row">
+                <span class="detail-key">Created At:</span>
+                <span class="detail-value">${metadata.created ? metadata.created.display : 'Not specified'}</span>
             </div>
-            ${metadata.updated ? `
-            <div class="metadata-item">
-                <span class="metadata-label">Updated:</span>
-                <span class="metadata-value">${metadata.updated.display}</span>
-            </div>` : ''}
-            ${metadata.subject ? `
-            <div class="metadata-item">
-                <span class="metadata-label">Subject:</span>
-                <span class="metadata-value">${escapeHtml(metadata.subject)}</span>
-            </div>` : ''}
-            <div class="metadata-item">
-                <span class="metadata-label">Type:</span>
-                <span class="metadata-value">${metadata.type}</span>
+            <div class="detail-row">
+                <span class="detail-key">Updated At:</span>
+                <span class="detail-value">${metadata.updated ? metadata.updated.display : 'Not specified'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Subject:</span>
+                <span class="detail-value">${metadata.subject ? escapeHtml(metadata.subject) : '<em>Not specified</em>'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-key">Must Support Extensions:</span>
+                <span class="detail-value">${metadata.must_support && metadata.must_support.length > 0 
+                    ? metadata.must_support.map(ext => `<code>${escapeHtml(ext)}</code>`).join(', ') 
+                    : '<em>None</em>'}</span>
             </div>
             ${metadata.redacted ? `
-            <div class="metadata-item redacted-info">
-                <span class="metadata-label">Redacted from:</span>
-                <span class="metadata-value">${escapeHtml(metadata.redacted.uuid)}</span>
+            <div class="detail-row">
+                <span class="detail-key">Redacted From:</span>
+                <span class="detail-value"><code>${escapeHtml(metadata.redacted.uuid)}</code></span>
             </div>` : ''}
             ${metadata.appended ? `
-            <div class="metadata-item appended-info">
-                <span class="metadata-label">Appended to:</span>
-                <span class="metadata-value">${escapeHtml(metadata.appended.uuid)}</span>
+            <div class="detail-row">
+                <span class="detail-key">Appended To:</span>
+                <span class="detail-value"><code>${escapeHtml(metadata.appended.uuid)}</code></span>
             </div>` : ''}
         </div>
     `;
     
+    content.innerHTML = html;
+}
+
+/**
+ * Update Relationships panel with vCon relationship information
+ */
+function updateRelationshipsPanel(metadata) {
+    const section = document.querySelector('.section-relationships').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    let html = '<div class="content-placeholder">';
+    
+    // Determine relationship type and display appropriate content
+    if (metadata.redacted) {
+        html += `
+            <div class="relationship-info">
+                <div class="relationship-type">
+                    <span class="relationship-badge badge-redacted">Redacted vCon</span>
+                </div>
+                <div class="relationship-details">
+                    <div class="detail-row">
+                        <span class="detail-key">Type:</span>
+                        <span class="detail-value">Redacted from original vCon</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-key">Original UUID:</span>
+                        <span class="detail-value"><span class="uuid-display">${escapeHtml(metadata.redacted.uuid)}</span></span>
+                    </div>
+                    ${metadata.redacted.type ? `
+                    <div class="detail-row">
+                        <span class="detail-key">Redaction Type:</span>
+                        <span class="detail-value">${escapeHtml(metadata.redacted.type)}</span>
+                    </div>` : ''}
+                    ${metadata.redacted.url ? `
+                    <div class="detail-row">
+                        <span class="detail-key">Original URL:</span>
+                        <span class="detail-value">
+                            <a href="${escapeHtml(metadata.redacted.url)}" class="relationship-link" target="_blank">
+                                View Original
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+                                </svg>
+                            </a>
+                        </span>
+                    </div>` : ''}
+                </div>
+            </div>
+        `;
+    } else if (metadata.appended) {
+        html += `
+            <div class="relationship-info">
+                <div class="relationship-type">
+                    <span class="relationship-badge badge-appended">Appended vCon</span>
+                </div>
+                <div class="relationship-details">
+                    <div class="detail-row">
+                        <span class="detail-key">Type:</span>
+                        <span class="detail-value">Appended to vCon chain</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-key">Previous UUID:</span>
+                        <span class="detail-value"><span class="uuid-display">${escapeHtml(metadata.appended.uuid)}</span></span>
+                    </div>
+                    ${metadata.appended.url ? `
+                    <div class="detail-row">
+                        <span class="detail-key">Previous URL:</span>
+                        <span class="detail-value">
+                            <a href="${escapeHtml(metadata.appended.url)}" class="relationship-link" target="_blank">
+                                View Previous
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+                                </svg>
+                            </a>
+                        </span>
+                    </div>` : ''}
+                </div>
+            </div>
+        `;
+    } else if (metadata.group) {
+        html += `
+            <div class="relationship-info">
+                <div class="relationship-type">
+                    <span class="relationship-badge badge-group">Group vCon</span>
+                </div>
+                <div class="relationship-details">
+                    <div class="detail-row">
+                        <span class="detail-key">Type:</span>
+                        <span class="detail-value">Member of vCon group</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-key">Group Size:</span>
+                        <span class="detail-value">${metadata.group.count} vCons</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-key">Group Members:</span>
+                        <span class="detail-value">
+                            ${metadata.group.uuids.map(uuid => `
+                                <div class="uuid-display" style="margin-bottom: 4px;">${escapeHtml(uuid)}</div>
+                            `).join('')}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="relationship-info">
+                <div class="relationship-type">
+                    <span class="relationship-badge badge-standard">Standard vCon</span>
+                </div>
+                <div class="relationship-details">
+                    <div class="detail-row">
+                        <span class="detail-key">Type:</span>
+                        <span class="detail-value">Standard (no relationships)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-key">Description:</span>
+                        <span class="detail-value">This vCon is not part of any redaction, append, or group relationships</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
     content.innerHTML = html;
 }
 

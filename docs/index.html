@@ -165,10 +165,10 @@
                 <!-- Inspector Tab -->
                 <div class="tab-panel active" id="inspector-view">
                     <div id="vcon-tree">
-                        <!-- About Section -->
+                        <!-- Metadata Section -->
                         <div class="inspector-section">
-                            <div class="section-header section-about">
-                                <span class="section-title">About</span>
+                            <div class="section-header section-metadata">
+                                <span class="section-title">Metadata</span>
                                 <button class="panel-toggle" aria-label="Toggle section">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
@@ -177,11 +177,57 @@
                             </div>
                             <div class="section-content">
                                 <div class="content-placeholder">
-                                    <p><span class="highlight">vCon version:</span> <code>0.3.0</code></p>
-                                    <p><span class="highlight">UUID:</span> <code>018972cc-8ddb-7ccc-baa5-ec2a4e6c7d0d</code></p>
-                                    <p><span class="highlight">Created:</span> December 14, 2023 at 6:59 PM UTC</p>
-                                    <p><span class="highlight">Updated:</span> December 14, 2023 at 7:00 PM UTC</p>
-                                    <p>This vCon contains a recorded conversation between 2 parties with associated transcript attachments.</p>
+                                    <div class="detail-row">
+                                        <span class="detail-key">vCon Version:</span>
+                                        <span class="detail-value"><code>0.3.0</code></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">UUID:</span>
+                                        <span class="detail-value"><code>018972cc-8ddb-7ccc-baa5-ec2a4e6c7d0d</code></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">Created At:</span>
+                                        <span class="detail-value">December 14, 2023 at 6:59 PM UTC</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">Updated At:</span>
+                                        <span class="detail-value">December 14, 2023 at 7:00 PM UTC</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">Subject:</span>
+                                        <span class="detail-value"><em>Not specified</em></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">Must Support Extensions:</span>
+                                        <span class="detail-value"><em>None</em></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Relationships Section -->
+                        <div class="inspector-section">
+                            <div class="section-header section-relationships">
+                                <span class="section-title">Relationships</span>
+                                <button class="panel-toggle" aria-label="Toggle section">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="section-content">
+                                <div class="content-placeholder">
+                                    <div class="relationship-info">
+                                        <div class="relationship-type">
+                                            <span class="relationship-badge badge-standard">Standard vCon</span>
+                                        </div>
+                                        <div class="relationship-details">
+                                            <div class="detail-row">
+                                                <span class="detail-key">Type:</span>
+                                                <span class="detail-value">Standard (no relationships)</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

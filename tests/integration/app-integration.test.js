@@ -262,7 +262,7 @@ describe("Integration: App Integration", () => {
       // Ensure we're on inspector tab
       await page.click('#tab-inspector');
 
-      const sections = ['about', 'parties', 'dialog', 'attachments', 'analysis', 'extensions'];
+      const sections = ['metadata', 'relationships', 'parties', 'dialog', 'attachments', 'analysis', 'extensions'];
       
       for (const section of sections) {
         // Check that section header exists
