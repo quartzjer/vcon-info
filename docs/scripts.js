@@ -66,9 +66,27 @@ vconInput.addEventListener('input', () => {
     // Future implementation:
     // - Parse and validate vCon JSON
     // - Update inspector view
-    // - Update validation status
     // - Update timeline view
     console.log('vCon input changed');
+    
+    // Update validation status (stub implementation)
+    const input = vconInput.value.trim();
+    if (!input) {
+        updateValidationStatus('unknown');
+        return;
+    }
+    
+    try {
+        const parsed = JSON.parse(input);
+        // Basic validation - check if it has vcon property
+        if (parsed.vcon) {
+            updateValidationStatus('good');
+        } else {
+            updateValidationStatus('warning', 'missing vcon version');
+        }
+    } catch (e) {
+        updateValidationStatus('fail', 'invalid JSON');
+    }
 });
 
 // Helper Functions (Stubs for future implementation)
@@ -100,14 +118,22 @@ function updateInspector(vcon) {
 
 /**
  * Update validation status indicator
- * @param {boolean} isValid - Validation result
- * @param {string} message - Validation message
+ * @param {string} status - Status: "unknown", "good", "warning", "fail"
+ * @param {string} message - Optional validation message
  */
-function updateValidationStatus(isValid, message) {
-    // TODO: Implement validation status update
-    // - Update status icon
-    // - Update status text
-    // - Update status color
+function updateValidationStatus(status = "unknown", message = "") {
+    const statusElement = document.getElementById('validation-status');
+    if (!statusElement) return;
+    
+    // Remove all status classes
+    statusElement.classList.remove('unknown', 'good', 'warning', 'fail');
+    
+    // Add the new status class
+    statusElement.classList.add(status);
+    
+    // Update the text
+    const displayMessage = message || status;
+    statusElement.textContent = `validation: ${displayMessage}`;
 }
 
 /**
@@ -206,6 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeTab = document.querySelector('.tab-button.active');
     if (activeTab) {
         activeTab.classList.add('border-blue-600');
+    }
+    
+    // Initialize validation status with current textarea content
+    if (vconInput && vconInput.value.trim()) {
+        vconInput.dispatchEvent(new Event('input'));
+    } else {
+        updateValidationStatus('unknown');
     }
 });
 
