@@ -293,6 +293,7 @@ body {
 .input-tab-content {
     flex: 1;
     display: flex;
+    margin-top: var(--spacing-md);
     /* Ensure no overflow constraints */
 }
 
