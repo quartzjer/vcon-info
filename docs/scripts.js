@@ -632,53 +632,170 @@ function updateValidationDetails(status, details = {}) {
  */
 function performDetailedValidation(vcon) {
     const results = {};
+    const errors = [];
+    const warnings = [];
     
-    // Schema validation
-    if (vcon.vcon) {
-        results.schema = { status: 'good', message: `Valid vCon v${vcon.vcon} format detected` };
-    } else {
+    // 1. Schema validation - check vcon version
+    if (!vcon.vcon) {
+        errors.push('Missing required "vcon" version field');
         results.schema = { status: 'fail', message: 'Missing required "vcon" version field' };
-    }
-    
-    // Required fields validation
-    const requiredFields = ['uuid', 'created_at'];
-    const missingFields = requiredFields.filter(field => !vcon[field]);
-    
-    if (missingFields.length === 0) {
-        results.required = { status: 'good', message: 'All required fields present' };
+    } else if (vcon.vcon !== '0.3.0') {
+        warnings.push(`vCon version ${vcon.vcon} may not be fully supported (expected 0.3.0)`);
+        results.schema = { status: 'warning', message: `vCon version ${vcon.vcon} detected (expected 0.3.0)` };
     } else {
-        results.required = { status: 'fail', message: `Missing required fields: ${missingFields.join(', ')}` };
+        results.schema = { status: 'good', message: 'Valid vCon v0.3.0 format' };
     }
     
-    // Data integrity validation
-    let integrityIssues = [];
+    // 2. Required fields validation
+    const requiredFields = {
+        'uuid': 'Unique identifier for the vCon',
+        'created_at': 'Creation timestamp',
+        'parties': 'Array of conversation participants'
+    };
     
-    if (vcon.parties && vcon.dialog) {
-        // Check if dialog references valid party indices
-        vcon.dialog.forEach((dialog, index) => {
-            if (dialog.parties) {
-                const invalidParties = dialog.parties.filter(p => p >= vcon.parties.length);
-                if (invalidParties.length > 0) {
-                    integrityIssues.push(`Dialog ${index} references invalid party indices: ${invalidParties.join(', ')}`);
-                }
+    const missingRequired = [];
+    Object.entries(requiredFields).forEach(([field, description]) => {
+        if (!vcon[field]) {
+            missingRequired.push(`${field} (${description})`);
+            errors.push(`Missing required field: ${field}`);
+        }
+    });
+    
+    if (missingRequired.length === 0) {
+        // Additional validation for required fields
+        let fieldErrors = [];
+        
+        // Validate UUID format
+        if (vcon.uuid && !isValidUUID(vcon.uuid)) {
+            fieldErrors.push('Invalid UUID format');
+            warnings.push('UUID should be a valid UUID format');
+        }
+        
+        // Validate created_at is RFC3339 date
+        if (vcon.created_at && !isValidRFC3339Date(vcon.created_at)) {
+            fieldErrors.push('created_at must be RFC3339 date format');
+            errors.push('created_at must be in RFC3339 date format');
+        }
+        
+        // Validate parties is non-empty array
+        if (vcon.parties) {
+            if (!Array.isArray(vcon.parties)) {
+                fieldErrors.push('parties must be an array');
+                errors.push('parties must be an array');
+            } else if (vcon.parties.length === 0) {
+                fieldErrors.push('parties array cannot be empty');
+                warnings.push('parties array should not be empty');
+            } else {
+                // Validate each party object
+                vcon.parties.forEach((party, index) => {
+                    const partyErrors = validatePartyObject(party, index);
+                    fieldErrors = fieldErrors.concat(partyErrors.errors);
+                    warnings.push(...partyErrors.warnings);
+                });
             }
-        });
+        }
+        
+        if (fieldErrors.length === 0) {
+            results.required = { status: 'good', message: 'All required fields are valid' };
+        } else {
+            results.required = { status: 'warning', message: fieldErrors.join('; ') };
+        }
+    } else {
+        results.required = { 
+            status: 'fail', 
+            message: `Missing: ${missingRequired.map(f => f.split(' (')[0]).join(', ')}` 
+        };
+    }
+    
+    // 3. Data integrity validation
+    const integrityIssues = [];
+    
+    // Check mutually exclusive fields
+    const mutuallyExclusive = ['redacted', 'appended', 'group'];
+    const presentExclusive = mutuallyExclusive.filter(field => vcon[field]);
+    if (presentExclusive.length > 1) {
+        integrityIssues.push(`Mutually exclusive fields present: ${presentExclusive.join(', ')}`);
+        errors.push(`Fields ${presentExclusive.join(', ')} are mutually exclusive`);
+    }
+    
+    // Validate optional date fields
+    if (vcon.updated_at && !isValidRFC3339Date(vcon.updated_at)) {
+        integrityIssues.push('updated_at must be RFC3339 date format');
+        errors.push('updated_at must be in RFC3339 date format');
+    }
+    
+    // Validate extensions and must_support arrays
+    if (vcon.extensions && !Array.isArray(vcon.extensions)) {
+        integrityIssues.push('extensions must be an array');
+        errors.push('extensions must be an array of strings');
+    }
+    
+    if (vcon.must_support && !Array.isArray(vcon.must_support)) {
+        integrityIssues.push('must_support must be an array');
+        errors.push('must_support must be an array of strings');
+    }
+    
+    // Validate dialog array if present
+    if (vcon.dialog) {
+        if (!Array.isArray(vcon.dialog)) {
+            integrityIssues.push('dialog must be an array');
+            errors.push('dialog must be an array');
+        } else {
+            vcon.dialog.forEach((dialog, index) => {
+                const dialogErrors = validateDialogObject(dialog, index, vcon.parties ? vcon.parties.length : 0);
+                integrityIssues.push(...dialogErrors.errors);
+                warnings.push(...dialogErrors.warnings);
+            });
+        }
+    }
+    
+    // Validate analysis array if present
+    if (vcon.analysis) {
+        if (!Array.isArray(vcon.analysis)) {
+            integrityIssues.push('analysis must be an array');
+            errors.push('analysis must be an array');
+        } else {
+            vcon.analysis.forEach((analysis, index) => {
+                const analysisErrors = validateAnalysisObject(analysis, index);
+                integrityIssues.push(...analysisErrors.errors);
+                warnings.push(...analysisErrors.warnings);
+            });
+        }
+    }
+    
+    // Validate attachments array if present
+    if (vcon.attachments) {
+        if (!Array.isArray(vcon.attachments)) {
+            integrityIssues.push('attachments must be an array');
+            errors.push('attachments must be an array');
+        } else {
+            vcon.attachments.forEach((attachment, index) => {
+                const attachmentErrors = validateAttachmentObject(attachment, index);
+                integrityIssues.push(...attachmentErrors.errors);
+                warnings.push(...attachmentErrors.warnings);
+            });
+        }
     }
     
     if (integrityIssues.length === 0) {
-        results.integrity = { status: 'good', message: 'Data integrity checks passed' };
+        results.integrity = { status: 'good', message: 'Data structure integrity validated' };
+    } else if (errors.length > integrityIssues.length / 2) {
+        results.integrity = { status: 'fail', message: integrityIssues[0] };
     } else {
-        results.integrity = { status: 'warning', message: integrityIssues[0] }; // Show first issue
+        results.integrity = { status: 'warning', message: integrityIssues[0] };
     }
     
-    // Security validation
-    if (vcon.signatures) {
-        results.security = { status: 'warning', message: 'Signatures present but not verified (provide public key)' };
-    } else if (vcon.encrypted) {
-        results.security = { status: 'warning', message: 'Encrypted content detected but not decrypted' };
+    // 4. Security validation
+    if (vcon.signatures || vcon.payload) {
+        results.security = { status: 'pending', message: 'Signed/encrypted vCon validation not yet implemented' };
     } else {
-        results.security = { status: 'good', message: 'No security features detected' };
+        results.security = { status: 'good', message: 'Unsigned vCon - no security validation required' };
     }
+    
+    // Determine overall status
+    results.overallStatus = errors.length > 0 ? 'fail' : (warnings.length > 0 ? 'warning' : 'good');
+    results.errors = errors;
+    results.warnings = warnings;
     
     return results;
 }
@@ -963,6 +1080,299 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize examples functionality
     initializeExamples();
 });
+
+/**
+ * Validate UUID format
+ * @param {string} uuid - UUID string to validate
+ * @returns {boolean} True if valid UUID
+ */
+function isValidUUID(uuid) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+}
+
+/**
+ * Validate RFC3339 date format
+ * @param {string} dateStr - Date string to validate
+ * @returns {boolean} True if valid RFC3339 date
+ */
+function isValidRFC3339Date(dateStr) {
+    // RFC3339 format: YYYY-MM-DDTHH:mm:ss.sssZ or ±HH:MM
+    const rfc3339Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:\d{2})$/;
+    if (!rfc3339Regex.test(dateStr)) {
+        return false;
+    }
+    // Also check if it's a valid date
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+}
+
+/**
+ * Validate Party object according to spec
+ * @param {object} party - Party object to validate
+ * @param {number} index - Index in parties array
+ * @returns {object} Object with errors and warnings arrays
+ */
+function validatePartyObject(party, index) {
+    const errors = [];
+    const warnings = [];
+    
+    // At least one identifier should be present
+    const identifiers = ['tel', 'sip', 'mailto', 'name', 'did', 'uuid'];
+    const hasIdentifier = identifiers.some(id => party[id]);
+    
+    if (!hasIdentifier) {
+        warnings.push(`Party ${index} has no identifying information`);
+    }
+    
+    // Validate tel URL if present
+    if (party.tel && !isValidTelURL(party.tel)) {
+        warnings.push(`Party ${index}: Invalid tel URL format`);
+    }
+    
+    // Validate mailto if present
+    if (party.mailto && !isValidEmail(party.mailto)) {
+        warnings.push(`Party ${index}: Invalid email format`);
+    }
+    
+    // If name is provided, validation should also be provided
+    if (party.name && !party.validation) {
+        warnings.push(`Party ${index}: validation SHOULD be provided when name is present`);
+    }
+    
+    // Validate UUID if present
+    if (party.uuid && !isValidUUID(party.uuid)) {
+        errors.push(`Party ${index}: Invalid UUID format`);
+    }
+    
+    // Validate gmlpos format if present
+    if (party.gmlpos && !isValidGMLPos(party.gmlpos)) {
+        warnings.push(`Party ${index}: Invalid gmlpos format (should be "latitude longitude")`);
+    }
+    
+    return { errors, warnings };
+}
+
+/**
+ * Validate Dialog object according to spec
+ * @param {object} dialog - Dialog object to validate
+ * @param {number} index - Index in dialog array
+ * @param {number} partiesCount - Number of parties in vCon
+ * @returns {object} Object with errors and warnings arrays
+ */
+function validateDialogObject(dialog, index, partiesCount) {
+    const errors = [];
+    const warnings = [];
+    
+    // Type is required
+    const validTypes = ['recording', 'text', 'transfer', 'incomplete'];
+    if (!dialog.type) {
+        errors.push(`Dialog ${index}: Missing required 'type' field`);
+    } else if (!validTypes.includes(dialog.type)) {
+        errors.push(`Dialog ${index}: Invalid type '${dialog.type}' (must be one of: ${validTypes.join(', ')})`);
+    }
+    
+    // Start date validation
+    if (!dialog.start) {
+        errors.push(`Dialog ${index}: Missing required 'start' field`);
+    } else if (!isValidRFC3339Date(dialog.start)) {
+        errors.push(`Dialog ${index}: 'start' must be RFC3339 date format`);
+    }
+    
+    // Parties validation
+    if (!dialog.parties) {
+        errors.push(`Dialog ${index}: Missing required 'parties' field`);
+    } else if (!Array.isArray(dialog.parties)) {
+        errors.push(`Dialog ${index}: 'parties' must be an array`);
+    } else if (dialog.parties.length === 0) {
+        warnings.push(`Dialog ${index}: 'parties' array should not be empty`);
+    } else {
+        // Validate party indices
+        dialog.parties.forEach((partyIndex, i) => {
+            if (typeof partyIndex !== 'number' || partyIndex < 0) {
+                errors.push(`Dialog ${index}: Invalid party index at position ${i}`);
+            } else if (partyIndex >= partiesCount) {
+                errors.push(`Dialog ${index}: Party index ${partyIndex} exceeds parties array length`);
+            }
+        });
+    }
+    
+    // Duration validation if present
+    if (dialog.duration !== undefined && (typeof dialog.duration !== 'number' || dialog.duration < 0)) {
+        errors.push(`Dialog ${index}: 'duration' must be a positive number`);
+    }
+    
+    // Validate content for non-incomplete/transfer types
+    if (dialog.type && !['incomplete', 'transfer'].includes(dialog.type)) {
+        const hasContent = (dialog.body && dialog.encoding) || (dialog.url && dialog.content_hash);
+        if (!hasContent) {
+            warnings.push(`Dialog ${index}: Should contain either inline (body/encoding) or external (url/content_hash) content`);
+        }
+    }
+    
+    // Validate disposition for incomplete type
+    if (dialog.type === 'incomplete') {
+        const validDispositions = ['no-answer', 'congestion', 'failed', 'busy', 'hung-up', 'voicemail-no-message'];
+        if (!dialog.disposition) {
+            errors.push(`Dialog ${index}: 'disposition' is required for incomplete type`);
+        } else if (!validDispositions.includes(dialog.disposition)) {
+            errors.push(`Dialog ${index}: Invalid disposition '${dialog.disposition}'`);
+        }
+    }
+    
+    // Validate mediatype if present
+    if (dialog.mediatype && !isValidMediaType(dialog.mediatype)) {
+        warnings.push(`Dialog ${index}: Non-standard media type '${dialog.mediatype}'`);
+    }
+    
+    return { errors, warnings };
+}
+
+/**
+ * Validate Analysis object according to spec
+ * @param {object} analysis - Analysis object to validate
+ * @param {number} index - Index in analysis array
+ * @returns {object} Object with errors and warnings arrays  
+ */
+function validateAnalysisObject(analysis, index) {
+    const errors = [];
+    const warnings = [];
+    
+    // Type is required
+    if (!analysis.type) {
+        errors.push(`Analysis ${index}: Missing required 'type' field`);
+    }
+    
+    // Dialog reference validation
+    if (analysis.dialog !== undefined) {
+        if (!Array.isArray(analysis.dialog)) {
+            errors.push(`Analysis ${index}: 'dialog' must be an array`);
+        } else {
+            analysis.dialog.forEach((dialogIndex, i) => {
+                if (typeof dialogIndex !== 'number' || dialogIndex < 0) {
+                    errors.push(`Analysis ${index}: Invalid dialog index at position ${i}`);
+                }
+            });
+        }
+    }
+    
+    // Validate content
+    const hasContent = (analysis.body && analysis.encoding) || (analysis.url && analysis.content_hash);
+    if (!hasContent) {
+        warnings.push(`Analysis ${index}: Should contain either inline (body/encoding) or external (url/content_hash) content`);
+    }
+    
+    // Validate mediatype if present
+    if (analysis.mediatype && !isValidMediaType(analysis.mediatype)) {
+        warnings.push(`Analysis ${index}: Non-standard media type '${analysis.mediatype}'`);
+    }
+    
+    return { errors, warnings };
+}
+
+/**
+ * Validate Attachment object according to spec
+ * @param {object} attachment - Attachment object to validate
+ * @param {number} index - Index in attachments array
+ * @returns {object} Object with errors and warnings arrays
+ */
+function validateAttachmentObject(attachment, index) {
+    const errors = [];
+    const warnings = [];
+    
+    // Type or purpose should be present
+    if (!attachment.type && !attachment.purpose) {
+        warnings.push(`Attachment ${index}: Should have 'type' or 'purpose' field`);
+    }
+    
+    // Start date validation if present
+    if (attachment.start && !isValidRFC3339Date(attachment.start)) {
+        errors.push(`Attachment ${index}: 'start' must be RFC3339 date format`);
+    }
+    
+    // Party reference validation
+    if (attachment.party !== undefined && (typeof attachment.party !== 'number' || attachment.party < 0)) {
+        errors.push(`Attachment ${index}: Invalid party index`);
+    }
+    
+    // Dialog reference validation
+    if (attachment.dialog !== undefined && (typeof attachment.dialog !== 'number' || attachment.dialog < 0)) {
+        errors.push(`Attachment ${index}: Invalid dialog index`);
+    }
+    
+    // Validate content
+    const hasContent = (attachment.body && attachment.encoding) || (attachment.url && attachment.content_hash);
+    if (!hasContent) {
+        warnings.push(`Attachment ${index}: Should contain either inline (body/encoding) or external (url/content_hash) content`);
+    }
+    
+    // Validate mediatype if present
+    if (attachment.mediatype && !isValidMediaType(attachment.mediatype)) {
+        warnings.push(`Attachment ${index}: Non-standard media type '${attachment.mediatype}'`);
+    }
+    
+    return { errors, warnings };
+}
+
+/**
+ * Validate tel URL format
+ * @param {string} tel - Tel URL to validate
+ * @returns {boolean} True if valid
+ */
+function isValidTelURL(tel) {
+    // Accept with or without tel: prefix
+    const telRegex = /^(tel:)?[+]?[0-9\-().\s]+$/;
+    return telRegex.test(tel);
+}
+
+/**
+ * Validate email format
+ * @param {string} email - Email to validate
+ * @returns {boolean} True if valid
+ */
+function isValidEmail(email) {
+    // Accept with or without mailto: prefix
+    const emailRegex = /^(mailto:)?[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+/**
+ * Validate GML position format
+ * @param {string} gmlpos - GML position string
+ * @returns {boolean} True if valid
+ */
+function isValidGMLPos(gmlpos) {
+    // Format: "latitude longitude" (two space-separated numbers)
+    const parts = gmlpos.trim().split(/\s+/);
+    if (parts.length !== 2) return false;
+    const lat = parseFloat(parts[0]);
+    const lon = parseFloat(parts[1]);
+    return !isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
+/**
+ * Validate media type format
+ * @param {string} mediaType - Media type to validate
+ * @returns {boolean} True if valid format
+ */
+function isValidMediaType(mediaType) {
+    // Common vCon media types from the spec
+    const standardTypes = [
+        'text/plain',
+        'audio/x-wav',
+        'audio/x-mp3', 
+        'audio/x-mp4',
+        'audio/ogg',
+        'video/x-mp4',
+        'video/ogg',
+        'multipart/mixed',
+        'application/json',
+        'application/pdf'
+    ];
+    
+    // Check if it's a standard type or has valid format (type/subtype)
+    return standardTypes.includes(mediaType) || /^[a-z]+\/[a-z0-9.\-+]+$/i.test(mediaType);
+}
 
 // Export for potential module usage
 if (typeof module !== 'undefined' && module.exports) {
