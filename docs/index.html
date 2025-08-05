@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vCon Info - Developer Tool for vCon Standards</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-brand">
+                <h1 class="brand-title">vCon Info</h1>
+                <span class="brand-tagline">decode � inspect � validate</span>
+            </div>
+            <nav class="header-nav">
+                <a href="#" class="nav-link">JWT.io API</a>
+                <a href="#" class="nav-link">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Left Panel - Input -->
+        <section class="input-panel">
+            <h2 class="panel-title">Input vCon</h2>
+            <div class="code-editor">
+                <textarea class="code-textarea" id="input-textarea" placeholder="Paste your vCon here...">{
+  "vcon": "0.3.0",
+  "uuid": "018972cc-8ddb-7ccc-baa5-ec2a4e6c7d0d",
+  "created_at": "2023-12-14T18:59:45.911Z",
+  "updated_at": "2023-12-14T19:00:12.345Z",
+  "parties": [
+    {
+      "tel": "+1-555-123-4567",
+      "name": "Alice Johnson",
+      "email": "alice@example.com"
+    },
+    {
+      "tel": "+1-555-987-6543", 
+      "name": "Bob Smith",
+      "email": "bob@example.com"
+    }
+  ],
+  "dialog": [
+    {
+      "type": "recording",
+      "start": "2023-12-14T18:59:50.100Z",
+      "end": "2023-12-14T19:00:10.856Z",
+      "parties": [0, 1],
+      "originator": 0,
+      "mimetype": "audio/wav",
+      "filename": "call-recording.wav",
+      "body": "base64-encoded-audio-data..."
+    }
+  ],
+  "attachments": [
+    {
+      "type": "transcript",
+      "parties": [0, 1],
+      "mimetype": "text/plain",
+      "body": "Transcript of the conversation..."
+    }
+  ]
+}</textarea>
+            </div>
+        </section>
+
+        <!-- Right Panel - Output -->
+        <section class="output-panel">
+            <!-- Validation Status -->
+            <div class="validation-status">
+                <span class="status-icon status-valid"></span>
+                <span class="status-text" id="status-text">EXACTLY<span class="status-highlight">v0.3.0</span> vCon JSON Specification</span>
+                <span class="status-time">1 year ago</span>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" id="tab-inspector" data-tab="inspector">Inspector</button>
+                <button class="tab-button" id="tab-timeline" data-tab="timeline">Timeline</button>
+                <button class="tab-button" id="tab-raw" data-tab="raw">Raw</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Inspector Tab -->
+                <div class="tab-panel active" id="inspector-view">
+                    <div id="vcon-tree">
+                    <!-- Parties Section -->
+                    <div class="inspector-section">
+                        <div class="section-header section-parties">
+                            <button class="collapse-button">�</button>
+                            <span class="section-icon">=e</span>
+                            <span class="section-title">parties (2)</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="party-item">
+                                <div class="party-header">
+                                    <button class="collapse-button">�</button>
+                                    <span class="party-index">0</span>
+                                    <span class="party-identifier">anonymous</span>
+                                </div>
+                                <div class="party-details">
+                                    <div class="detail-row">
+                                        <span class="detail-key">tel:</span>
+                                        <span class="detail-value">"+1-555-123-4567"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">name:</span>
+                                        <span class="detail-value">"Alice Johnson"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">email:</span>
+                                        <span class="detail-value">"alice@example.com"</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="party-item">
+                                <div class="party-header">
+                                    <button class="collapse-button">�</button>
+                                    <span class="party-index">1</span>
+                                    <span class="party-identifier">anonymous</span>
+                                </div>
+                                <div class="party-details">
+                                    <div class="detail-row">
+                                        <span class="detail-key">tel:</span>
+                                        <span class="detail-value">"+1-555-987-6543"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">name:</span>
+                                        <span class="detail-value">"Bob Smith"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">email:</span>
+                                        <span class="detail-value">"bob@example.com"</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dialog Section -->
+                    <div class="inspector-section">
+                        <div class="section-header section-dialog">
+                            <button class="collapse-button">�</button>
+                            <span class="section-icon">=�</span>
+                            <span class="section-title">dialog (1)</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="dialog-item">
+                                <div class="dialog-header">
+                                    <button class="collapse-button">�</button>
+                                    <span class="dialog-index">0</span>
+                                    <span class="dialog-type">recording</span>
+                                    <span class="dialog-badge">participant</span>
+                                </div>
+                                <div class="dialog-details">
+                                    <div class="detail-row">
+                                        <span class="detail-key">type:</span>
+                                        <span class="detail-value">"recording"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">start:</span>
+                                        <span class="detail-value">"2023-12-14T18:59:50.100Z"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">parties:</span>
+                                        <span class="detail-value">[0, 1]</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">originator:</span>
+                                        <span class="detail-value">0</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">mimetype:</span>
+                                        <span class="detail-value">"audio/wav"</span>
+                                    </div>
+                                    <div class="detail-note">
+                                        This dialog lasted less than one minute. Per the vCon standard, the end time is optional for brief exchanges.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attachments Section -->
+                    <div class="inspector-section">
+                        <div class="section-header section-attachments">
+                            <button class="collapse-button">�</button>
+                            <span class="section-icon">=�</span>
+                            <span class="section-title">attachments (1)</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="attachment-item">
+                                <div class="attachment-header">
+                                    <button class="collapse-button">�</button>
+                                    <span class="attachment-index">0</span>
+                                    <span class="attachment-type">transcript</span>
+                                    <span class="attachment-badge badge-text">text/plain</span>
+                                </div>
+                                <div class="attachment-details">
+                                    <div class="detail-row">
+                                        <span class="detail-key">type:</span>
+                                        <span class="detail-value">"transcript"</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">parties:</span>
+                                        <span class="detail-value">[0, 1]</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-key">mimetype:</span>
+                                        <span class="detail-value">"text/plain"</span>
+                                    </div>
+                                    <div class="attachment-note">
+                                        This attachment contains transcript data for parties 0 and 1. The standard allows various attachment types including transcripts, analysis, and related documents.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Tab -->
+                <div class="tab-panel" id="timeline-view">
+                    <div class="timeline-container">
+                        <p class="timeline-placeholder">Timeline visualization will be displayed here</p>
+                    </div>
+                </div>
+
+                <!-- Raw Tab -->
+                <div class="tab-panel" id="raw-view">
+                    <div class="raw-container">
+                        <pre class="raw-content">Raw vCon data will be displayed here</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p class="footer-text">An unofficial Inspector tool with Your Data never leaves your browser</p>
+            <div class="footer-links">
+                <span class="footer-heart">e</span>
+                <a href="#" class="footer-link">built with</a>
+                <a href="#" class="footer-link">by the vcon-community</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
