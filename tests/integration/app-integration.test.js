@@ -208,6 +208,54 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("Key Panel", () => {
+    test("key panel is collapsed by default", async () => {
+      // Check that key panel exists
+      const keyPanel = await page.$('#key-panel');
+      expect(keyPanel).not.toBeNull();
+
+      // Check that key panel does not have expanded class
+      const isExpanded = await page.$eval('#key-panel', el => 
+        el.classList.contains('expanded'));
+      expect(isExpanded).toBe(false);
+
+      // Check that lock button is not active
+      const isLockActive = await page.$eval('#lock-button', el => 
+        el.classList.contains('active'));
+      expect(isLockActive).toBe(false);
+    });
+
+    test("key panel toggles when lock button is clicked", async () => {
+      // Click lock button to expand
+      await page.click('#lock-button');
+      await page.waitForTimeout(100);
+
+      // Check that key panel is now expanded
+      const isExpandedAfterClick = await page.$eval('#key-panel', el => 
+        el.classList.contains('expanded'));
+      expect(isExpandedAfterClick).toBe(true);
+
+      // Check that lock button is active
+      const isLockActiveAfterClick = await page.$eval('#lock-button', el => 
+        el.classList.contains('active'));
+      expect(isLockActiveAfterClick).toBe(true);
+
+      // Click again to collapse
+      await page.click('#lock-button');
+      await page.waitForTimeout(100);
+
+      // Check that key panel is collapsed again
+      const isCollapsedAfterSecondClick = await page.$eval('#key-panel', el => 
+        !el.classList.contains('expanded'));
+      expect(isCollapsedAfterSecondClick).toBe(true);
+
+      // Check that lock button is not active
+      const isLockInactiveAfterSecondClick = await page.$eval('#lock-button', el => 
+        !el.classList.contains('active'));
+      expect(isLockInactiveAfterSecondClick).toBe(true);
+    });
+  });
+
   describe("Sample Data", () => {
     test("loads sample data via console", async () => {
       // Execute loadSample in page context

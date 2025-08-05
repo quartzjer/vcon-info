@@ -124,3 +124,9 @@ The application provides a foundation for vCon format support:
 - UI state preserved during development (tab selection, collapsed sections)
 - Test new features by adding to `tests/integration/app-integration.test.js`
 - Visual changes can be verified with screenshot tests in `tests/snapshot.png`
+
+### Validation Approach
+- **DO NOT** run the development server to validate UI changes or fixes
+- **DO** add tests to `tests/integration/app-integration.test.js` to verify behavior
+- **DO** run `bun test` to validate that changes work correctly
+- This approach ensures proper test coverage and avoids manual testing dependencies
