@@ -453,6 +453,206 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("JWS/JWE Support", () => {
+    test("jose library is loaded and accessible", async () => {
+      // Check if Jose library is available in the browser
+      const joseAvailable = await page.evaluate(() => {
+        return typeof Jose !== 'undefined';
+      });
+      
+      expect(joseAvailable).toBe(true);
+    });
+
+    test("vcon processor has crypto support", async () => {
+      // Check if VConProcessor has crypto support
+      const cryptoSupport = await page.evaluate(() => {
+        if (typeof VConProcessor !== 'undefined') {
+          const processor = new VConProcessor();
+          return processor.isCryptoSupported();
+        }
+        return false;
+      });
+      
+      expect(cryptoSupport).toBe(true);
+    });
+
+    test("can extract JWS headers", async () => {
+      // Test JWS header extraction
+      const headerData = await page.evaluate(() => {
+        if (typeof VConProcessor !== 'undefined') {
+          const processor = new VConProcessor();
+          const sampleJWS = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2Y29uIjoiMC4zLjAifQ.signature';
+          return processor.extractJWSHeader(sampleJWS);
+        }
+        return null;
+      });
+      
+      expect(headerData).toBeTruthy();
+      expect(headerData.alg).toBe('RS256');
+      expect(headerData.typ).toBe('JWT');
+    });
+
+    test("can extract JWE headers", async () => {
+      // Test JWE header extraction
+      const headerData = await page.evaluate(() => {
+        if (typeof VConProcessor !== 'undefined') {
+          const processor = new VConProcessor();
+          const sampleJWE = 'eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.key.iv.ciphertext.tag';
+          return processor.extractJWEHeader(sampleJWE);
+        }
+        return null;
+      });
+      
+      expect(headerData).toBeTruthy();
+      expect(headerData.alg).toBe('RSA-OAEP');
+      expect(headerData.enc).toBe('A256GCM');
+    });
+
+    test("can detect crypto format", async () => {
+      // Test crypto format detection
+      const results = await page.evaluate(() => {
+        if (typeof VConProcessor !== 'undefined') {
+          const processor = new VConProcessor();
+          return {
+            jws: processor.detectCryptoFormat('eyJhbGciOiJSUzI1NiJ9.eyJ2Y29uIjoiMC4zLjAifQ.signature'),
+            jwe: processor.detectCryptoFormat('eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.key.iv.ciphertext.tag'),
+            json: processor.detectCryptoFormat('{"vcon": "0.3.0"}')
+          };
+        }
+        return null;
+      });
+      
+      expect(results).toBeTruthy();
+      expect(results.jws.isSigned).toBe(true);
+      expect(results.jws.format).toBe('jws');
+      expect(results.jwe.isEncrypted).toBe(true);
+      expect(results.jwe.format).toBe('jwe');
+      expect(results.json.format).toBe('json');
+    });
+
+    test("detects JWS format in encrypted tab", async () => {
+      // Sample JWS token (header.payload.signature format)
+      const sampleJWS = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2Y29uIjoiMC4zLjAiLCJ1dWlkIjoiMDEyMzQ1NjctODlhYi1jZGVmLTAxMjMtNDU2Nzg5YWJjZGVmIiwiY3JlYXRlZF9hdCI6IjIwMjMtMTItMTRUMTg6NTk6NDUuOTExWiIsInBhcnRpZXMiOlt7InRlbCI6IisxLTU1NS0xMjMtNDU2NyIsIm5hbWUiOiJBbGljZSBKb2huc29uIn1dfQ.signature';
+      
+      // Set JWS in encrypted tab
+      await page.click('#tab-encrypted');
+      await page.waitForTimeout(100);
+      
+      // Clear and set the JWS content
+      await page.evaluate(() => {
+        document.getElementById('encrypted-textarea').value = '';
+      });
+      await page.type('#encrypted-textarea', sampleJWS);
+      
+      // Trigger processing
+      await page.evaluate(() => {
+        const textarea = document.getElementById('encrypted-textarea');
+        const inputEvent = new Event('input', { bubbles: true });
+        textarea.dispatchEvent(inputEvent);
+      });
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Verify that the input is processed (no JavaScript errors should occur)
+      const errors = await page.evaluate(() => {
+        return window.jsErrors || [];
+      });
+      
+      expect(errors.length).toBe(0);
+    });
+
+    test("detects JWE format in encrypted tab", async () => {
+      // Sample JWE token (header.encrypted_key.iv.ciphertext.tag format)
+      const sampleJWE = 'eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ.encrypted_key.iv.ciphertext.tag';
+      
+      // Set JWE in encrypted tab
+      await page.click('#tab-encrypted');
+      await page.waitForTimeout(100);
+      
+      // Clear and set the JWE content
+      await page.evaluate(() => {
+        document.getElementById('encrypted-textarea').value = '';
+      });
+      await page.type('#encrypted-textarea', sampleJWE);
+      
+      // Trigger processing
+      await page.evaluate(() => {
+        const textarea = document.getElementById('encrypted-textarea');
+        const inputEvent = new Event('input', { bubbles: true });
+        textarea.dispatchEvent(inputEvent);
+      });
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Verify that the input is processed (no JavaScript errors should occur)
+      const errors = await page.evaluate(() => {
+        return window.jsErrors || [];
+      });
+      
+      expect(errors.length).toBe(0);
+    });
+
+    test("base64url decode function works correctly", async () => {
+      // Test base64url decoding functionality
+      const result = await page.evaluate(() => {
+        if (typeof VConProcessor !== 'undefined') {
+          const processor = new VConProcessor();
+          try {
+            const decoded = processor.base64urlDecode('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9');
+            return { success: true, decoded };
+          } catch (error) {
+            return { success: false, error: error.message };
+          }
+        }
+        return { success: false, error: 'VConProcessor not available' };
+      });
+      
+      expect(result.success).toBe(true);
+      expect(result.decoded).toContain('alg');
+      expect(result.decoded).toContain('RS256');
+    });
+
+    test("can get supported algorithms", async () => {
+      // Test getting supported algorithms
+      const algorithms = await page.evaluate(() => {
+        if (typeof VConProcessor !== 'undefined') {
+          const processor = new VConProcessor();
+          return processor.getSupportedAlgorithms();
+        }
+        return null;
+      });
+      
+      expect(algorithms).toBeTruthy();
+      expect(algorithms.signature).toContain('RS256');
+      expect(algorithms.signature).toContain('ES256');
+      expect(algorithms.encryption).toContain('RSA-OAEP');
+    });
+
+    test("encrypted tab UI elements are present", async () => {
+      // Switch to encrypted tab
+      await page.click('#tab-encrypted');
+      await page.waitForTimeout(100);
+      
+      // Check encrypted view is visible
+      const encryptedViewVisible = await page.$eval('#encrypted-view', el => el.classList.contains('active'));
+      expect(encryptedViewVisible).toBe(true);
+      
+      // Check encrypted textarea exists
+      const encryptedTextarea = await page.$('#encrypted-textarea');
+      expect(encryptedTextarea).toBeTruthy();
+      
+      // Check decryption hint exists
+      const decryptionHint = await page.$('.decryption-hint');
+      expect(decryptionHint).toBeTruthy();
+      
+      // Check that hint mentions the lock button
+      const hintText = await page.$eval('.decryption-hint p', el => el.textContent);
+      expect(hintText).toContain('private key');
+    });
+  });
+
   describe("Snapshot Test", () => {
     test("generates full page screenshot", async () => {
       // Load sample data to have content in the UI

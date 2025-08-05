@@ -14,6 +14,15 @@ class VConProcessor {
             'updated_at', 'subject', 'redacted', 'appended', 'group',
             'dialog', 'analysis', 'attachments', 'must_support'
         ];
+        
+        // Initialize JWS/JWE support
+        this.cryptoSupport = {
+            available: typeof Jose !== 'undefined',
+            algorithms: {
+                signature: ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512'],
+                encryption: ['RSA-OAEP', 'RSA-OAEP-256', 'A128KW', 'A256KW', 'dir']
+            }
+        };
     }
     
     // Main processing function
@@ -29,12 +38,33 @@ class VConProcessor {
             extensions: {},
             timeline: [],
             errors: [],
-            warnings: []
+            warnings: [],
+            crypto: {
+                isEncrypted: false,
+                isSigned: false,
+                canDecrypt: false,
+                canVerify: false,
+                jwsHeader: null,
+                jweHeader: null
+            }
         };
         
         try {
-            // Parse if string
-            const vcon = typeof vconData === 'string' ? JSON.parse(vconData) : vconData;
+            // Check if input is JWS/JWE format
+            const cryptoResult = this.detectCryptoFormat(vconData);
+            result.crypto = { ...result.crypto, ...cryptoResult };
+            
+            // Parse if string - handle both regular JSON and JWS/JWE formats
+            let vcon;
+            if (result.crypto.isEncrypted || result.crypto.isSigned) {
+                // For now, just extract headers for display
+                vcon = this.extractPayloadForDisplay(vconData);
+                if (!vcon) {
+                    throw new Error('Unable to process encrypted/signed vCon without proper keys');
+                }
+            } else {
+                vcon = typeof vconData === 'string' ? JSON.parse(vconData) : vconData;
+            }
             
             // Validate structure
             result.validation = this.validate(vcon);
@@ -957,6 +987,239 @@ class VConProcessor {
             hasContent: hasContent,
             valid: hasDisposition && !hasContent
         };
+    }
+    
+    // JWS/JWE Detection and Processing Methods
+    
+    detectCryptoFormat(input) {
+        const result = {
+            isEncrypted: false,
+            isSigned: false,
+            canDecrypt: false,
+            canVerify: false,
+            jwsHeader: null,
+            jweHeader: null,
+            format: 'json'
+        };
+        
+        if (typeof input !== 'string') {
+            return result;
+        }
+        
+        // Check for JWS format (3 parts separated by dots for compact serialization)
+        const jwtPattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+        
+        // Check for JWE format (5 parts separated by dots for compact serialization)
+        const jwePattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+        
+        if (jwePattern.test(input.trim())) {
+            result.isEncrypted = true;
+            result.format = 'jwe';
+            result.jweHeader = this.extractJWEHeader(input);
+        } else if (jwtPattern.test(input.trim())) {
+            result.isSigned = true;
+            result.format = 'jws';
+            result.jwsHeader = this.extractJWSHeader(input);
+        } else {
+            // Check for JSON serialization format
+            try {
+                const parsed = JSON.parse(input);
+                if (parsed.signatures && Array.isArray(parsed.signatures)) {
+                    result.isSigned = true;
+                    result.format = 'jws-json';
+                    result.jwsHeader = parsed.protected ? JSON.parse(this.base64urlDecode(parsed.protected)) : null;
+                } else if (parsed.protected && parsed.encrypted_key && parsed.iv && parsed.ciphertext && parsed.tag) {
+                    result.isEncrypted = true;
+                    result.format = 'jwe-json';
+                    result.jweHeader = JSON.parse(this.base64urlDecode(parsed.protected));
+                }
+            } catch (e) {
+                // Not JSON, continue
+            }
+        }
+        
+        return result;
+    }
+    
+    extractJWSHeader(jwsToken) {
+        try {
+            const parts = jwsToken.split('.');
+            if (parts.length !== 3) return null;
+            
+            const headerB64 = parts[0];
+            const headerJson = this.base64urlDecode(headerB64);
+            return JSON.parse(headerJson);
+        } catch (e) {
+            console.warn('Failed to extract JWS header:', e);
+            return null;
+        }
+    }
+    
+    extractJWEHeader(jweToken) {
+        try {
+            const parts = jweToken.split('.');
+            if (parts.length !== 5) return null;
+            
+            const headerB64 = parts[0];
+            const headerJson = this.base64urlDecode(headerB64);
+            return JSON.parse(headerJson);
+        } catch (e) {
+            console.warn('Failed to extract JWE header:', e);
+            return null;
+        }
+    }
+    
+    extractPayloadForDisplay(input) {
+        // For encrypted data, we can't extract payload without decryption
+        // For signed data, we can extract the payload for display (but not verify without key)
+        
+        const cryptoInfo = this.detectCryptoFormat(input);
+        
+        if (cryptoInfo.isEncrypted) {
+            // Cannot extract payload from encrypted data
+            return null;
+        } else if (cryptoInfo.isSigned && cryptoInfo.format === 'jws') {
+            try {
+                const parts = input.split('.');
+                if (parts.length === 3) {
+                    const payloadB64 = parts[1];
+                    const payloadJson = this.base64urlDecode(payloadB64);
+                    return JSON.parse(payloadJson);
+                }
+            } catch (e) {
+                console.warn('Failed to extract JWS payload:', e);
+                return null;
+            }
+        } else if (cryptoInfo.isSigned && cryptoInfo.format === 'jws-json') {
+            try {
+                const parsed = JSON.parse(input);
+                if (parsed.payload) {
+                    const payloadJson = this.base64urlDecode(parsed.payload);
+                    return JSON.parse(payloadJson);
+                }
+            } catch (e) {
+                console.warn('Failed to extract JWS JSON payload:', e);
+                return null;
+            }
+        }
+        
+        return null;
+    }
+    
+    // JWS/JWE Operations (requires keys)
+    
+    async verifyJWS(jwsToken, publicKey) {
+        if (!this.cryptoSupport.available) {
+            throw new Error('Jose library not available for JWS verification');
+        }
+        
+        try {
+            // Use jose library to verify the JWS
+            const verifier = new Jose.JoseJWS.Verifier(Jose.WebCryptographer, publicKey);
+            const result = await verifier.verify(jwsToken);
+            return {
+                verified: true,
+                payload: result.payload,
+                header: result.header
+            };
+        } catch (error) {
+            return {
+                verified: false,
+                error: error.message
+            };
+        }
+    }
+    
+    async decryptJWE(jweToken, privateKey) {
+        if (!this.cryptoSupport.available) {
+            throw new Error('Jose library not available for JWE decryption');
+        }
+        
+        try {
+            // Use jose library to decrypt the JWE
+            const decrypter = new Jose.JoseJWE.Decrypter(Jose.WebCryptographer, privateKey);
+            const plaintext = await decrypter.decrypt(jweToken);
+            return {
+                decrypted: true,
+                plaintext: plaintext
+            };
+        } catch (error) {
+            return {
+                decrypted: false,
+                error: error.message
+            };
+        }
+    }
+    
+    async signVCon(vconObject, privateKey, algorithm = 'RS256') {
+        if (!this.cryptoSupport.available) {
+            throw new Error('Jose library not available for JWS signing');
+        }
+        
+        try {
+            const signer = new Jose.JoseJWS.Signer(Jose.WebCryptographer);
+            signer.addSigner(privateKey, null, { alg: algorithm });
+            const jwsToken = await signer.sign(JSON.stringify(vconObject));
+            return {
+                success: true,
+                jws: jwsToken
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    async encryptVCon(vconObject, publicKey, algorithm = 'RSA-OAEP') {
+        if (!this.cryptoSupport.available) {
+            throw new Error('Jose library not available for JWE encryption');
+        }
+        
+        try {
+            const encrypter = new Jose.JoseJWE.Encrypter(Jose.WebCryptographer, publicKey);
+            const jweToken = await encrypter.encrypt(JSON.stringify(vconObject));
+            return {
+                success: true,
+                jwe: jweToken
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    // Utility function for base64url decoding
+    base64urlDecode(str) {
+        // Add padding if necessary
+        let padded = str;
+        const padding = 4 - (str.length % 4);
+        if (padding !== 4) {
+            padded += '='.repeat(padding);
+        }
+        
+        // Replace URL-safe characters
+        const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
+        
+        // Decode base64
+        try {
+            return atob(base64);
+        } catch (e) {
+            throw new Error('Invalid base64url string');
+        }
+    }
+    
+    // Check if crypto operations are supported
+    isCryptoSupported() {
+        return this.cryptoSupport.available && typeof Jose !== 'undefined';
+    }
+    
+    // Get supported algorithms
+    getSupportedAlgorithms() {
+        return this.cryptoSupport.algorithms;
     }
 }
 
