@@ -92,10 +92,23 @@ body {
     text-decoration: none;
     font-size: 0.875rem;
     transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
 }
 
 .nav-link:hover {
     color: var(--text-primary);
+}
+
+.nav-link img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) saturate(100%) invert(64%) sepia(14%) saturate(348%) hue-rotate(188deg) brightness(92%) contrast(89%);
+    transition: filter 0.2s ease;
+}
+
+.nav-link:hover img {
+    filter: brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(1507%) hue-rotate(186deg) brightness(91%) contrast(96%);
 }
 
 /* Main Content Layout */
