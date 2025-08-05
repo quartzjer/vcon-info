@@ -38,29 +38,29 @@ This document outlines the detailed implementation plan to upgrade the vCon Info
 **Files to modify**: `docs/index.html`, `docs/style.css`, `docs/scripts.js`, `docs/vcon-processor.js`
 
 ### 1.3 Enhanced Field Validation
-- [ ] Implement complete required field checking:
+- [x] Implement complete required field checking:
   - vcon, uuid, created_at, parties (required)
   - Check mutually exclusive: redacted, appended, group
-- [ ] Add UUID format validation (RFC 4122)
-- [ ] Validate ISO 8601 timestamps
-- [ ] Check party index references in dialog/attachments
-- [ ] Validate must_support extension names
+- [x] Add UUID format validation (RFC 4122)
+- [x] Validate ISO 8601 timestamps
+- [x] Check party index references in dialog/attachments
+- [x] Validate must_support extension names
 
 **Files to modify**: `docs/vcon-processor.js`
 
 ### 1.4 Complete Party Identifier Support
-- [ ] Add support for all party identifier types:
+- [x] Add support for all party identifier types:
   - [x] tel (telephone)
   - [x] mailto (email)
-  - [ ] sip (Session Initiation Protocol)
-  - [ ] stir (PASSporT token)
-  - [ ] did (Decentralized Identifier)
-  - [ ] jCard (JSON vCard)
-- [ ] Add location data support:
-  - [ ] gmlpos (geographic coordinates)
-  - [ ] civicaddress (civic address)
-- [ ] Add timezone field support
-- [ ] Implement validation field parsing
+  - [x] sip (Session Initiation Protocol)
+  - [x] stir (PASSporT token)
+  - [x] did (Decentralized Identifier)
+  - [x] jCard (JSON vCard)
+- [x] Add location data support:
+  - [x] gmlpos (geographic coordinates)
+  - [x] civicaddress (civic address)
+- [x] Add timezone field support
+- [x] Implement validation field parsing
 
 **Files to modify**: `docs/vcon-processor.js`, `docs/scripts.js`
 

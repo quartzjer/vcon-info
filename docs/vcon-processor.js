@@ -299,8 +299,10 @@ class VConProcessor {
                 index: index,
                 identifiers: [],
                 name: party.name || null,
-                validation: party.validation || null,
-                location: null
+                validation: this.processValidation(party.validation),
+                location: this.processLocation(party),
+                timezone: party.timezone || null,
+                jCard: party.jCard || null
             };
             
             // Collect identifiers
@@ -308,7 +310,8 @@ class VConProcessor {
                 processed.identifiers.push({
                     type: 'tel',
                     value: party.tel,
-                    display: this.formatPhoneNumber(party.tel)
+                    display: this.formatPhoneNumber(party.tel),
+                    valid: this.validateTelURL(party.tel)
                 });
             }
             
@@ -316,7 +319,8 @@ class VConProcessor {
                 processed.identifiers.push({
                     type: 'sip',
                     value: party.sip,
-                    display: party.sip
+                    display: party.sip,
+                    valid: this.validateSipURL(party.sip)
                 });
             }
             
@@ -325,7 +329,8 @@ class VConProcessor {
                 processed.identifiers.push({
                     type: 'email',
                     value: email,
-                    display: email.replace('mailto:', '')
+                    display: email.replace('mailto:', ''),
+                    valid: this.validateEmailURL(email)
                 });
             }
             
@@ -333,7 +338,8 @@ class VConProcessor {
                 processed.identifiers.push({
                     type: 'did',
                     value: party.did,
-                    display: party.did
+                    display: party.did,
+                    valid: this.validateDID(party.did)
                 });
             }
             
@@ -341,7 +347,8 @@ class VConProcessor {
                 processed.identifiers.push({
                     type: 'stir',
                     value: party.stir,
-                    display: 'PASSporT Token'
+                    display: 'PASSporT Token',
+                    valid: this.validateSTIR(party.stir)
                 });
             }
             
@@ -349,16 +356,9 @@ class VConProcessor {
                 processed.identifiers.push({
                     type: 'uuid',
                     value: party.uuid,
-                    display: party.uuid
+                    display: party.uuid,
+                    valid: this.validateUUID(party.uuid)
                 });
-            }
-            
-            // Process location
-            if (party.gmlpos || party.civicaddress) {
-                processed.location = {
-                    gmlpos: party.gmlpos,
-                    civic: party.civicaddress
-                };
             }
             
             return processed;
@@ -610,6 +610,168 @@ class VConProcessor {
         if (vcon.appended) return 'appended';
         if (vcon.group) return 'group';
         return 'standard';
+    }
+    
+    // Enhanced party processing helper functions
+    
+    processValidation(validation) {
+        if (!validation) return null;
+        
+        return {
+            raw: validation,
+            type: this.determineValidationType(validation),
+            display: this.formatValidationDisplay(validation)
+        };
+    }
+    
+    determineValidationType(validation) {
+        if (!validation || validation === 'none') return 'none';
+        
+        // Common validation types based on spec guidance
+        const commonTypes = {
+            'ssn': 'government_id',
+            'social security': 'government_id', 
+            'dob': 'personal_info',
+            'date of birth': 'personal_info',
+            'user id': 'credential',
+            'password': 'credential',
+            'username': 'credential',
+            'pin': 'credential',
+            'id card': 'document',
+            'passport': 'document',
+            'driver license': 'document'
+        };
+        
+        const lowerVal = validation.toLowerCase();
+        for (const [key, type] of Object.entries(commonTypes)) {
+            if (lowerVal.includes(key)) return type;
+        }
+        
+        return 'custom';
+    }
+    
+    formatValidationDisplay(validation) {
+        if (!validation || validation === 'none') return 'None';
+        
+        // Capitalize and format common validation methods
+        return validation.charAt(0).toUpperCase() + validation.slice(1);
+    }
+    
+    processLocation(party) {
+        if (!party.gmlpos && !party.civicaddress) return null;
+        
+        const location = {};
+        
+        if (party.gmlpos) {
+            location.gmlpos = {
+                raw: party.gmlpos,
+                coordinates: this.parseGMLPos(party.gmlpos),
+                display: this.formatGMLPosDisplay(party.gmlpos)
+            };
+        }
+        
+        if (party.civicaddress) {
+            location.civic = {
+                raw: party.civicaddress,
+                display: this.formatCivicAddressDisplay(party.civicaddress)
+            };
+        }
+        
+        return location;
+    }
+    
+    parseGMLPos(gmlpos) {
+        if (!gmlpos) return null;
+        
+        // GML pos format: "latitude longitude" (space-separated)
+        const coords = gmlpos.trim().split(/\s+/);
+        if (coords.length >= 2) {
+            const lat = parseFloat(coords[0]);
+            const lng = parseFloat(coords[1]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                return { latitude: lat, longitude: lng };
+            }
+        }
+        return null;
+    }
+    
+    formatGMLPosDisplay(gmlpos) {
+        const coords = this.parseGMLPos(gmlpos);
+        if (coords) {
+            return `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+        }
+        return gmlpos;
+    }
+    
+    formatCivicAddressDisplay(civicaddress) {
+        if (typeof civicaddress === 'string') return civicaddress;
+        if (typeof civicaddress === 'object' && civicaddress !== null) {
+            // Format common civic address fields
+            const parts = [];
+            if (civicaddress.street) parts.push(civicaddress.street);
+            if (civicaddress.city) parts.push(civicaddress.city);
+            if (civicaddress.state) parts.push(civicaddress.state);
+            if (civicaddress.postal) parts.push(civicaddress.postal);
+            if (civicaddress.country) parts.push(civicaddress.country);
+            return parts.length > 0 ? parts.join(', ') : 'Civic Address';
+        }
+        return 'Civic Address';
+    }
+    
+    // Identifier validation functions
+    
+    validateTelURL(tel) {
+        if (!tel) return false;
+        
+        // Remove tel: prefix for validation
+        const number = tel.replace(/^tel:/, '');
+        
+        // Basic E.164 format check: + followed by up to 15 digits
+        return /^\+[1-9]\d{1,14}$/.test(number) || /^\d{10,15}$/.test(number);
+    }
+    
+    validateSipURL(sip) {
+        if (!sip) return false;
+        
+        // Basic SIP URL format: user@domain or sip:user@domain
+        const sipPattern = /^(sip:)?[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return sipPattern.test(sip);
+    }
+    
+    validateEmailURL(email) {
+        if (!email) return false;
+        
+        // Remove mailto: prefix for validation
+        const addr = email.replace(/^mailto:/, '');
+        
+        // Basic email validation
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailPattern.test(addr);
+    }
+    
+    validateDID(did) {
+        if (!did) return false;
+        
+        // Basic DID format: did:method:identifier
+        const didPattern = /^did:[a-zA-Z0-9]+:[a-zA-Z0-9._-]+$/;
+        return didPattern.test(did);
+    }
+    
+    validateSTIR(stir) {
+        if (!stir) return false;
+        
+        // Basic JWT format check (PASSporT is a JWT)
+        // Format: header.payload.signature (base64url encoded)
+        const jwtPattern = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+        return jwtPattern.test(stir);
+    }
+    
+    validateUUID(uuid) {
+        if (!uuid) return false;
+        
+        // RFC 4122 UUID format
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        return uuidPattern.test(uuid);
     }
 }
 
