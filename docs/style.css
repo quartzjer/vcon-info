@@ -12,10 +12,21 @@
     --bg-editor: #1e293b;
     --bg-card: #1e293b;
     
-    /* Section Header Colors */
-    --color-parties: #533268;
-    --color-dialog: #15634f;
-    --color-attachments: #5c3925;
+    /* Section Header Colors - More distinct and vibrant */
+    --color-about: #7c3aed;        /* Purple - for general info */
+    --color-parties: #f59e0b;      /* Amber - for people/contacts */
+    --color-dialog: #10b981;       /* Emerald - for conversations */
+    --color-attachments: #ef4444;  /* Red - for files/attachments */
+    --color-analysis: #3b82f6;     /* Blue - for analytics */
+    --color-extensions: #8b5cf6;   /* Violet - for custom data */
+    
+    /* Section Background Colors - Subtle tinted backgrounds */
+    --bg-about: rgba(124, 58, 237, 0.08);
+    --bg-parties: rgba(245, 158, 11, 0.08);
+    --bg-dialog: rgba(16, 185, 129, 0.08);
+    --bg-attachments: rgba(239, 68, 68, 0.08);
+    --bg-analysis: rgba(59, 130, 246, 0.08);
+    --bg-extensions: rgba(139, 92, 246, 0.08);
     
     /* Text Colors */
     --text-primary: #e2e8f0;
@@ -520,6 +531,7 @@ body {
     padding: var(--spacing-sm) var(--spacing-md);
     transition: opacity 0.2s ease;
     position: relative;
+    font-weight: 500;
 }
 
 .section-header:hover {
@@ -527,27 +539,33 @@ body {
 }
 
 .section-about {
-    background-color: var(--color-parties);
+    background-color: var(--color-about);
+    color: white;
 }
 
 .section-parties {
     background-color: var(--color-parties);
+    color: white;
 }
 
 .section-dialog {
     background-color: var(--color-dialog);
+    color: white;
 }
 
 .section-attachments {
     background-color: var(--color-attachments);
+    color: white;
 }
 
 .section-analysis {
-    background-color: var(--color-dialog);
+    background-color: var(--color-analysis);
+    color: white;
 }
 
 .section-extensions {
-    background-color: var(--color-attachments);
+    background-color: var(--color-extensions);
+    color: white;
 }
 
 /* Panel Toggle Button (Eye Icon) */
@@ -630,7 +648,6 @@ body {
     overflow: hidden;
     max-height: 1000px;
     opacity: 1;
-    background-color: var(--bg-card);
 }
 
 .section-content.collapsed {
@@ -639,17 +656,35 @@ body {
     opacity: 0;
 }
 
-/* Remove section-specific content styling since we now have proper containers */
-.section-about .section-content,
-.section-parties .section-content,
-.section-dialog .section-content,
-.section-attachments .section-content,
-.section-analysis .section-content,
+/* Section-specific content styling with tinted backgrounds */
+.section-about .section-content {
+    background-color: var(--bg-about);
+    border-left: 3px solid var(--color-about);
+}
+
+.section-parties .section-content {
+    background-color: var(--bg-parties);
+    border-left: 3px solid var(--color-parties);
+}
+
+.section-dialog .section-content {
+    background-color: var(--bg-dialog);
+    border-left: 3px solid var(--color-dialog);
+}
+
+.section-attachments .section-content {
+    background-color: var(--bg-attachments);
+    border-left: 3px solid var(--color-attachments);
+}
+
+.section-analysis .section-content {
+    background-color: var(--bg-analysis);
+    border-left: 3px solid var(--color-analysis);
+}
+
 .section-extensions .section-content {
-    background-color: transparent;
-    border-radius: 0;
-    padding: var(--spacing-md);
-    margin-top: 0;
+    background-color: var(--bg-extensions);
+    border-left: 3px solid var(--color-extensions);
 }
 
 /* Party Items */
@@ -670,8 +705,9 @@ body {
     align-items: center;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-md);
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.03);
     cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .party-index,
