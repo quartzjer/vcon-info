@@ -690,6 +690,7 @@ function performDetailedValidation(vcon) {
                 vcon.parties.forEach((party, index) => {
                     const partyErrors = validatePartyObject(party, index);
                     fieldErrors = fieldErrors.concat(partyErrors.errors);
+                    errors.push(...partyErrors.errors);
                     warnings.push(...partyErrors.warnings);
                 });
             }
@@ -744,6 +745,7 @@ function performDetailedValidation(vcon) {
             vcon.dialog.forEach((dialog, index) => {
                 const dialogErrors = validateDialogObject(dialog, index, vcon.parties ? vcon.parties.length : 0);
                 integrityIssues.push(...dialogErrors.errors);
+                errors.push(...dialogErrors.errors);
                 warnings.push(...dialogErrors.warnings);
             });
         }
@@ -758,6 +760,7 @@ function performDetailedValidation(vcon) {
             vcon.analysis.forEach((analysis, index) => {
                 const analysisErrors = validateAnalysisObject(analysis, index);
                 integrityIssues.push(...analysisErrors.errors);
+                errors.push(...analysisErrors.errors);
                 warnings.push(...analysisErrors.warnings);
             });
         }
@@ -772,6 +775,7 @@ function performDetailedValidation(vcon) {
             vcon.attachments.forEach((attachment, index) => {
                 const attachmentErrors = validateAttachmentObject(attachment, index);
                 integrityIssues.push(...attachmentErrors.errors);
+                errors.push(...attachmentErrors.errors);
                 warnings.push(...attachmentErrors.warnings);
             });
         }
@@ -1221,7 +1225,7 @@ function validateDialogObject(dialog, index, partiesCount) {
     }
     
     // Validate mediatype if present
-    if (dialog.mediatype && !isValidMediaType(dialog.mediatype)) {
+    if (dialog.mediatype && !isStandardMediaType(dialog.mediatype)) {
         warnings.push(`Dialog ${index}: Non-standard media type '${dialog.mediatype}'`);
     }
     
@@ -1263,7 +1267,7 @@ function validateAnalysisObject(analysis, index) {
     }
     
     // Validate mediatype if present
-    if (analysis.mediatype && !isValidMediaType(analysis.mediatype)) {
+    if (analysis.mediatype && !isStandardMediaType(analysis.mediatype)) {
         warnings.push(`Analysis ${index}: Non-standard media type '${analysis.mediatype}'`);
     }
     
@@ -1307,7 +1311,7 @@ function validateAttachmentObject(attachment, index) {
     }
     
     // Validate mediatype if present
-    if (attachment.mediatype && !isValidMediaType(attachment.mediatype)) {
+    if (attachment.mediatype && !isStandardMediaType(attachment.mediatype)) {
         warnings.push(`Attachment ${index}: Non-standard media type '${attachment.mediatype}'`);
     }
     
@@ -1351,11 +1355,11 @@ function isValidGMLPos(gmlpos) {
 }
 
 /**
- * Validate media type format
- * @param {string} mediaType - Media type to validate
- * @returns {boolean} True if valid format
+ * Check if media type is a standard type
+ * @param {string} mediaType - Media type to check
+ * @returns {boolean} True if standard type
  */
-function isValidMediaType(mediaType) {
+function isStandardMediaType(mediaType) {
     // Common vCon media types from the spec
     const standardTypes = [
         'text/plain',
@@ -1370,8 +1374,37 @@ function isValidMediaType(mediaType) {
         'application/pdf'
     ];
     
-    // Check if it's a standard type or has valid format (type/subtype)
-    return standardTypes.includes(mediaType) || /^[a-z]+\/[a-z0-9.\-+]+$/i.test(mediaType);
+    return standardTypes.includes(mediaType);
+}
+
+/**
+ * Validate media type format
+ * @param {string} mediaType - Media type to validate
+ * @returns {boolean} True if valid format
+ */
+function isValidMediaType(mediaType) {
+    // Check if it has valid format (type/subtype)
+    return /^[a-z]+\/[a-z0-9.\-+]+$/i.test(mediaType);
+}
+
+// Export for testing in browser environment
+if (typeof window !== 'undefined') {
+    window.parseVcon = parseVcon;
+    window.performDetailedValidation = performDetailedValidation;
+    window.vconApp = vconApp;
+    window.stateManager = stateManager;
+    // Export validation helper functions for testing
+    window.isValidUUID = isValidUUID;
+    window.isValidRFC3339Date = isValidRFC3339Date;
+    window.validatePartyObject = validatePartyObject;
+    window.validateDialogObject = validateDialogObject;
+    window.validateAnalysisObject = validateAnalysisObject;
+    window.validateAttachmentObject = validateAttachmentObject;
+    window.isValidTelURL = isValidTelURL;
+    window.isValidEmail = isValidEmail;
+    window.isValidGMLPos = isValidGMLPos;
+    window.isValidMediaType = isValidMediaType;
+    window.isStandardMediaType = isStandardMediaType;
 }
 
 // Export for potential module usage
