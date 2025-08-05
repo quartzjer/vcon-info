@@ -81,6 +81,7 @@ describe("Integration: App Integration", () => {
       const validVcon = JSON.stringify({
         vcon: "0.3.0",
         uuid: "123e4567-e89b-12d3-a456-426614174000",
+        created_at: "2023-12-14T18:59:45.911Z",
         parties: [{ name: "Test Party" }]
       }, null, 2);
 
@@ -93,9 +94,9 @@ describe("Integration: App Integration", () => {
       // Wait for validation (debounced)
       await page.waitForTimeout(500);
 
-      // Check status shows valid (status text should change)
+      // Check status shows valid (should show Valid Status or similar)
       const statusText = await page.$eval('#validation-status', el => el.textContent);
-      expect(statusText).toContain('validation:'); // Should contain validation prefix
+      expect(statusText).toContain('Valid'); // Should contain Valid
     });
 
     test("shows validation errors for invalid input", async () => {
@@ -110,9 +111,9 @@ describe("Integration: App Integration", () => {
       // Wait for validation
       await page.waitForTimeout(500);
 
-      // Check status shows error (status indicator should change)
+      // Check status shows error (should show Invalid Status)
       const statusText = await page.$eval('#validation-status', el => el.textContent);
-      expect(statusText).toContain('validation:'); // Should contain validation prefix
+      expect(statusText).toContain('Invalid'); // Should contain Invalid
     });
 
     test("handles malformed JSON input", async () => {
@@ -129,7 +130,7 @@ describe("Integration: App Integration", () => {
 
       // Check status shows error
       const statusText = await page.$eval('#validation-status', el => el.textContent);
-      expect(statusText).toContain('validation:'); // Should contain validation prefix
+      expect(statusText).toContain('Invalid'); // Should contain Invalid
     });
   });
 
@@ -165,6 +166,7 @@ describe("Integration: App Integration", () => {
       const vcon = JSON.stringify({
         vcon: "0.3.0",
         uuid: "123e4567-e89b-12d3-a456-426614174000",
+        created_at: "2023-12-14T18:59:45.911Z",
         parties: [{ name: "Test Party" }]
       });
 

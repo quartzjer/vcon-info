@@ -1,5 +1,8 @@
-// vCon Info - JavaScript Logic Stub
-// This file contains placeholder functionality for the vCon inspector tool
+// vCon Info - JavaScript Logic
+// Main application logic for the vCon inspector tool
+
+// Initialize vCon processor
+let vconProcessor = null;
 
 // DOM Elements
 const vconInput = document.getElementById('input-textarea');
@@ -102,38 +105,51 @@ if (lockButton && keyPanel) {
     });
 }
 
-// Input Change Handler (Updated with detailed validation)
+// Input Change Handler with vCon processing
 vconInput.addEventListener('input', () => {
     console.log('vCon input changed');
     
     const input = vconInput.value.trim();
     if (!input) {
         updateValidationStatus('unknown');
+        clearInspectorPanels();
+        clearTimeline();
         return;
     }
     
     try {
-        const parsed = JSON.parse(input);
+        // Process vCon data
+        const result = vconProcessor.process(input);
         
-        // Perform detailed validation
-        const validationResults = performDetailedValidation(parsed);
+        // Update validation status
+        const validationDetails = {
+            schema: result.validation.errors.length === 0 ? 
+                { status: 'good', message: `Valid vCon v${result.metadata.version} format` } :
+                { status: 'fail', message: result.validation.errors[0].message },
+            required: result.validation.isValid ?
+                { status: 'good', message: 'All required fields present' } :
+                { status: 'fail', message: `Missing fields: ${result.validation.errors.map(e => e.field).join(', ')}` },
+            integrity: result.validation.warnings.length === 0 ?
+                { status: 'good', message: 'Data integrity verified' } :
+                { status: 'warning', message: result.validation.warnings[0].message },
+            security: determineSecurityStatus(result)
+        };
         
-        // Determine overall status
-        let overallStatus = 'good';
-        let message = 'vCon data is valid';
+        const overallStatus = result.isValid ? 
+            (result.warnings.length > 0 ? 'warning' : 'good') : 'fail';
+        const message = result.isValid ? 
+            'vCon data is valid' : 'vCon validation failed';
         
-        const hasErrors = Object.values(validationResults).some(r => r.status === 'fail');
-        const hasWarnings = Object.values(validationResults).some(r => r.status === 'warning');
+        updateValidationStatus(overallStatus, message, validationDetails);
         
-        if (hasErrors) {
-            overallStatus = 'fail';
-            message = 'vCon data contains validation errors';
-        } else if (hasWarnings) {
-            overallStatus = 'warning';
-            message = 'vCon data is valid but has some warnings';
-        }
+        // Update inspector panels
+        updateInspectorPanels(result);
         
-        updateValidationStatus(overallStatus, message, validationResults);
+        // Update timeline
+        updateTimeline(result.timeline);
+        
+        // Store processed result for debugging
+        window.lastVConResult = result;
         
     } catch (e) {
         updateValidationStatus('fail', 'Invalid JSON format', {
@@ -142,6 +158,8 @@ vconInput.addEventListener('input', () => {
             integrity: { status: 'pending', message: 'Cannot validate - invalid JSON' },
             security: { status: 'pending', message: 'Cannot validate - invalid JSON' }
         });
+        clearInspectorPanels();
+        clearTimeline();
     }
 });
 
@@ -171,14 +189,340 @@ function parseVcon(input) {
 }
 
 /**
- * Update the inspector view with parsed vCon data
- * @param {object} vcon - Parsed vCon object
+ * Update the inspector panels with processed vCon data
+ * @param {object} result - Processed vCon result from VConProcessor
  */
-function updateInspector(vcon) {
-    // TODO: Implement inspector update logic
-    // - Update parties section
-    // - Update dialog section
-    // - Update attachments section
+function updateInspectorPanels(result) {
+    // Update About section
+    updateAboutPanel(result.metadata);
+    
+    // Update Parties section
+    updatePartiesPanel(result.parties);
+    
+    // Update Dialog section
+    updateDialogPanel(result.dialog);
+    
+    // Update Attachments section
+    updateAttachmentsPanel(result.attachments);
+    
+    // Update Analysis section
+    updateAnalysisPanel(result.analysis);
+    
+    // Update Extensions section
+    updateExtensionsPanel(result.extensions);
+}
+
+/**
+ * Update About panel with metadata
+ */
+function updateAboutPanel(metadata) {
+    const section = document.querySelector('.section-about').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    const html = `
+        <div class="vcon-metadata">
+            <div class="metadata-item">
+                <span class="metadata-label">Version:</span>
+                <span class="metadata-value">${escapeHtml(metadata.version)}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">UUID:</span>
+                <span class="metadata-value uuid">${escapeHtml(metadata.uuid)}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">Created:</span>
+                <span class="metadata-value">${metadata.created ? metadata.created.display : 'Not specified'}</span>
+            </div>
+            ${metadata.updated ? `
+            <div class="metadata-item">
+                <span class="metadata-label">Updated:</span>
+                <span class="metadata-value">${metadata.updated.display}</span>
+            </div>` : ''}
+            ${metadata.subject ? `
+            <div class="metadata-item">
+                <span class="metadata-label">Subject:</span>
+                <span class="metadata-value">${escapeHtml(metadata.subject)}</span>
+            </div>` : ''}
+            <div class="metadata-item">
+                <span class="metadata-label">Type:</span>
+                <span class="metadata-value">${metadata.type}</span>
+            </div>
+            ${metadata.redacted ? `
+            <div class="metadata-item redacted-info">
+                <span class="metadata-label">Redacted from:</span>
+                <span class="metadata-value">${escapeHtml(metadata.redacted.uuid)}</span>
+            </div>` : ''}
+            ${metadata.appended ? `
+            <div class="metadata-item appended-info">
+                <span class="metadata-label">Appended to:</span>
+                <span class="metadata-value">${escapeHtml(metadata.appended.uuid)}</span>
+            </div>` : ''}
+        </div>
+    `;
+    
+    content.innerHTML = html;
+}
+
+/**
+ * Update Parties panel
+ */
+function updatePartiesPanel(parties) {
+    const section = document.querySelector('.section-parties').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    if (parties.length === 0) {
+        content.innerHTML = '<div class="empty-message">No parties defined</div>';
+        return;
+    }
+    
+    const html = parties.map((party, index) => `
+        <div class="party-item">
+            <div class="party-header">
+                <span class="party-index">[${index}]</span>
+                ${party.name ? `<span class="party-name">${escapeHtml(party.name)}</span>` : ''}
+            </div>
+            <div class="party-identifiers">
+                ${party.identifiers.map(id => `
+                    <div class="identifier">
+                        <span class="id-type">${id.type}:</span>
+                        <span class="id-value">${escapeHtml(id.display)}</span>
+                    </div>
+                `).join('')}
+            </div>
+            ${party.validation ? `
+            <div class="party-validation">
+                <span class="validation-label">Validation:</span>
+                <span class="validation-value">${escapeHtml(party.validation)}</span>
+            </div>` : ''}
+        </div>
+    `).join('');
+    
+    content.innerHTML = html;
+}
+
+/**
+ * Update Dialog panel
+ */
+function updateDialogPanel(dialogs) {
+    const section = document.querySelector('.section-dialog').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    if (dialogs.length === 0) {
+        content.innerHTML = '<div class="empty-message">No dialog records</div>';
+        return;
+    }
+    
+    const html = dialogs.map((dialog, index) => `
+        <div class="dialog-item">
+            <div class="dialog-header">
+                <span class="dialog-index">[${index}]</span>
+                <span class="dialog-type ${dialog.type}">${dialog.type}</span>
+                ${dialog.mediatype ? `<span class="dialog-media">${dialog.mediatype}</span>` : ''}
+            </div>
+            <div class="dialog-details">
+                ${dialog.start ? `
+                <div class="detail-item">
+                    <span class="detail-label">Start:</span>
+                    <span class="detail-value">${dialog.start.display}</span>
+                </div>` : ''}
+                ${dialog.duration ? `
+                <div class="detail-item">
+                    <span class="detail-label">Duration:</span>
+                    <span class="detail-value">${dialog.duration}s</span>
+                </div>` : ''}
+                ${dialog.parties.length > 0 ? `
+                <div class="detail-item">
+                    <span class="detail-label">Parties:</span>
+                    <span class="detail-value">${dialog.parties.map(p => p.name || `Party ${p.index}`).join(', ')}</span>
+                </div>` : ''}
+                ${dialog.disposition ? `
+                <div class="detail-item">
+                    <span class="detail-label">Disposition:</span>
+                    <span class="detail-value">${dialog.disposition}</span>
+                </div>` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    content.innerHTML = html;
+}
+
+/**
+ * Update Attachments panel
+ */
+function updateAttachmentsPanel(attachments) {
+    const section = document.querySelector('.section-attachments').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    if (attachments.length === 0) {
+        content.innerHTML = '<div class="empty-message">No attachments</div>';
+        return;
+    }
+    
+    const html = attachments.map((attachment, index) => `
+        <div class="attachment-item">
+            <div class="attachment-header">
+                <span class="attachment-index">[${index}]</span>
+                <span class="attachment-filename">${escapeHtml(attachment.filename)}</span>
+            </div>
+            <div class="attachment-details">
+                <div class="detail-item">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">${attachment.mediatype}</span>
+                </div>
+                ${attachment.party ? `
+                <div class="detail-item">
+                    <span class="detail-label">From:</span>
+                    <span class="detail-value">${attachment.party.name || `Party ${attachment.party.index}`}</span>
+                </div>` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    content.innerHTML = html;
+}
+
+/**
+ * Update Analysis panel
+ */
+function updateAnalysisPanel(analyses) {
+    const section = document.querySelector('.section-analysis').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    if (analyses.length === 0) {
+        content.innerHTML = '<div class="empty-message">No analysis data</div>';
+        return;
+    }
+    
+    const html = analyses.map((analysis, index) => `
+        <div class="analysis-item">
+            <div class="analysis-header">
+                <span class="analysis-index">[${index}]</span>
+                <span class="analysis-type">${analysis.type}</span>
+            </div>
+            <div class="analysis-details">
+                ${analysis.vendor ? `
+                <div class="detail-item">
+                    <span class="detail-label">Vendor:</span>
+                    <span class="detail-value">${escapeHtml(analysis.vendor)}</span>
+                </div>` : ''}
+                ${analysis.product ? `
+                <div class="detail-item">
+                    <span class="detail-label">Product:</span>
+                    <span class="detail-value">${escapeHtml(analysis.product)}</span>
+                </div>` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    content.innerHTML = html;
+}
+
+/**
+ * Update Extensions panel
+ */
+function updateExtensionsPanel(extensions) {
+    const section = document.querySelector('.section-extensions').parentElement;
+    const content = section.querySelector('.section-content');
+    
+    const keys = Object.keys(extensions);
+    if (keys.length === 0) {
+        content.innerHTML = '<div class="empty-message">No extensions</div>';
+        return;
+    }
+    
+    const html = keys.map(key => `
+        <div class="extension-item">
+            <span class="extension-key">${escapeHtml(key)}:</span>
+            <span class="extension-value">${escapeHtml(JSON.stringify(extensions[key], null, 2))}</span>
+        </div>
+    `).join('');
+    
+    content.innerHTML = html;
+}
+
+/**
+ * Clear all inspector panels
+ */
+function clearInspectorPanels() {
+    const sections = document.querySelectorAll('.section-content');
+    sections.forEach(section => {
+        section.innerHTML = '<div class="content-placeholder">No data to display</div>';
+    });
+}
+
+/**
+ * Escape HTML for safe display
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Determine security status from result
+ */
+function determineSecurityStatus(result) {
+    // Check for JWS signatures
+    if (result.metadata.signatures) {
+        return { status: 'warning', message: 'Signatures present but not verified' };
+    }
+    // Check for encryption
+    if (result.metadata.encrypted) {
+        return { status: 'warning', message: 'Encrypted content detected' };
+    }
+    // Check for content hashes
+    const hasContentHash = result.dialog.some(d => d.content && d.content.contentHash) ||
+                          result.attachments.some(a => a.content && a.content.contentHash);
+    if (hasContentHash) {
+        return { status: 'good', message: 'Content hashes present for verification' };
+    }
+    return { status: 'good', message: 'No security features detected' };
+}
+
+/**
+ * Update timeline view
+ * @param {array} timeline - Timeline events from vCon processor
+ */
+function updateTimeline(timeline) {
+    const timelineView = document.getElementById('timeline-view');
+    if (!timelineView) return;
+    
+    if (!timeline || timeline.length === 0) {
+        timelineView.innerHTML = '<div class="empty-timeline">No timeline events to display</div>';
+        return;
+    }
+    
+    const html = `
+        <div class="timeline-container">
+            ${timeline.map(event => `
+                <div class="timeline-event ${event.type}">
+                    <div class="event-time">${new Date(event.time).toLocaleString()}</div>
+                    <div class="event-description">${escapeHtml(event.description)}</div>
+                    ${event.details ? `
+                    <div class="event-details">
+                        ${Object.entries(event.details).map(([key, value]) => 
+                            `<span class="detail">${key}: ${escapeHtml(String(value))}</span>`
+                        ).join(', ')}
+                    </div>` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    timelineView.innerHTML = html;
+}
+
+/**
+ * Clear timeline view
+ */
+function clearTimeline() {
+    const timelineView = document.getElementById('timeline-view');
+    if (timelineView) {
+        timelineView.innerHTML = '<div class="empty-timeline">No timeline data</div>';
+    }
 }
 
 /**
@@ -463,6 +807,9 @@ function handleFile(file) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('vCon Info initialized');
+    
+    // Initialize vCon processor
+    vconProcessor = new VConProcessor();
     
     // Make app objects global for testing
     window.vconApp = vconApp;
