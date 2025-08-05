@@ -115,15 +115,23 @@ class VConProcessor {
             }
         }
         
-        // Validate UUID format
+        // Validate UUID format (RFC 4122)
         if (vcon.uuid) {
-            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
             if (!uuidRegex.test(vcon.uuid)) {
                 validation.errors.push({
                     field: 'uuid',
-                    message: 'Invalid UUID format'
+                    message: 'Invalid UUID format (must be RFC 4122 compliant)'
                 });
                 validation.isValid = false;
+            } else {
+                // Extract and validate UUID version
+                const version = parseInt(vcon.uuid.charAt(14), 16);
+                validation.details.uuid = {
+                    value: vcon.uuid,
+                    version: version,
+                    valid: true
+                };
             }
         }
         
@@ -173,6 +181,28 @@ class VConProcessor {
                         }
                     });
                 }
+                
+                // Validate originator party index
+                if (dialog.originator !== undefined && typeof dialog.originator === 'number' && dialog.originator >= vcon.parties.length) {
+                    validation.errors.push({
+                        field: `dialog[${index}].originator`,
+                        message: `Invalid originator party index ${dialog.originator} (only ${vcon.parties.length} parties defined)`
+                    });
+                    validation.isValid = false;
+                }
+            });
+        }
+        
+        // Validate attachment references to parties
+        if (vcon.attachments && vcon.parties) {
+            vcon.attachments.forEach((attachment, index) => {
+                if (attachment.party !== undefined && typeof attachment.party === 'number' && attachment.party >= vcon.parties.length) {
+                    validation.errors.push({
+                        field: `attachments[${index}].party`,
+                        message: `Invalid party index ${attachment.party} (only ${vcon.parties.length} parties defined)`
+                    });
+                    validation.isValid = false;
+                }
             });
         }
         
@@ -187,12 +217,36 @@ class VConProcessor {
         }
         
         // Validate must_support if present
-        if (vcon.must_support && !Array.isArray(vcon.must_support)) {
-            validation.errors.push({
-                field: 'must_support',
-                message: 'must_support must be an array of strings'
-            });
-            validation.isValid = false;
+        if (vcon.must_support) {
+            if (!Array.isArray(vcon.must_support)) {
+                validation.errors.push({
+                    field: 'must_support',
+                    message: 'must_support must be an array of strings'
+                });
+                validation.isValid = false;
+            } else {
+                // Validate extension name format (should be strings, preferably URIs or identifiers)
+                vcon.must_support.forEach((ext, index) => {
+                    if (typeof ext !== 'string') {
+                        validation.errors.push({
+                            field: `must_support[${index}]`,
+                            message: 'Extension names must be strings'
+                        });
+                        validation.isValid = false;
+                    } else if (ext.trim().length === 0) {
+                        validation.errors.push({
+                            field: `must_support[${index}]`,
+                            message: 'Extension names cannot be empty'
+                        });
+                        validation.isValid = false;
+                    } else if (!/^[a-zA-Z0-9._-]+$/.test(ext) && !/^https?:\/\//.test(ext)) {
+                        validation.warnings.push({
+                            field: `must_support[${index}]`,
+                            message: `Extension name "${ext}" should be a valid identifier or URI`
+                        });
+                    }
+                });
+            }
         }
         
         return validation;
