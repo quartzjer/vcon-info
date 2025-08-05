@@ -243,11 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.vconApp = vconApp;
     window.stateManager = stateManager;
     
-    // Set initial state text
-    const statusText = document.getElementById('status-text');
-    if (statusText && statusText.textContent.trim() === '') {
-        statusText.textContent = 'Ready';
-    }
+    // Set initial validation status
+    updateValidationStatus('unknown');
     
     // Add blue border to active tab
     const activeTab = document.querySelector('.tab-button.active');

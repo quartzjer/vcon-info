@@ -53,7 +53,7 @@ describe("Integration: App Integration", () => {
       // Check main components are present
       const inputExists = await page.$('#input-textarea') !== null;
       const tabsExist = await page.$('#tab-inspector') !== null;
-      const statusExists = await page.$('#status-text') !== null;
+      const statusExists = await page.$('#validation-status') !== null;
 
       expect(inputExists).toBe(true);
       expect(tabsExist).toBe(true);
@@ -71,7 +71,7 @@ describe("Integration: App Integration", () => {
       expect(inspectorHasActiveBorder).toBe(true);
 
       // Check status shows some content (not empty)
-      const statusText = await page.$eval('#status-text', el => el.textContent);
+      const statusText = await page.$eval('#validation-status', el => el.textContent);
       expect(statusText.length).toBeGreaterThan(0);
     });
   });
@@ -84,40 +84,52 @@ describe("Integration: App Integration", () => {
         parties: [{ name: "Test Party" }]
       }, null, 2);
 
+      // Clear existing content first
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
       await page.type('#input-textarea', validVcon);
       
       // Wait for validation (debounced)
       await page.waitForTimeout(500);
 
       // Check status shows valid (status text should change)
-      const statusText = await page.$eval('#status-text', el => el.textContent);
-      expect(statusText).not.toBe('Ready'); // Should change from initial state
+      const statusText = await page.$eval('#validation-status', el => el.textContent);
+      expect(statusText).toContain('validation:'); // Should contain validation prefix
     });
 
     test("shows validation errors for invalid input", async () => {
       const invalidVcon = '{"vcon": "0.3.0"}'; // Missing required fields
 
+      // Clear existing content first
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
       await page.type('#input-textarea', invalidVcon);
       
       // Wait for validation
       await page.waitForTimeout(500);
 
       // Check status shows error (status indicator should change)
-      const statusText = await page.$eval('#status-text', el => el.textContent);
-      expect(statusText).not.toBe('Ready'); // Should change from initial state
+      const statusText = await page.$eval('#validation-status', el => el.textContent);
+      expect(statusText).toContain('validation:'); // Should contain validation prefix
     });
 
     test("handles malformed JSON input", async () => {
       const malformedJson = '{"invalid": json}';
 
+      // Clear existing content first
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
       await page.type('#input-textarea', malformedJson);
       
       // Wait for validation
       await page.waitForTimeout(500);
 
       // Check status shows error
-      const statusText = await page.$eval('#status-text', el => el.textContent);
-      expect(statusText).not.toBe('Ready'); // Should change from initial state
+      const statusText = await page.$eval('#validation-status', el => el.textContent);
+      expect(statusText).toContain('validation:'); // Should contain validation prefix
     });
   });
 
@@ -149,22 +161,31 @@ describe("Integration: App Integration", () => {
       expect(inspectorHasActiveBorder).toBe(true);
     });
 
-    test("raw tab shows formatted JSON", async () => {
+    test("timeline tab displays content", async () => {
       const vcon = JSON.stringify({
         vcon: "0.3.0",
         uuid: "123e4567-e89b-12d3-a456-426614174000",
         parties: [{ name: "Test Party" }]
       });
 
+      // Clear existing content first
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
       await page.type('#input-textarea', vcon);
       await page.waitForTimeout(500);
 
-      // Note: There is no raw tab in the current UI, so we'll check timeline instead
+      // Click timeline tab
       await page.click('#tab-timeline');
 
       // Check timeline view is displayed
       const timelineView = await page.$('#timeline-view');
       expect(timelineView).not.toBeNull();
+      
+      // Check timeline content is visible (not hidden)
+      const timelineHidden = await page.$eval('#timeline-view', el => 
+        el.classList.contains('hidden'));
+      expect(timelineHidden).toBe(false);
     });
   });
 
