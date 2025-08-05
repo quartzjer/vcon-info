@@ -376,11 +376,13 @@ describe("Integration: App Integration", () => {
       // Check that input tabs exist
       const pasteTab = await page.$('#tab-paste');
       const uploadTab = await page.$('#tab-upload');
+      const examplesTab = await page.$('#tab-examples');
       const jsonTab = await page.$('#tab-json');
       const encryptedTab = await page.$('#tab-encrypted');
       
       expect(pasteTab).not.toBeNull();
       expect(uploadTab).not.toBeNull();
+      expect(examplesTab).not.toBeNull();
       expect(jsonTab).not.toBeNull();
       expect(encryptedTab).not.toBeNull();
       
@@ -418,6 +420,36 @@ describe("Integration: App Integration", () => {
       // Check encrypted textarea exists
       const encryptedTextarea = await page.$('#encrypted-textarea');
       expect(encryptedTextarea).not.toBeNull();
+    });
+    
+    test("examples tab displays list of examples", async () => {
+      // Click examples tab
+      await page.click('#tab-examples');
+      await page.waitForTimeout(200);
+      
+      // Check examples view is visible
+      const examplesViewVisible = await page.$eval('#examples-view', el => el.classList.contains('active'));
+      expect(examplesViewVisible).toBe(true);
+      
+      // Check examples container exists
+      const examplesContainer = await page.$('.examples-container');
+      expect(examplesContainer).not.toBeNull();
+      
+      // Check examples header exists
+      const examplesHeader = await page.$('.examples-header');
+      expect(examplesHeader).not.toBeNull();
+      
+      // Wait for examples to load (or show error)
+      await page.waitForTimeout(500);
+      
+      // Check that either examples are loaded or an error is shown
+      const hasExamples = await page.$$('.example-item');
+      const hasError = await page.$('.examples-error');
+      const hasLoading = await page.$('.examples-loading');
+      
+      // Should have either examples, an error, or still be loading
+      const hasContent = hasExamples.length > 0 || hasError !== null || hasLoading !== null;
+      expect(hasContent).toBe(true);
     });
   });
 

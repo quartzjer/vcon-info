@@ -804,6 +804,120 @@ function handleFile(file) {
     reader.readAsText(file);
 }
 
+// Examples functionality
+async function initializeExamples() {
+    const examplesList = document.getElementById('examples-list');
+    if (!examplesList) return;
+    
+    // Show loading state
+    examplesList.innerHTML = '<div class="examples-loading">Loading examples...</div>';
+    
+    try {
+        // Load the list of examples
+        const response = await fetch('examples/list.json');
+        if (!response.ok) {
+            throw new Error('Failed to load examples list');
+        }
+        
+        const examples = await response.json();
+        
+        // Clear loading state
+        examplesList.innerHTML = '';
+        
+        // Create example items
+        examples.forEach(filename => {
+            const item = createExampleItem(filename);
+            examplesList.appendChild(item);
+        });
+        
+    } catch (error) {
+        console.error('Error loading examples:', error);
+        examplesList.innerHTML = `
+            <div class="examples-error">
+                Failed to load examples: ${error.message}
+            </div>
+        `;
+    }
+}
+
+function createExampleItem(filename) {
+    const item = document.createElement('div');
+    item.className = 'example-item';
+    
+    // Parse filename to get a friendly name and type
+    const name = filename.replace('.vcon', '').replace(/_/g, ' ');
+    const type = getExampleType(filename);
+    
+    item.innerHTML = `
+        <span class="example-icon">📄</span>
+        <div class="example-content">
+            <div class="example-name">${escapeHtml(name)}</div>
+            <div class="example-type">${escapeHtml(filename)}</div>
+        </div>
+        ${type ? `<span class="example-badge">${escapeHtml(type)}</span>` : ''}
+    `;
+    
+    item.addEventListener('click', () => loadExample(filename, item));
+    
+    return item;
+}
+
+function getExampleType(filename) {
+    if (filename.includes('email')) return 'email';
+    if (filename.includes('call')) return 'call';
+    if (filename.includes('encrypted')) return 'encrypted';
+    if (filename.includes('signed')) return 'signed';
+    if (filename.includes('redacted')) return 'redacted';
+    if (filename.includes('analysis')) return 'analysis';
+    if (filename.includes('simple')) return 'basic';
+    return null;
+}
+
+async function loadExample(filename, itemElement) {
+    // Add loading state to the clicked item
+    itemElement.classList.add('loading');
+    
+    try {
+        // Fetch the example file
+        const response = await fetch(`examples/${filename}`);
+        if (!response.ok) {
+            throw new Error(`Failed to load example: ${filename}`);
+        }
+        
+        const content = await response.text();
+        
+        // Switch to paste tab
+        document.getElementById('tab-paste').click();
+        
+        // Load content into textarea
+        if (vconInput) {
+            vconInput.value = content;
+            vconInput.dispatchEvent(new Event('input'));
+        }
+        
+        // Show success feedback
+        itemElement.classList.remove('loading');
+        
+        // Add temporary success highlight
+        itemElement.style.backgroundColor = 'rgba(34, 197, 94, 0.1)';
+        setTimeout(() => {
+            itemElement.style.backgroundColor = '';
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error loading example:', error);
+        itemElement.classList.remove('loading');
+        
+        // Show error feedback
+        itemElement.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+        setTimeout(() => {
+            itemElement.style.backgroundColor = '';
+        }, 1000);
+        
+        alert(`Failed to load example: ${error.message}`);
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('vCon Info initialized');
@@ -845,6 +959,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize upload functionality
     initializeUpload();
+    
+    // Initialize examples functionality
+    initializeExamples();
 });
 
 // Export for potential module usage

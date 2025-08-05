@@ -49,6 +49,7 @@
             <div class="input-tabs">
                 <button class="input-tab-button active" id="tab-paste" data-input-tab="paste">Paste</button>
                 <button class="input-tab-button" id="tab-upload" data-input-tab="upload">Upload</button>
+                <button class="input-tab-button" id="tab-examples" data-input-tab="examples">Examples</button>
                 <button class="input-tab-button" id="tab-json" data-input-tab="json">JSON</button>
                 <button class="input-tab-button" id="tab-encrypted" data-input-tab="encrypted">Encrypted</button>
             </div>
@@ -108,6 +109,19 @@
                             </svg>
                             <p class="upload-text">Drop vCon file here or click to browse</p>
                             <input type="file" class="upload-input" id="file-input" accept=".json,.vcon" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Examples Tab -->
+                <div class="input-tab-panel" id="examples-view">
+                    <div class="examples-container">
+                        <div class="examples-header">
+                            <h3 class="examples-title">vCon Examples</h3>
+                            <p class="examples-description">Select an example to load and analyze</p>
+                        </div>
+                        <div class="examples-list" id="examples-list">
+                            <!-- Examples will be loaded here dynamically -->
                         </div>
                     </div>
                 </div>
