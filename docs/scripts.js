@@ -68,7 +68,6 @@ vconInput.addEventListener('input', () => {
     // - Update inspector view
     // - Update validation status
     // - Update timeline view
-    // - Update raw view
     console.log('vCon input changed');
 });
 
@@ -122,15 +121,6 @@ function updateTimeline(vcon) {
     // - Handle party interactions
 }
 
-/**
- * Update raw view
- * @param {object} vcon - Parsed vCon object
- */
-function updateRawView(vcon) {
-    // TODO: Implement raw view update
-    // - Format JSON with syntax highlighting
-    // - Handle large data efficiently
-}
 
 // State Manager for test compatibility
 const stateManager = {
@@ -225,7 +215,6 @@ if (typeof module !== 'undefined' && module.exports) {
         parseVcon,
         updateInspector,
         updateValidationStatus,
-        updateTimeline,
-        updateRawView
+        updateTimeline
     };
 }
