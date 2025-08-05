@@ -206,6 +206,81 @@ describe("Integration: App Integration", () => {
         !el.classList.contains('hidden'));
       expect(isVisible).toBe(true);
     });
+
+    test("section panels toggle correctly with eye button", async () => {
+      // Ensure we're on inspector tab
+      await page.click('#tab-inspector');
+
+      // Find a section with the parties header
+      const partiesHeader = await page.$('.section-header.section-parties');
+      expect(partiesHeader).not.toBeNull();
+
+      // Get the parent section
+      const partiesSection = await page.evaluateHandle(el => el.closest('.inspector-section'), partiesHeader);
+
+      // Get the toggle button and content within the section
+      const toggleButton = await page.$('.section-header.section-parties .panel-toggle');
+      expect(toggleButton).not.toBeNull();
+
+      // Check initial state - content should be visible
+      const initialContentVisible = await page.evaluate(() => {
+        const section = document.querySelector('.section-header.section-parties').closest('.inspector-section');
+        const content = section.querySelector('.section-content');
+        const styles = window.getComputedStyle(content);
+        return !content.classList.contains('collapsed') && styles.maxHeight !== '0px';
+      });
+      expect(initialContentVisible).toBe(true);
+
+      // Click the toggle button to collapse
+      await page.click('.section-header.section-parties .panel-toggle');
+      await page.waitForTimeout(400); // Wait for animation
+
+      // Check collapsed state
+      const contentCollapsed = await page.evaluate(() => {
+        const section = document.querySelector('.section-header.section-parties').closest('.inspector-section');
+        const content = section.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      expect(contentCollapsed).toBe(true);
+
+      // Click again to expand
+      await page.click('.section-header.section-parties .panel-toggle');
+      await page.waitForTimeout(400); // Wait for animation
+
+      // Check expanded state
+      const contentExpanded = await page.evaluate(() => {
+        const section = document.querySelector('.section-header.section-parties').closest('.inspector-section');
+        const content = section.querySelector('.section-content');
+        return !content.classList.contains('collapsed');
+      });
+      expect(contentExpanded).toBe(true);
+    });
+
+    test("all sections have content and are collapsible", async () => {
+      // Ensure we're on inspector tab
+      await page.click('#tab-inspector');
+
+      const sections = ['about', 'parties', 'dialog', 'attachments', 'analysis', 'extensions'];
+      
+      for (const section of sections) {
+        // Check that section header exists
+        const sectionHeader = await page.$(`.section-header.section-${section}`);
+        expect(sectionHeader).not.toBeNull();
+
+        // Check that content exists and has placeholder text
+        const hasContent = await page.evaluate((sectionName) => {
+          const header = document.querySelector(`.section-header.section-${sectionName}`);
+          const section = header.closest('.inspector-section');
+          const content = section.querySelector('.section-content');
+          return content && content.textContent.trim().length > 0;
+        }, section);
+        expect(hasContent).toBe(true);
+
+        // Check that toggle button exists
+        const toggleButton = await page.$(`.section-header.section-${section} .panel-toggle`);
+        expect(toggleButton).not.toBeNull();
+      }
+    });
   });
 
   describe("Key Panel", () => {

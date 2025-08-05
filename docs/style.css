@@ -434,6 +434,30 @@ body {
     opacity: 0.6;
 }
 
+/* Content placeholders */
+.content-placeholder {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.content-placeholder p {
+    margin-bottom: var(--spacing-sm);
+}
+
+.content-placeholder .highlight {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.content-placeholder code {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.813rem;
+}
+
 /* Remove old collapse button styles */
 .collapse-button {
     display: none;
@@ -452,13 +476,59 @@ body {
 /* Section Content */
 .section-content {
     padding: var(--spacing-sm) 0;
-    transition: max-height 0.3s ease, padding 0.3s ease;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
     overflow: hidden;
+    max-height: 1000px;
+    opacity: 1;
 }
 
 .section-content.collapsed {
     max-height: 0;
     padding: 0;
+    opacity: 0;
+}
+
+/* Section-specific content styling */
+.section-about .section-content {
+    background-color: rgba(83, 50, 104, 0.05);
+    border-radius: 0.375rem;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.section-parties .section-content {
+    background-color: rgba(83, 50, 104, 0.05);
+    border-radius: 0.375rem;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.section-dialog .section-content {
+    background-color: rgba(21, 99, 79, 0.05);
+    border-radius: 0.375rem;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.section-attachments .section-content {
+    background-color: rgba(92, 57, 37, 0.05);
+    border-radius: 0.375rem;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.section-analysis .section-content {
+    background-color: rgba(21, 99, 79, 0.05);
+    border-radius: 0.375rem;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+}
+
+.section-extensions .section-content {
+    background-color: rgba(92, 57, 37, 0.05);
+    border-radius: 0.375rem;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
 }
 
 /* Party Items */
