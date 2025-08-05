@@ -517,6 +517,10 @@ body {
 
 .inspector-section {
     margin-bottom: var(--spacing-md);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
 }
 
 /* Section Headers */
@@ -525,7 +529,6 @@ body {
     align-items: center;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: 0.375rem;
     transition: opacity 0.2s ease;
     position: relative;
 }
@@ -633,11 +636,12 @@ body {
 
 /* Section Content */
 .section-content {
-    padding: var(--spacing-sm) 0;
+    padding: var(--spacing-md);
     transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
     overflow: hidden;
     max-height: 1000px;
     opacity: 1;
+    background-color: var(--bg-card);
 }
 
 .section-content.collapsed {
@@ -646,47 +650,17 @@ body {
     opacity: 0;
 }
 
-/* Section-specific content styling */
-.section-about .section-content {
-    background-color: rgba(83, 50, 104, 0.05);
-    border-radius: 0.375rem;
-    padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
-}
-
-.section-parties .section-content {
-    background-color: rgba(83, 50, 104, 0.05);
-    border-radius: 0.375rem;
-    padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
-}
-
-.section-dialog .section-content {
-    background-color: rgba(21, 99, 79, 0.05);
-    border-radius: 0.375rem;
-    padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
-}
-
-.section-attachments .section-content {
-    background-color: rgba(92, 57, 37, 0.05);
-    border-radius: 0.375rem;
-    padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
-}
-
-.section-analysis .section-content {
-    background-color: rgba(21, 99, 79, 0.05);
-    border-radius: 0.375rem;
-    padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
-}
-
+/* Remove section-specific content styling since we now have proper containers */
+.section-about .section-content,
+.section-parties .section-content,
+.section-dialog .section-content,
+.section-attachments .section-content,
+.section-analysis .section-content,
 .section-extensions .section-content {
-    background-color: rgba(92, 57, 37, 0.05);
-    border-radius: 0.375rem;
+    background-color: transparent;
+    border-radius: 0;
     padding: var(--spacing-md);
-    margin-top: var(--spacing-sm);
+    margin-top: 0;
 }
 
 /* Party Items */
