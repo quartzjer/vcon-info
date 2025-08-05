@@ -48,9 +48,20 @@
     <main class="main-content">
         <!-- Left Panel - Input -->
         <section class="input-panel">
-            <h2 class="panel-title">Input vCon</h2>
-            <div class="code-editor">
-                <textarea class="code-textarea" id="input-textarea" placeholder="Paste your vCon here...">{
+            <!-- Input Tabs -->
+            <div class="input-tabs">
+                <button class="input-tab-button active" id="tab-paste" data-input-tab="paste">Paste</button>
+                <button class="input-tab-button" id="tab-upload" data-input-tab="upload">Upload</button>
+                <button class="input-tab-button" id="tab-json" data-input-tab="json">JSON</button>
+                <button class="input-tab-button" id="tab-encrypted" data-input-tab="encrypted">Encrypted</button>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="input-tab-content">
+                <!-- Paste Tab -->
+                <div class="input-tab-panel active" id="paste-view">
+                    <div class="code-editor">
+                        <textarea class="code-textarea" id="input-textarea" placeholder="Paste your vCon here...">{
   "vcon": "0.3.0",
   "uuid": "018972cc-8ddb-7ccc-baa5-ec2a4e6c7d0d",
   "created_at": "2023-12-14T18:59:45.911Z",
@@ -88,6 +99,41 @@
     }
   ]
 }</textarea>
+                    </div>
+                </div>
+                
+                <!-- Upload Tab -->
+                <div class="input-tab-panel" id="upload-view">
+                    <div class="upload-container">
+                        <div class="upload-drop-zone">
+                            <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                            </svg>
+                            <p class="upload-text">Drop vCon file here or click to browse</p>
+                            <input type="file" class="upload-input" id="file-input" accept=".json,.vcon" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- JSON Tab -->
+                <div class="input-tab-panel" id="json-view">
+                    <div class="json-builder">
+                        <p class="json-placeholder">JSON builder interface coming soon</p>
+                        <p class="json-hint">Build vCon objects using a visual form interface</p>
+                    </div>
+                </div>
+                
+                <!-- Encrypted Tab -->
+                <div class="input-tab-panel" id="encrypted-view">
+                    <div class="encrypted-container">
+                        <div class="code-editor">
+                            <textarea class="code-textarea encrypted-textarea" id="encrypted-textarea" placeholder="Paste your encrypted vCon here..."></textarea>
+                        </div>
+                        <div class="decryption-hint">
+                            <p>To decrypt, provide your private key using the <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: inline-block; vertical-align: middle;"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/></svg> button above</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 

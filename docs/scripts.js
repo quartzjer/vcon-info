@@ -8,6 +8,8 @@ const tabPanels = document.querySelectorAll('.tab-panel');
 const panelToggles = document.querySelectorAll('.panel-toggle');
 const lockButton = document.getElementById('lock-button');
 const keyPanel = document.getElementById('key-panel');
+const inputTabButtons = document.querySelectorAll('.input-tab-button');
+const inputTabPanels = document.querySelectorAll('.input-tab-panel');
 
 // Tab Switching Functionality
 tabButtons.forEach(button => {
@@ -24,6 +26,27 @@ tabButtons.forEach(button => {
         // Add active class to clicked button and corresponding panel
         button.classList.add('active');
         button.classList.add('border-blue-600'); // Add blue border for active state
+        
+        // Find the corresponding panel
+        const panelId = targetTab + '-view';
+        const panel = document.getElementById(panelId);
+        if (panel) {
+            panel.classList.add('active');
+        }
+    });
+});
+
+// Input Tab Switching Functionality
+inputTabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const targetTab = button.getAttribute('data-input-tab');
+        
+        // Remove active class from all buttons and panels
+        inputTabButtons.forEach(btn => btn.classList.remove('active'));
+        inputTabPanels.forEach(panel => panel.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding panel
+        button.classList.add('active');
         
         // Find the corresponding panel
         const panelId = targetTab + '-view';
@@ -106,6 +129,15 @@ vconInput.addEventListener('input', () => {
         updateValidationStatus('fail', 'invalid JSON');
     }
 });
+
+// Encrypted input handler
+const encryptedInput = document.getElementById('encrypted-textarea');
+if (encryptedInput) {
+    encryptedInput.addEventListener('input', () => {
+        console.log('Encrypted vCon input changed');
+        // Future implementation: handle encrypted vCon decryption
+    });
+}
 
 // Helper Functions (Stubs for future implementation)
 
@@ -232,6 +264,61 @@ const vconApp = {
     }
 };
 
+// Upload functionality
+function initializeUpload() {
+    const dropZone = document.querySelector('.upload-drop-zone');
+    const fileInput = document.getElementById('file-input');
+    
+    if (!dropZone || !fileInput) return;
+    
+    // Click to upload
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleFile(file);
+        }
+    });
+    
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            handleFile(file);
+        }
+    });
+}
+
+function handleFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target.result;
+        // Switch to paste tab and update textarea
+        document.getElementById('tab-paste').click();
+        if (vconInput) {
+            vconInput.value = content;
+            vconInput.dispatchEvent(new Event('input'));
+        }
+    };
+    reader.readAsText(file);
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('vCon Info initialized');
@@ -267,6 +354,9 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.remove('collapsed');
         }
     });
+    
+    // Initialize upload functionality
+    initializeUpload();
 });
 
 // Export for potential module usage

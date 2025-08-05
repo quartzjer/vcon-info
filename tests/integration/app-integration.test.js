@@ -369,6 +369,56 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("Input Tabs", () => {
+    test("input tabs are present and switch correctly", async () => {
+      // Check that input tabs exist
+      const pasteTab = await page.$('#tab-paste');
+      const uploadTab = await page.$('#tab-upload');
+      const jsonTab = await page.$('#tab-json');
+      const encryptedTab = await page.$('#tab-encrypted');
+      
+      expect(pasteTab).not.toBeNull();
+      expect(uploadTab).not.toBeNull();
+      expect(jsonTab).not.toBeNull();
+      expect(encryptedTab).not.toBeNull();
+      
+      // Check paste tab is active by default
+      const pasteTabActive = await page.$eval('#tab-paste', el => el.classList.contains('active'));
+      expect(pasteTabActive).toBe(true);
+      
+      // Click upload tab and verify switch
+      await page.click('#tab-upload');
+      await page.waitForTimeout(100);
+      
+      const uploadTabActive = await page.$eval('#tab-upload', el => el.classList.contains('active'));
+      const uploadViewVisible = await page.$eval('#upload-view', el => el.classList.contains('active'));
+      expect(uploadTabActive).toBe(true);
+      expect(uploadViewVisible).toBe(true);
+      
+      // Check upload drop zone exists
+      const dropZone = await page.$('.upload-drop-zone');
+      expect(dropZone).not.toBeNull();
+    });
+
+    test("encrypted tab shows decryption hint", async () => {
+      // Click encrypted tab
+      await page.click('#tab-encrypted');
+      await page.waitForTimeout(100);
+      
+      // Check encrypted view is visible
+      const encryptedViewVisible = await page.$eval('#encrypted-view', el => el.classList.contains('active'));
+      expect(encryptedViewVisible).toBe(true);
+      
+      // Check decryption hint exists
+      const decryptionHint = await page.$('.decryption-hint');
+      expect(decryptionHint).not.toBeNull();
+      
+      // Check encrypted textarea exists
+      const encryptedTextarea = await page.$('#encrypted-textarea');
+      expect(encryptedTextarea).not.toBeNull();
+    });
+  });
+
   describe("Snapshot Test", () => {
     test("generates full page screenshot", async () => {
       // Load sample data to have content in the UI
