@@ -12,6 +12,7 @@ This document outlines the detailed implementation plan to upgrade the vCon Info
 **Timeline**: Week 1-2  
 **Priority**: Critical  
 **Goal**: Ensure the app correctly implements vCon specification terminology and structure
+**Important**: ALWAYS review the local copy of the core specification in ./drafts/draft-ietf-vcon-vcon-core-00.txt to validate all changes
 
 ### 1.1 Rename and Restructure Inspector Panels
 - [x] Rename "About" section to "Metadata" in HTML and CSS
@@ -65,16 +66,17 @@ This document outlines the detailed implementation plan to upgrade the vCon Info
 **Files to modify**: `docs/vcon-processor.js`, `docs/scripts.js`
 
 ### 1.5 Dialog Enhancements
-- [ ] Support all dialog types:
+- [x] Support all dialog types:
   - [x] recording
   - [x] text
-  - [ ] transfer
-  - [ ] transfer-refer
-- [ ] Implement party_history tracking
-- [ ] Add session_id display
-- [ ] Support application field
-- [ ] Handle message_id for threading
-- [ ] Process disposition field properly
+  - [x] transfer
+  - [x] incomplete (note: transfer-refer doesn't exist in IETF spec)
+- [x] Implement party_history tracking with join/drop/hold/unhold/mute/unmute events
+- [x] Add session_id field display and validation
+- [x] Support application field processing
+- [x] Handle message_id for threading functionality
+- [x] Process disposition field properly for incomplete dialogs
+- [x] Add comprehensive dialog validation per IETF specification
 
 **Files to modify**: `docs/vcon-processor.js`, `docs/scripts.js`
 

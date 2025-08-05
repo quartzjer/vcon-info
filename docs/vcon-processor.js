@@ -376,15 +376,16 @@ class VConProcessor {
                 parties: this.resolveParties(dialog.parties, parties),
                 originator: dialog.originator !== undefined ? 
                     parties[dialog.originator] : null,
-                disposition: dialog.disposition || null,
+                disposition: this.processDisposition(dialog.disposition, dialog.type),
                 mediatype: dialog.mediatype || dialog.mimetype || null,
                 filename: dialog.filename || null,
                 content: null,
                 transfer: null,
-                session_id: dialog.session_id || null,
-                party_history: dialog.party_history || [],
-                application: dialog.application || null,
-                message_id: dialog.message_id || null
+                session_id: this.processSessionId(dialog.session_id),
+                party_history: this.processPartyHistory(dialog.party_history || []),
+                application: this.processApplication(dialog.application),
+                message_id: this.processMessageId(dialog.message_id),
+                validation: this.validateDialog(dialog)
             };
             
             // Handle different dialog types
@@ -393,7 +394,8 @@ class VConProcessor {
                     hasBody: !!dialog.body,
                     hasUrl: !!dialog.url,
                     encoding: dialog.encoding || null,
-                    contentHash: dialog.content_hash || null
+                    contentHash: dialog.content_hash || null,
+                    valid: this.validateDialogContent(dialog)
                 };
             } else if (dialog.type === 'transfer') {
                 processed.transfer = {
@@ -402,7 +404,14 @@ class VConProcessor {
                     transfer_target: dialog.transfer_target,
                     original: dialog.original,
                     consultation: dialog.consultation,
-                    target_dialog: dialog.target_dialog
+                    target_dialog: dialog.target_dialog,
+                    valid: this.validateTransferDialog(dialog)
+                };
+            } else if (dialog.type === 'incomplete') {
+                processed.incomplete = {
+                    hasDisposition: !!dialog.disposition,
+                    reason: dialog.disposition || 'not specified',
+                    valid: this.validateIncompleteDialog(dialog)
                 };
             }
             
@@ -772,6 +781,182 @@ class VConProcessor {
         // RFC 4122 UUID format
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return uuidPattern.test(uuid);
+    }
+    
+    // Enhanced dialog processing helper functions
+    
+    processDisposition(disposition, dialogType) {
+        if (!disposition) return null;
+        
+        return {
+            raw: disposition,
+            display: this.formatDispositionDisplay(disposition),
+            required: dialogType === 'incomplete',
+            valid: this.validateDisposition(disposition, dialogType)
+        };
+    }
+    
+    formatDispositionDisplay(disposition) {
+        // Common disposition values per spec
+        const dispositionMap = {
+            'busy': 'Busy',
+            'no-answer': 'No Answer', 
+            'failed': 'Failed',
+            'rejected': 'Rejected',
+            'redirected': 'Redirected',
+            'voicemail-no-message': 'Voicemail (No Message)'
+        };
+        
+        return dispositionMap[disposition] || disposition;
+    }
+    
+    validateDisposition(disposition, dialogType) {
+        if (dialogType === 'incomplete' && !disposition) return false;
+        if (dialogType !== 'incomplete' && disposition) return false;
+        return true;
+    }
+    
+    processSessionId(sessionId) {
+        if (!sessionId) return null;
+        
+        return {
+            raw: sessionId,
+            display: sessionId,
+            valid: this.validateSessionId(sessionId)
+        };
+    }
+    
+    validateSessionId(sessionId) {
+        // Basic validation - session ID should be a non-empty string
+        return typeof sessionId === 'string' && sessionId.trim().length > 0;
+    }
+    
+    processPartyHistory(partyHistory) {
+        if (!Array.isArray(partyHistory) || partyHistory.length === 0) return [];
+        
+        return partyHistory.map((event, index) => ({
+            index: index,
+            party: event.party,
+            time: this.formatDate(event.time),
+            event: event.event,
+            display: this.formatPartyHistoryDisplay(event),
+            valid: this.validatePartyHistoryEvent(event)
+        }));
+    }
+    
+    formatPartyHistoryDisplay(event) {
+        const eventMap = {
+            'join': 'Joined',
+            'drop': 'Dropped',
+            'hold': 'On Hold',
+            'unhold': 'Off Hold', 
+            'mute': 'Muted',
+            'unmute': 'Unmuted'
+        };
+        
+        const eventDisplay = eventMap[event.event] || event.event;
+        return `Party ${event.party} ${eventDisplay}`;
+    }
+    
+    validatePartyHistoryEvent(event) {
+        const validEvents = ['join', 'drop', 'hold', 'unhold', 'mute', 'unmute'];
+        
+        if (typeof event.party !== 'number') return false;
+        if (!event.time || !this.isValidDate(event.time)) return false;
+        if (!validEvents.includes(event.event)) return false;
+        
+        return true;
+    }
+    
+    processApplication(application) {
+        if (!application) return null;
+        
+        return {
+            raw: application,
+            display: application,
+            valid: this.validateApplication(application)
+        };
+    }
+    
+    validateApplication(application) {
+        return typeof application === 'string' && application.trim().length > 0;
+    }
+    
+    processMessageId(messageId) {
+        if (!messageId) return null;
+        
+        return {
+            raw: messageId,
+            display: messageId,
+            valid: this.validateMessageId(messageId)
+        };
+    }
+    
+    validateMessageId(messageId) {
+        return typeof messageId === 'string' && messageId.trim().length > 0;
+    }
+    
+    validateDialog(dialog) {
+        const errors = [];
+        const warnings = [];
+        
+        // Validate dialog type
+        const validTypes = ['recording', 'text', 'transfer', 'incomplete'];
+        if (!validTypes.includes(dialog.type)) {
+            errors.push(`Invalid dialog type: ${dialog.type}`);
+        }
+        
+        // Type-specific validation
+        if (dialog.type === 'incomplete' && !dialog.disposition) {
+            errors.push('Incomplete dialogs must have a disposition parameter');
+        }
+        
+        if ((dialog.type === 'incomplete' || dialog.type === 'transfer') && (dialog.body || dialog.url)) {
+            errors.push(`${dialog.type} dialogs must not have body or url content`);
+        }
+        
+        if ((dialog.type === 'recording' || dialog.type === 'text') && !dialog.body && !dialog.url) {
+            warnings.push(`${dialog.type} dialogs should have either body or url content`);
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors,
+            warnings: warnings
+        };
+    }
+    
+    validateDialogContent(dialog) {
+        const hasContent = !!(dialog.body || dialog.url);
+        const hasHash = !!dialog.content_hash;
+        
+        return {
+            hasContent: hasContent,
+            hasHash: hasHash,
+            valid: hasContent // Content is required for recording/text
+        };
+    }
+    
+    validateTransferDialog(dialog) {
+        const requiredFields = ['transferee', 'transferor', 'transfer_target'];
+        const missing = requiredFields.filter(field => dialog[field] === undefined);
+        
+        return {
+            hasRequiredFields: missing.length === 0,
+            missingFields: missing,
+            valid: missing.length === 0
+        };
+    }
+    
+    validateIncompleteDialog(dialog) {
+        const hasDisposition = !!dialog.disposition;
+        const hasContent = !!(dialog.body || dialog.url);
+        
+        return {
+            hasDisposition: hasDisposition,
+            hasContent: hasContent,
+            valid: hasDisposition && !hasContent
+        };
     }
 }
 
