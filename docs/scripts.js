@@ -427,8 +427,11 @@ function updatePartiesPanel(parties) {
     
     if (parties.length === 0) {
         content.innerHTML = '<div class="empty-message">No parties defined</div>';
+        autoCollapsePanel(section);
         return;
     }
+    
+    autoExpandPanel(section);
     
     const html = parties.map((party, index) => `
         <div class="party-item">
@@ -464,8 +467,11 @@ function updateDialogPanel(dialogs) {
     
     if (dialogs.length === 0) {
         content.innerHTML = '<div class="empty-message">No dialog records</div>';
+        autoCollapsePanel(section);
         return;
     }
+    
+    autoExpandPanel(section);
     
     const html = dialogs.map((dialog, index) => `
         <div class="dialog-item">
@@ -511,8 +517,11 @@ function updateAttachmentsPanel(attachments) {
     
     if (attachments.length === 0) {
         content.innerHTML = '<div class="empty-message">No attachments</div>';
+        autoCollapsePanel(section);
         return;
     }
+    
+    autoExpandPanel(section);
     
     const html = attachments.map((attachment, index) => `
         <div class="attachment-item">
@@ -546,8 +555,11 @@ function updateAnalysisPanel(analyses) {
     
     if (analyses.length === 0) {
         content.innerHTML = '<div class="empty-message">No analysis data</div>';
+        autoCollapsePanel(section);
         return;
     }
+    
+    autoExpandPanel(section);
     
     const html = analyses.map((analysis, index) => `
         <div class="analysis-item">
@@ -583,8 +595,11 @@ function updateExtensionsPanel(extensions) {
     const keys = Object.keys(extensions);
     if (keys.length === 0) {
         content.innerHTML = '<div class="empty-message">No extensions</div>';
+        autoCollapsePanel(section);
         return;
     }
+    
+    autoExpandPanel(section);
     
     const html = keys.map(key => `
         <div class="extension-item">
@@ -953,6 +968,34 @@ function updateKeyValidationStatus(crypto) {
         }
     } else {
         keyValidation.style.display = 'none';
+    }
+}
+
+/**
+ * Auto-collapse a panel section when it has no data
+ * @param {HTMLElement} section - The inspector section element
+ */
+function autoCollapsePanel(section) {
+    const content = section.querySelector('.section-content');
+    const toggleButton = section.querySelector('.panel-toggle');
+    
+    if (content && toggleButton && !content.classList.contains('collapsed')) {
+        content.classList.add('collapsed');
+        toggleButton.classList.add('collapsed');
+    }
+}
+
+/**
+ * Auto-expand a panel section when it has data
+ * @param {HTMLElement} section - The inspector section element  
+ */
+function autoExpandPanel(section) {
+    const content = section.querySelector('.section-content');
+    const toggleButton = section.querySelector('.panel-toggle');
+    
+    if (content && toggleButton && content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        toggleButton.classList.remove('collapsed');
     }
 }
 

@@ -734,6 +734,158 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("Panel Auto-Collapse", () => {
+    test("auto-collapses empty panels when vCon has no data", async () => {
+      // Input vCon with minimal data (only required fields, no dialog/attachments/analysis/extensions)
+      const minimalVcon = {
+        "vcon": "0.3.0",
+        "uuid": "01987d9a-3db5-7186-b6f7-396adcaf35e2",
+        "created_at": "2023-12-14T18:59:45.911Z",
+        "parties": [
+          {
+            "tel": "+1-555-123-4567",
+            "name": "Alice Johnson"
+          }
+        ]
+      };
+      
+      // Set input
+      await page.evaluate((vconData) => {
+        const textarea = document.getElementById('input-textarea');
+        textarea.value = JSON.stringify(vconData, null, 2);
+        textarea.dispatchEvent(new Event('input'));
+      }, minimalVcon);
+      
+      // Wait for processing
+      await page.waitForTimeout(1000);
+      
+      // Check that empty panels are collapsed
+      const dialogCollapsed = await page.evaluate(() => {
+        const dialogSection = document.querySelector('.section-dialog').parentElement;
+        const content = dialogSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const attachmentsCollapsed = await page.evaluate(() => {
+        const attachmentsSection = document.querySelector('.section-attachments').parentElement;
+        const content = attachmentsSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const analysisCollapsed = await page.evaluate(() => {
+        const analysisSection = document.querySelector('.section-analysis').parentElement;
+        const content = analysisSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const extensionsCollapsed = await page.evaluate(() => {
+        const extensionsSection = document.querySelector('.section-extensions').parentElement;
+        const content = extensionsSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      // Parties should NOT be collapsed since it has data
+      const partiesCollapsed = await page.evaluate(() => {
+        const partiesSection = document.querySelector('.section-parties').parentElement;
+        const content = partiesSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      expect(dialogCollapsed).toBe(true);
+      expect(attachmentsCollapsed).toBe(true);
+      expect(analysisCollapsed).toBe(true);
+      expect(extensionsCollapsed).toBe(true);
+      expect(partiesCollapsed).toBe(false);
+    });
+
+    test("auto-expands panels when vCon has data", async () => {
+      // Input vCon with data in all sections
+      const fullVcon = {
+        "vcon": "0.3.0",
+        "uuid": "01987d9a-3db5-7186-b6f7-396adcaf35e2",
+        "created_at": "2023-12-14T18:59:45.911Z",
+        "parties": [
+          {
+            "tel": "+1-555-123-4567",
+            "name": "Alice Johnson"
+          }
+        ],
+        "dialog": [
+          {
+            "type": "recording",
+            "start": "2023-12-14T18:59:50.100Z",
+            "parties": [0],
+            "mimetype": "audio/wav",
+            "body": "base64-audio-data"
+          }
+        ],
+        "attachments": [
+          {
+            "type": "transcript",
+            "mimetype": "text/plain",
+            "body": "Sample transcript"
+          }
+        ],
+        "analysis": [
+          {
+            "type": "sentiment",
+            "vendor": "TestVendor",
+            "body": "positive"
+          }
+        ],
+        "x-custom-extension": "test-value"
+      };
+      
+      // Set input
+      await page.evaluate((vconData) => {
+        const textarea = document.getElementById('input-textarea');
+        textarea.value = JSON.stringify(vconData, null, 2);
+        textarea.dispatchEvent(new Event('input'));
+      }, fullVcon);
+      
+      // Wait for processing
+      await page.waitForTimeout(1000);
+      
+      // Check that all panels with data are expanded
+      const partiesCollapsed = await page.evaluate(() => {
+        const partiesSection = document.querySelector('.section-parties').parentElement;
+        const content = partiesSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const dialogCollapsed = await page.evaluate(() => {
+        const dialogSection = document.querySelector('.section-dialog').parentElement;
+        const content = dialogSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const attachmentsCollapsed = await page.evaluate(() => {
+        const attachmentsSection = document.querySelector('.section-attachments').parentElement;
+        const content = attachmentsSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const analysisCollapsed = await page.evaluate(() => {
+        const analysisSection = document.querySelector('.section-analysis').parentElement;
+        const content = analysisSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      const extensionsCollapsed = await page.evaluate(() => {
+        const extensionsSection = document.querySelector('.section-extensions').parentElement;
+        const content = extensionsSection.querySelector('.section-content');
+        return content.classList.contains('collapsed');
+      });
+      
+      // All panels should be expanded when they have data
+      expect(partiesCollapsed).toBe(false);
+      expect(dialogCollapsed).toBe(false);
+      expect(attachmentsCollapsed).toBe(false);
+      expect(analysisCollapsed).toBe(false);
+      expect(extensionsCollapsed).toBe(false);
+    });
+  });
+
   describe("Snapshot Test", () => {
     test("generates full page screenshot", async () => {
       // Load sample data to have content in the UI
