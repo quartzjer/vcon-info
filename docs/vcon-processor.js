@@ -286,7 +286,7 @@ class VConProcessor {
         const exclusiveCount = [vcon.redacted, vcon.appended, vcon.group].filter(Boolean).length;
         if (exclusiveCount > 1) {
             validation.errors.push({
-                field: 'root',
+                field: 'vcon',
                 message: 'redacted, appended, and group parameters are mutually exclusive'
             });
             validation.isValid = false;
