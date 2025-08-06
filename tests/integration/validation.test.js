@@ -212,6 +212,39 @@ describe('vCon Validation Tests', () => {
             const uuidWarnings = result.warnings.filter(w => w.includes('UUID'));
             expect(uuidWarnings).toHaveLength(0);
         });
+
+        it('should pass with vCon spec Version 8 UUID', async () => {
+            const vconWithV8Uuid = {
+                vcon: '0.3.0',
+                uuid: '01928e10-193e-8231-b9a2-279e0d16bc46', // Version 8 UUID from spec
+                created_at: '2024-01-15T10:00:00Z',
+                parties: [{ name: 'Alice' }]
+            };
+
+            const result = await page.evaluate((vcon) => {
+                return window.performDetailedValidation(vcon);
+            }, vconWithV8Uuid);
+
+            const uuidWarnings = result.warnings.filter(w => w.includes('UUID'));
+            expect(uuidWarnings).toHaveLength(0);
+        });
+
+        it('should fail with invalid UUID version', async () => {
+            const vconWithBadVersionUuid = {
+                vcon: '0.3.0',
+                uuid: '550e8400-e29b-c1d4-a716-446655440000', // Version C (invalid)
+                created_at: '2024-01-15T10:00:00Z',
+                parties: [{ name: 'Alice' }]
+            };
+
+            const result = await page.evaluate((vcon) => {
+                return window.performDetailedValidation(vcon);
+            }, vconWithBadVersionUuid);
+
+            const uuidWarnings = result.warnings.filter(w => w.includes('UUID'));
+            expect(uuidWarnings.length).toBeGreaterThan(0);
+            expect(result.warnings).toContain('UUID should be a valid UUID format');
+        });
     });
 
     describe('Party Validation', () => {

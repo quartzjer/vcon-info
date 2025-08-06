@@ -349,6 +349,27 @@ describe("Integration: App Integration", () => {
       expect(inputValue.length).toBeGreaterThan(0);
       expect(inputValue).toContain('"vcon"');
     });
+
+    test("loads basic-call.vcon from examples directory", async () => {
+      // Execute loadSample in page context
+      await page.evaluate(async () => {
+        if (window.vconApp && window.vconApp.loadSample) {
+          await window.vconApp.loadSample();
+        }
+      });
+
+      await page.waitForTimeout(1000); // Allow more time for fetch
+
+      // Check that input has the specific example data
+      const inputValue = await page.$eval('#input-textarea', el => el.value);
+      expect(inputValue).toContain('"vcon": "0.3.0"');
+      expect(inputValue).toContain('"uuid": "01928e10-193e-8231-b9a2-279e0d16bc46"');
+      expect(inputValue).toContain('"subject": "Customer Support Call - Account Inquiry"');
+      expect(inputValue).toContain('"Alice Johnson"');
+      expect(inputValue).toContain('"Bob Smith"');
+      expect(inputValue).toContain('"type": "recording"');
+      expect(inputValue).toContain('"type": "transcript"');
+    });
   });
 
   describe("Error Handling", () => {

@@ -1354,49 +1354,49 @@ const stateManager = {
 
 // Global app object for test compatibility
 const vconApp = {
-    loadSample: function(type = 'unsigned') {
-        const sampleData = {
-            vcon: "0.3.0",
-            uuid: "018972cc-8ddb-7ccc-baa5-ec2a4e6c7d0d",
-            created_at: "2023-12-14T18:59:45.911Z",
-            updated_at: "2023-12-14T19:00:12.345Z",
-            parties: [
-                {
-                    tel: "+1-555-123-4567",
-                    name: "Alice Johnson",
-                    email: "alice@example.com"
-                },
-                {
-                    tel: "+1-555-987-6543",
-                    name: "Bob Smith", 
-                    email: "bob@example.com"
-                }
-            ],
-            dialog: [
-                {
-                    type: "recording",
-                    start: "2023-12-14T18:59:50.100Z",
-                    end: "2023-12-14T19:00:10.856Z",
-                    parties: [0, 1],
-                    originator: 0,
-                    mimetype: "audio/wav",
-                    filename: "call-recording.wav",
-                    body: "base64-encoded-audio-data..."
-                }
-            ],
-            attachments: [
-                {
-                    type: "transcript",
-                    parties: [0, 1],
-                    mimetype: "text/plain",
-                    body: "Transcript of the conversation..."
-                }
-            ]
-        };
-        
-        if (vconInput) {
-            vconInput.value = JSON.stringify(sampleData, null, 2);
-            vconInput.dispatchEvent(new Event('input'));
+    loadSample: async function(type = 'unsigned') {
+        try {
+            const filename = type === 'unsigned' ? 'basic-call.vcon' : `${type}.vcon`;
+            const response = await fetch(`examples/${filename}`);
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load sample: ${filename}`);
+            }
+            
+            const content = await response.text();
+            
+            if (vconInput) {
+                vconInput.value = content;
+                vconInput.dispatchEvent(new Event('input'));
+            }
+            
+            return content;
+        } catch (error) {
+            console.error('Error loading sample:', error);
+            
+            // Fallback to minimal inline sample if fetch fails
+            const fallbackData = {
+                vcon: "0.3.0",
+                uuid: "01928e10-193e-8231-b9a2-279e0d16bc46",
+                created_at: "2023-12-14T18:59:45.911Z",
+                parties: [
+                    {
+                        tel: "+1-555-123-4567",
+                        name: "Alice Johnson"
+                    },
+                    {
+                        tel: "+1-555-987-6543", 
+                        name: "Bob Smith"
+                    }
+                ]
+            };
+            
+            if (vconInput) {
+                vconInput.value = JSON.stringify(fallbackData, null, 2);
+                vconInput.dispatchEvent(new Event('input'));
+            }
+            
+            return JSON.stringify(fallbackData, null, 2);
         }
     }
 };
@@ -1620,13 +1620,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Validate UUID format
+ * Validate UUID format according to vCon spec (Version 8 UUID from draft-peabody-dispatch-new-uuid-format)
  * @param {string} uuid - UUID string to validate
  * @returns {boolean} True if valid UUID
  */
 function isValidUUID(uuid) {
+    // Basic format check: 8-4-4-4-12 hex characters with hyphens
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
+    if (!uuidRegex.test(uuid)) {
+        return false;
+    }
+    
+    // vCon spec requires Version 8 UUID (position 12 should be '8')
+    // But we'll be more permissive and accept RFC 4122 versions 1-8 for compatibility
+    const versionChar = uuid.charAt(14);
+    const version = parseInt(versionChar, 16);
+    if (version < 1 || version > 8) {
+        return false;
+    }
+    
+    // Check variant bits (position 16 should be 8, 9, A, or B for RFC 4122)
+    const variantChar = uuid.charAt(19);
+    const variantBits = parseInt(variantChar, 16);
+    if (variantBits < 8 || variantBits > 11) { // 8-11 in hex = 8-B
+        return false;
+    }
+    
+    return true;
 }
 
 /**
