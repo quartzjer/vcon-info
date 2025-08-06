@@ -1286,11 +1286,27 @@ function performDetailedValidation(vcon) {
     const integrityIssues = [];
     
     // Check mutually exclusive fields
-    const mutuallyExclusive = ['redacted', 'appended', 'group'];
-    const presentExclusive = mutuallyExclusive.filter(field => vcon[field]);
-    if (presentExclusive.length > 1) {
-        integrityIssues.push(`Mutually exclusive fields present: ${presentExclusive.join(', ')}`);
-        errors.push(`Fields ${presentExclusive.join(', ')} are mutually exclusive`);
+    const exclusiveFields = [
+        { name: 'redacted', value: vcon.redacted },
+        { name: 'appended', value: vcon.appended },
+        { name: 'group', value: vcon.group }
+    ];
+    
+    const fieldsWithContent = exclusiveFields.filter(field => 
+        field.value !== undefined && hasValidContent(field.value)
+    );
+    const fieldsWithEmptyContent = exclusiveFields.filter(field => 
+        field.value !== undefined && !hasValidContent(field.value)
+    );
+    
+    if (fieldsWithContent.length > 1) {
+        const fieldNames = fieldsWithContent.map(f => f.name).join(', ');
+        integrityIssues.push(`Mutually exclusive fields with values: ${fieldNames}`);
+        errors.push(`${fieldNames} parameters are mutually exclusive and cannot all have values`);
+    } else if (fieldsWithEmptyContent.length > 1) {
+        const fieldNames = fieldsWithEmptyContent.map(f => f.name).join(', ');
+        integrityIssues.push(`Multiple empty mutually exclusive fields: ${fieldNames}`);
+        warnings.push(`${fieldNames} parameters are present but empty - these are mutually exclusive fields`);
     }
     
     // Validate optional date fields
@@ -1949,6 +1965,31 @@ function isValidGMLPos(gmlpos) {
     const lat = parseFloat(parts[0]);
     const lon = parseFloat(parts[1]);
     return !isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
+/**
+ * Check if a value has meaningful content (not empty)
+ * @param {any} value - Value to check
+ * @returns {boolean} True if value has meaningful content
+ */
+function hasValidContent(value) {
+    if (value === null || value === undefined) {
+        return false;
+    }
+    
+    if (typeof value === 'object') {
+        if (Array.isArray(value)) {
+            return value.length > 0;
+        } else {
+            return Object.keys(value).length > 0;
+        }
+    }
+    
+    if (typeof value === 'string') {
+        return value.trim().length > 0;
+    }
+    
+    return true; // For other types (numbers, booleans), consider them as having content
 }
 
 /**

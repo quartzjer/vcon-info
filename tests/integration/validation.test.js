@@ -408,7 +408,7 @@ describe('vCon Validation Tests', () => {
                 return window.performDetailedValidation(vcon);
             }, vconWithConflict);
 
-            expect(result.errors).toContain('Fields redacted, appended are mutually exclusive');
+            expect(result.errors).toContain('redacted, appended parameters are mutually exclusive and cannot all have values');
         });
 
         it('should fail when all three exclusive fields are present', async () => {
@@ -426,7 +426,7 @@ describe('vCon Validation Tests', () => {
                 return window.performDetailedValidation(vcon);
             }, vconWithAllExclusive);
 
-            expect(result.errors).toContain('Fields redacted, appended, group are mutually exclusive');
+            expect(result.errors).toContain('redacted, appended, group parameters are mutually exclusive and cannot all have values');
         });
 
         it('should pass with only one exclusive field', async () => {
@@ -444,6 +444,44 @@ describe('vCon Validation Tests', () => {
 
             const exclusiveErrors = result.errors.filter(e => e.includes('mutually exclusive'));
             expect(exclusiveErrors).toHaveLength(0);
+        });
+
+        it('should warn when multiple empty exclusive fields are present', async () => {
+            const vconWithEmptyFields = {
+                vcon: '0.3.0',
+                uuid: '018b5b10-d10a-8fec-8397-32de65a0c48b',
+                created_at: '2024-01-15T10:00:00Z',
+                parties: [{ name: 'Alice' }],
+                redacted: {},
+                group: []
+            };
+
+            const result = await page.evaluate((vcon) => {
+                return window.performDetailedValidation(vcon);
+            }, vconWithEmptyFields);
+
+            const exclusiveWarnings = result.warnings.filter(w => w.includes('mutually exclusive'));
+            expect(exclusiveWarnings).toHaveLength(1);
+            expect(result.warnings).toContain('redacted, group parameters are present but empty - these are mutually exclusive fields');
+        });
+
+        it('should pass with only empty exclusive fields individually', async () => {
+            const vconWithEmptyRedacted = {
+                vcon: '0.3.0',
+                uuid: '018b5b10-d10a-8fec-8397-32de65a0c48b',
+                created_at: '2024-01-15T10:00:00Z',
+                parties: [{ name: 'Alice' }],
+                redacted: {}
+            };
+
+            const result = await page.evaluate((vcon) => {
+                return window.performDetailedValidation(vcon);
+            }, vconWithEmptyRedacted);
+
+            const exclusiveErrors = result.errors.filter(e => e.includes('mutually exclusive'));
+            const exclusiveWarnings = result.warnings.filter(w => w.includes('mutually exclusive'));
+            expect(exclusiveErrors).toHaveLength(0);
+            expect(exclusiveWarnings).toHaveLength(0);
         });
     });
 

@@ -283,13 +283,32 @@ class VConProcessor {
         }
         
         // Check for mutually exclusive fields
-        const exclusiveCount = [vcon.redacted, vcon.appended, vcon.group].filter(Boolean).length;
-        if (exclusiveCount > 1) {
+        const exclusiveFields = [
+            { name: 'redacted', value: vcon.redacted },
+            { name: 'appended', value: vcon.appended },
+            { name: 'group', value: vcon.group }
+        ];
+        
+        const fieldsWithContent = exclusiveFields.filter(field => 
+            field.value !== undefined && this.hasValidContent(field.value)
+        );
+        const fieldsWithEmptyContent = exclusiveFields.filter(field => 
+            field.value !== undefined && !this.hasValidContent(field.value)
+        );
+        
+        if (fieldsWithContent.length > 1) {
+            const fieldNames = fieldsWithContent.map(f => f.name).join(', ');
             validation.errors.push({
                 field: 'vcon',
-                message: 'redacted, appended, and group parameters are mutually exclusive'
+                message: `${fieldNames} parameters are mutually exclusive and cannot all have values`
             });
             validation.isValid = false;
+        } else if (fieldsWithEmptyContent.length > 1) {
+            const fieldNames = fieldsWithEmptyContent.map(f => f.name).join(', ');
+            validation.warnings.push({
+                field: 'vcon',
+                message: `${fieldNames} parameters are present but empty - these are mutually exclusive fields`
+            });
         }
         
         // Validate must_support if present
@@ -695,6 +714,27 @@ class VConProcessor {
         if (vcon.appended) return 'appended';
         if (vcon.group) return 'group';
         return 'standard';
+    }
+    
+    // Helper function to check if a value has meaningful content (not empty)
+    hasValidContent(value) {
+        if (value === null || value === undefined) {
+            return false;
+        }
+        
+        if (typeof value === 'object') {
+            if (Array.isArray(value)) {
+                return value.length > 0;
+            } else {
+                return Object.keys(value).length > 0;
+            }
+        }
+        
+        if (typeof value === 'string') {
+            return value.trim().length > 0;
+        }
+        
+        return true; // For other types (numbers, booleans), consider them as having content
     }
     
     // Enhanced party processing helper functions
