@@ -999,7 +999,16 @@ class VConProcessor {
             canVerify: false,
             jwsHeader: null,
             jweHeader: null,
-            format: 'json'
+            format: 'json',
+            signatures: [],
+            compliance: {
+                isVConCompliant: false,
+                hasX5cOrX5u: false,
+                hasUuid: false,
+                isRS256: false,
+                isGeneralJSONSerialization: false,
+                errors: []
+            }
         };
         
         if (typeof input !== 'string') {
@@ -1014,12 +1023,16 @@ class VConProcessor {
         
         if (jwePattern.test(input.trim())) {
             result.isEncrypted = true;
-            result.format = 'jwe';
+            result.format = 'jwe-compact';
             result.jweHeader = this.extractJWEHeader(input);
+            // vCon spec requires General JWE JSON Serialization, not compact
+            result.compliance.errors.push('vCon spec requires General JWE JSON Serialization, not compact form');
         } else if (jwtPattern.test(input.trim())) {
             result.isSigned = true;
-            result.format = 'jws';
+            result.format = 'jws-compact';
             result.jwsHeader = this.extractJWSHeader(input);
+            // vCon spec requires General JWS JSON Serialization, not compact
+            result.compliance.errors.push('vCon spec requires General JWS JSON Serialization, not compact form');
         } else {
             // Check for JSON serialization format
             try {
@@ -1027,7 +1040,35 @@ class VConProcessor {
                 if (parsed.signatures && Array.isArray(parsed.signatures)) {
                     result.isSigned = true;
                     result.format = 'jws-json';
-                    result.jwsHeader = parsed.protected ? JSON.parse(this.base64urlDecode(parsed.protected)) : null;
+                    result.compliance.isGeneralJSONSerialization = true;
+                    
+                    // Extract all signatures and headers for vCon compliance checking
+                    result.signatures = parsed.signatures;
+                    
+                    // Check the first signature for compliance (multi-signature handling)
+                    if (parsed.signatures.length > 0) {
+                        const firstSig = parsed.signatures[0];
+                        
+                        // Extract protected header
+                        if (firstSig.protected) {
+                            result.jwsHeader = JSON.parse(this.base64urlDecode(firstSig.protected));
+                        }
+                        
+                        // Extract unprotected header
+                        let unprotectedHeader = firstSig.header || {};
+                        
+                        // Check compliance
+                        result.compliance = this.checkVConJWSCompliance(result.jwsHeader, unprotectedHeader, parsed);
+                    }
+                } else if (parsed.recipients && Array.isArray(parsed.recipients) && parsed.iv && parsed.ciphertext && parsed.tag) {
+                    result.isEncrypted = true;
+                    result.format = 'jwe-json';
+                    result.compliance.isGeneralJSONSerialization = true;
+                    
+                    // Extract unprotected header
+                    if (parsed.unprotected) {
+                        result.jweHeader = parsed.unprotected;
+                    }
                 } else if (parsed.protected && parsed.encrypted_key && parsed.iv && parsed.ciphertext && parsed.tag) {
                     result.isEncrypted = true;
                     result.format = 'jwe-json';
@@ -1039,6 +1080,48 @@ class VConProcessor {
         }
         
         return result;
+    }
+    
+    checkVConJWSCompliance(protectedHeader, unprotectedHeader, fullJWS) {
+        const compliance = {
+            isVConCompliant: false,
+            hasX5cOrX5u: false,
+            hasUuid: false,
+            isRS256: false,
+            isGeneralJSONSerialization: true,
+            errors: []
+        };
+        
+        // Check algorithm (should be RS256 per spec)
+        if (protectedHeader && protectedHeader.alg) {
+            compliance.isRS256 = protectedHeader.alg === 'RS256';
+            if (!compliance.isRS256) {
+                compliance.errors.push(`Algorithm ${protectedHeader.alg} is not recommended. vCon spec recommends RS256`);
+            }
+        } else {
+            compliance.errors.push('Missing algorithm (alg) in protected header');
+        }
+        
+        // Check for x5c or x5u in unprotected header (per spec requirement)
+        if (unprotectedHeader.x5c || unprotectedHeader.x5u) {
+            compliance.hasX5cOrX5u = true;
+        } else {
+            compliance.errors.push('vCon spec requires x5c or x5u in unprotected header for certificate chain');
+        }
+        
+        // Check for uuid parameter in header (should be present per spec)
+        if (unprotectedHeader.uuid) {
+            compliance.hasUuid = true;
+        } else if (protectedHeader && protectedHeader.uuid) {
+            compliance.hasUuid = true;
+        } else {
+            compliance.errors.push('vCon spec recommends uuid parameter in JWS header');
+        }
+        
+        // Overall compliance check
+        compliance.isVConCompliant = compliance.hasX5cOrX5u && compliance.isRS256 && compliance.errors.length === 0;
+        
+        return compliance;
     }
     
     extractJWSHeader(jwsToken) {

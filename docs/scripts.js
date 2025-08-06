@@ -213,6 +213,9 @@ function updateInspectorPanels(result) {
     
     // Update Extensions section
     updateExtensionsPanel(result.extensions);
+    
+    // Update Security section
+    updateSecurityPanel(result.crypto);
 }
 
 /**
@@ -567,6 +570,115 @@ function updateExtensionsPanel(extensions) {
     `).join('');
     
     content.innerHTML = html;
+}
+
+/**
+ * Update Security panel with crypto information
+ */
+function updateSecurityPanel(crypto) {
+    // Update format indicator
+    const formatElement = document.getElementById('security-format');
+    const formatIndicator = document.getElementById('security-format-indicator');
+    
+    // Update signature status
+    const signatureStatus = document.getElementById('security-signature-status');
+    const signatureIndicator = document.getElementById('security-signature-indicator');
+    const signatureDetails = document.getElementById('signature-details');
+    
+    // Update encryption status
+    const encryptionStatus = document.getElementById('security-encryption-status');
+    const encryptionIndicator = document.getElementById('security-encryption-indicator');
+    const encryptionDetails = document.getElementById('encryption-details');
+    
+    // Check if elements exist (they might not be present in all test environments)
+    if (!formatElement || !formatIndicator || !signatureStatus || !signatureIndicator || 
+        !encryptionStatus || !encryptionIndicator) {
+        console.warn('Security panel elements not found, skipping update');
+        return;
+    }
+    
+    if (!crypto) {
+        formatElement.textContent = 'Unsigned';
+        formatIndicator.textContent = '📄';
+        signatureStatus.textContent = 'Not Signed';
+        signatureIndicator.textContent = '❌';
+        encryptionStatus.textContent = 'Not Encrypted';
+        encryptionIndicator.textContent = '🔓';
+        signatureDetails.style.display = 'none';
+        encryptionDetails.style.display = 'none';
+        return;
+    }
+    
+    // Update format
+    if (crypto.isEncrypted) {
+        formatElement.textContent = crypto.format === 'jwe-json' ? 'JWE (JSON Serialization)' : 
+                                   crypto.format === 'jwe-compact' ? 'JWE (Compact)' : 'Encrypted';
+        formatIndicator.textContent = '🔒';
+        
+        // Update encryption status
+        encryptionStatus.textContent = crypto.compliance?.isGeneralJSONSerialization ? 
+                                      'Encrypted (vCon Compliant)' : 
+                                      crypto.compliance?.errors?.length > 0 ? 
+                                      'Encrypted (Non-Compliant)' : 'Encrypted';
+        encryptionIndicator.textContent = crypto.compliance?.isVConCompliant ? '✅' : '⚠️';
+        
+        // Show encryption details
+        encryptionDetails.style.display = 'block';
+        if (crypto.jweHeader) {
+            document.getElementById('encryption-algorithm').textContent = crypto.jweHeader.alg || '-';
+            document.getElementById('encryption-encoding').textContent = crypto.jweHeader.enc || '-';
+            document.getElementById('encryption-recipients').textContent = 
+                crypto.signatures?.length ? crypto.signatures.length : '1';
+        }
+        
+    } else if (crypto.isSigned) {
+        formatElement.textContent = crypto.format === 'jws-json' ? 'JWS (JSON Serialization)' : 
+                                   crypto.format === 'jws-compact' ? 'JWS (Compact)' : 'Signed';
+        formatIndicator.textContent = '✍️';
+        
+        // Update signature status
+        const isCompliant = crypto.compliance?.isVConCompliant;
+        const hasErrors = crypto.compliance?.errors?.length > 0;
+        
+        signatureStatus.textContent = isCompliant ? 'Signed (vCon Compliant)' :
+                                     hasErrors ? 'Signed (Non-Compliant)' : 'Signed';
+        signatureIndicator.textContent = isCompliant ? '✅' : hasErrors ? '⚠️' : '🔏';
+        
+        // Show signature details
+        signatureDetails.style.display = 'block';
+        if (crypto.jwsHeader) {
+            document.getElementById('signature-algorithm').textContent = crypto.jwsHeader.alg || '-';
+            document.getElementById('signature-kid').textContent = crypto.jwsHeader.kid || '-';
+            document.getElementById('signature-uuid').textContent = crypto.jwsHeader.uuid || 
+                                                                   crypto.signatures?.[0]?.header?.uuid || '-';
+            
+            // Handle x5c (certificate chain)
+            const x5c = crypto.signatures?.[0]?.header?.x5c || crypto.jwsHeader?.x5c;
+            if (x5c && Array.isArray(x5c)) {
+                document.getElementById('signature-x5c').textContent = `${x5c.length} certificate(s)`;
+            } else {
+                document.getElementById('signature-x5c').textContent = '-';
+            }
+            
+            // Handle x5u (certificate URL)
+            const x5u = crypto.signatures?.[0]?.header?.x5u || crypto.jwsHeader?.x5u;
+            document.getElementById('signature-x5u').textContent = x5u || '-';
+        }
+        
+        encryptionStatus.textContent = 'Not Encrypted';
+        encryptionIndicator.textContent = '🔓';
+        encryptionDetails.style.display = 'none';
+        
+    } else {
+        formatElement.textContent = 'Unsigned';
+        formatIndicator.textContent = '📄';
+        signatureStatus.textContent = 'Not Signed';
+        signatureIndicator.textContent = '❌';
+        encryptionStatus.textContent = 'Not Encrypted';
+        encryptionIndicator.textContent = '🔓';
+        signatureDetails.style.display = 'none';
+        encryptionDetails.style.display = 'none';
+    }
 }
 
 /**

@@ -262,7 +262,7 @@ describe("Integration: App Integration", () => {
       // Ensure we're on inspector tab
       await page.click('#tab-inspector');
 
-      const sections = ['metadata', 'relationships', 'parties', 'dialog', 'attachments', 'analysis', 'extensions'];
+      const sections = ['metadata', 'relationships', 'parties', 'dialog', 'attachments', 'analysis', 'security', 'extensions'];
       
       for (const section of sections) {
         // Check that section header exists
@@ -524,9 +524,9 @@ describe("Integration: App Integration", () => {
       
       expect(results).toBeTruthy();
       expect(results.jws.isSigned).toBe(true);
-      expect(results.jws.format).toBe('jws');
+      expect(results.jws.format).toBe('jws-compact');
       expect(results.jwe.isEncrypted).toBe(true);
-      expect(results.jwe.format).toBe('jwe');
+      expect(results.jwe.format).toBe('jwe-compact');
       expect(results.json.format).toBe('json');
     });
 
@@ -650,6 +650,36 @@ describe("Integration: App Integration", () => {
       // Check that hint mentions the lock button
       const hintText = await page.$eval('.decryption-hint p', el => el.textContent);
       expect(hintText).toContain('private key');
+    });
+
+    test("security panel section is present", async () => {
+      // Load valid unsigned vCon
+      const validVcon = JSON.stringify({
+        vcon: "0.3.0",
+        uuid: "123e4567-e89b-12d3-a456-426614174000",
+        created_at: "2023-12-14T18:59:45.911Z",
+        parties: [{ name: "Test Party" }]
+      }, null, 2);
+
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
+      await page.type('#input-textarea', validVcon);
+      await page.waitForTimeout(500);
+
+      // Switch to inspector tab if not already there
+      await page.click('#tab-inspector');
+      await page.waitForTimeout(100);
+
+      // Make sure the security section exists
+      const securitySection = await page.$('.section-header.section-security');
+      expect(securitySection).not.toBeNull();
+
+      // Check that security section content exists
+      const securityContent = await page.$eval('.section-header.section-security', 
+        header => header.parentElement.querySelector('.section-content') !== null
+      );
+      expect(securityContent).toBe(true);
     });
   });
 
