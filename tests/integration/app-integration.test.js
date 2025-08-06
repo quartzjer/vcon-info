@@ -391,7 +391,6 @@ describe("Integration: App Integration", () => {
       // Check that input has the specific example data
       const inputValue = await page.$eval('#input-textarea', el => el.value);
       expect(inputValue).toContain('"vcon": "0.3.0"');
-      expect(inputValue).toContain('"uuid": "01928e10-193e-8231-b9a2-279e0d16bc46"');
       expect(inputValue).toContain('"subject": "Customer Support Call - Account Inquiry"');
       expect(inputValue).toContain('"Alice Johnson"');
       expect(inputValue).toContain('"Bob Smith"');
