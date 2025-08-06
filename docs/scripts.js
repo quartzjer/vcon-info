@@ -1213,11 +1213,35 @@ function performDetailedValidation(vcon) {
     if (!vcon.vcon) {
         errors.push('Missing required "vcon" version field');
         results.schema = { status: 'fail', message: 'Missing required "vcon" version field' };
-    } else if (vcon.vcon !== '0.3.0') {
-        warnings.push(`vCon version ${vcon.vcon} may not be fully supported (expected 0.3.0)`);
-        results.schema = { status: 'warning', message: `vCon version ${vcon.vcon} detected (expected 0.3.0)` };
     } else {
-        results.schema = { status: 'good', message: 'Valid vCon v0.3.0 format' };
+        const supportedVersions = ['0.0.1', '0.0.2', '0.3.0'];
+        const currentVersion = '0.3.0';
+        
+        if (supportedVersions.includes(vcon.vcon)) {
+            if (vcon.vcon === currentVersion) {
+                results.schema = { status: 'good', message: 'Valid vCon v0.3.0 format (current version)' };
+            } else {
+                warnings.push(`vCon version ${vcon.vcon} is valid but not current (latest: ${currentVersion})`);
+                results.schema = { status: 'good', message: `Valid vCon v${vcon.vcon} format (older version, current: ${currentVersion})` };
+            }
+        } else {
+            // Check if it's a plausible version format (e.g., 0.2.0, 1.0.0)
+            const versionRegex = /^[0-9]+\.[0-9]+\.[0-9]+$/;
+            if (versionRegex.test(vcon.vcon)) {
+                warnings.push(`vCon version ${vcon.vcon} may not be fully supported (expected ${currentVersion})`);
+                results.schema = { status: 'warning', message: `vCon version ${vcon.vcon} detected (expected ${currentVersion})` };
+            } else {
+                errors.push(`Invalid vCon version format: ${vcon.vcon}`);
+                results.schema = { status: 'fail', message: `Invalid vCon version format: ${vcon.vcon} (expected format: x.y.z)` };
+            }
+        }
+    }
+    
+    // 1.5. Version-specific field compatibility checks
+    if (vcon.vcon) {
+        const versionCompatibilityIssues = checkVersionSpecificFields(vcon, vcon.vcon);
+        warnings.push(...versionCompatibilityIssues.warnings);
+        errors.push(...versionCompatibilityIssues.errors);
     }
     
     // 2. Required fields validation
@@ -1993,6 +2017,78 @@ function hasValidContent(value) {
 }
 
 /**
+ * Check version-specific field compatibility issues
+ * @param {object} vcon - vCon object to check
+ * @param {string} version - vCon version
+ * @returns {object} Object with errors and warnings arrays
+ */
+function checkVersionSpecificFields(vcon, version) {
+    const errors = [];
+    const warnings = [];
+    
+    // Check for deprecated fields based on version changes
+    function checkObjectForVersionFields(obj, path = '') {
+        if (!obj || typeof obj !== 'object') return;
+        
+        // Check for v0.0.1 -> v0.0.2 field changes
+        if (version >= '0.0.2') {
+            if (obj.mimetype) {
+                warnings.push(`${path}mimetype deprecated in v0.0.2, use mediatype instead`);
+            }
+            if (obj.alg && obj.signature && !obj.content_hash) {
+                warnings.push(`${path}alg/signature deprecated in v0.0.2, use content_hash instead`);
+            }
+        }
+        
+        // Check for v0.0.2 -> v0.3.0 field changes  
+        if (version >= '0.3.0') {
+            if (obj['transfer-target']) {
+                warnings.push(`${path}transfer-target deprecated in v0.3.0, use transfer_target instead`);
+            }
+            if (obj['target-dialog']) {
+                warnings.push(`${path}target-dialog deprecated in v0.3.0, use target_dialog instead`);
+            }
+        }
+        
+        // Check for fields that shouldn't exist in older versions
+        if (version < '0.0.2') {
+            if (obj.mediatype) {
+                warnings.push(`${path}mediatype not available in v${version}, use mimetype instead`);
+            }
+            if (obj.content_hash) {
+                warnings.push(`${path}content_hash not available in v${version}, use alg/signature instead`);
+            }
+        }
+        
+        if (version < '0.3.0') {
+            if (obj.transfer_target) {
+                warnings.push(`${path}transfer_target not available in v${version}, use transfer-target instead`);
+            }
+            if (obj.target_dialog) {
+                warnings.push(`${path}target_dialog not available in v${version}, use target-dialog instead`);
+            }
+        }
+        
+        // Recursively check arrays and nested objects
+        Object.keys(obj).forEach(key => {
+            const value = obj[key];
+            if (Array.isArray(value)) {
+                value.forEach((item, index) => {
+                    checkObjectForVersionFields(item, `${path}${key}[${index}].`);
+                });
+            } else if (typeof value === 'object' && value !== null) {
+                checkObjectForVersionFields(value, `${path}${key}.`);
+            }
+        });
+    }
+    
+    // Check the entire vCon object
+    checkObjectForVersionFields(vcon);
+    
+    return { errors, warnings };
+}
+
+/**
  * Check if media type is a standard type
  * @param {string} mediaType - Media type to check
  * @returns {boolean} True if standard type
@@ -2043,6 +2139,7 @@ if (typeof window !== 'undefined') {
     window.isValidGMLPos = isValidGMLPos;
     window.isValidMediaType = isValidMediaType;
     window.isStandardMediaType = isStandardMediaType;
+    window.checkVersionSpecificFields = checkVersionSpecificFields;
 }
 
 // Export for potential module usage
