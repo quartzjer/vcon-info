@@ -1413,13 +1413,31 @@ body {
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+    .header-container,
+    .key-panel-container {
+        padding: 0 var(--spacing-md);
+    }
+    
+    .main-content {
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
+    }
+}
+
 @media (max-width: 1024px) {
     .main-content {
         grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
     }
     
     .input-panel {
         min-height: 300px;
+        order: 1;
+    }
+    
+    .output-panel {
+        order: 2;
     }
     
     .key-inputs {
@@ -1427,29 +1445,321 @@ body {
     }
     
     .key-panel.expanded {
-        max-height: 400px;
+        max-height: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: var(--spacing-sm) 0;
+    }
+    
+    .header-container {
+        padding: 0 var(--spacing-md);
+    }
+    
+    .header-nav {
+        gap: var(--spacing-md);
+    }
+    
+    .nav-link {
+        font-size: 0.8rem;
+    }
+    
+    .brand-title {
+        font-size: 1.25rem;
+    }
+    
+    .main-content {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-md);
+    }
+    
+    /* Better tab handling on tablets */
+    .tabs {
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+    
+    .input-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-button,
+    .input-tab-button {
+        min-width: 0;
+        padding: var(--spacing-sm);
+        font-size: 0.8rem;
+    }
+    
+    /* Improve touch targets */
+    .lock-button,
+    .panel-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        padding: var(--spacing-sm);
+    }
+    
+    .section-header {
+        padding: var(--spacing-md);
+    }
+    
+    .section-content {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    /* Make code areas more mobile-friendly */
+    .code-textarea,
+    .key-textarea {
+        font-size: 0.8rem;
+        padding: var(--spacing-sm);
+        min-height: 300px;
+    }
+    
+    .key-panel.expanded {
+        max-height: 600px;
+    }
+    
+    .key-textarea {
+        min-height: 120px;
+        max-height: 200px;
     }
 }
 
 @media (max-width: 640px) {
     .header-container {
         flex-direction: column;
-        gap: var(--spacing-md);
+        gap: var(--spacing-sm);
         text-align: center;
+    }
+    
+    .header-brand {
+        justify-content: center;
     }
     
     .footer-container {
         flex-direction: column;
         gap: var(--spacing-sm);
         text-align: center;
+        padding: 0 var(--spacing-md);
     }
     
+    .main-content {
+        padding: var(--spacing-xs);
+    }
+    
+    /* Stack tabs vertically on very small screens */
+    .tabs,
+    .input-tabs {
+        flex-direction: column;
+        border-bottom: none;
+        border-right: 1px solid var(--border-color);
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .tab-button,
+    .input-tab-button {
+        width: 100%;
+        text-align: left;
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .tab-button.active::after,
+    .input-tab-button.active::after {
+        bottom: 0;
+        right: -1px;
+        left: auto;
+        width: 3px;
+        height: 100%;
+        background-color: var(--text-highlight);
+    }
+    
+    /* Detail rows stack vertically */
     .detail-row {
         flex-direction: column;
         gap: var(--spacing-xs);
+        margin-bottom: var(--spacing-md);
     }
     
     .detail-key {
         min-width: auto;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .detail-value {
+        padding-left: var(--spacing-sm);
+        font-size: 0.8rem;
+        word-break: break-word;
+    }
+    
+    /* Party/dialog items more compact */
+    .party-header,
+    .dialog-header,
+    .attachment-header {
+        flex-wrap: wrap;
+        padding: var(--spacing-sm);
+        gap: var(--spacing-xs);
+    }
+    
+    .party-details,
+    .dialog-details,
+    .attachment-details {
+        padding: var(--spacing-sm);
+    }
+    
+    /* Validation container adjustments */
+    .validation-container {
+        padding: var(--spacing-md);
+    }
+    
+    .validation-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+        font-size: 1.1rem;
+    }
+    
+    /* Upload zone responsive */
+    .upload-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .upload-drop-zone {
+        padding: var(--spacing-lg);
+        max-width: none;
+    }
+    
+    /* Examples list improvements */
+    .examples-container {
+        min-height: 300px;
+    }
+    
+    .example-item {
+        padding: var(--spacing-sm);
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .example-content {
+        width: 100%;
+    }
+    
+    /* Better spacing in sections */
+    .inspector-section {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .content-placeholder {
+        font-size: 0.8rem;
+    }
+    
+    .uuid-display {
+        font-size: 0.75rem;
+        word-break: break-all;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand-title {
+        font-size: 1.1rem;
+    }
+    
+    .header-nav {
+        gap: var(--spacing-sm);
+    }
+    
+    .nav-link {
+        font-size: 0.75rem;
+    }
+    
+    .main-content {
+        padding: var(--spacing-xs);
+    }
+    
+    .code-textarea,
+    .key-textarea {
+        font-size: 0.75rem;
+        line-height: 1.4;
+        min-height: 250px;
+    }
+    
+    .key-textarea {
+        min-height: 100px;
+        max-height: 150px;
+    }
+    
+    .section-title {
+        font-size: 0.8rem;
+    }
+    
+    .footer-container {
+        font-size: 0.7rem;
+    }
+    
+    /* Compact party displays */
+    .party-index,
+    .dialog-index,
+    .attachment-index {
+        padding: var(--spacing-xs);
+        font-size: 0.7rem;
+    }
+    
+    .party-identifier,
+    .dialog-type,
+    .attachment-type {
+        font-size: 0.8rem;
+    }
+    
+    /* More compact validation */
+    .validation-section {
+        padding: var(--spacing-sm);
+    }
+    
+    .validation-section-title {
+        font-size: 0.8rem;
+    }
+    
+    .validation-item {
+        font-size: 0.8rem;
+    }
+}
+
+/* Landscape orientation improvements for phones */
+@media (max-width: 768px) and (orientation: landscape) {
+    .key-panel.expanded {
+        max-height: 300px;
+    }
+    
+    .key-textarea {
+        max-height: 100px;
+    }
+    
+    .code-textarea {
+        min-height: 200px;
+    }
+    
+    .validation-container,
+    .timeline-container {
+        min-height: 250px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    .section-header:hover .panel-toggle {
+        opacity: 0.8;
+    }
+    
+    .panel-toggle {
+        opacity: 0.6;
+    }
+    
+    .example-item:hover {
+        transform: none;
     }
 }

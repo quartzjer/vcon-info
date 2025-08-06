@@ -189,6 +189,34 @@ describe("Integration: App Integration", () => {
         el.classList.contains('hidden'));
       expect(timelineHidden).toBe(false);
     });
+
+    test("security tab displays content", async () => {
+      const vcon = JSON.stringify({
+        vcon: "0.3.0",
+        uuid: "123e4567-e89b-12d3-a456-426614174000",
+        created_at: "2023-12-14T18:59:45.911Z",
+        parties: [{ name: "Test Party" }]
+      });
+
+      // Clear existing content first
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
+      await page.type('#input-textarea', vcon);
+      await page.waitForTimeout(500);
+
+      // Click security tab
+      await page.click('#tab-security');
+
+      // Check security view is displayed
+      const securityView = await page.$('#security-view');
+      expect(securityView).not.toBeNull();
+      
+      // Check security content is visible (not hidden)
+      const securityHidden = await page.$eval('#security-view', el => 
+        el.classList.contains('hidden'));
+      expect(securityHidden).toBe(false);
+    });
   });
 
   describe("Inspector Tree", () => {
@@ -262,7 +290,7 @@ describe("Integration: App Integration", () => {
       // Ensure we're on inspector tab
       await page.click('#tab-inspector');
 
-      const sections = ['metadata', 'relationships', 'parties', 'dialog', 'attachments', 'analysis', 'security', 'extensions'];
+      const sections = ['metadata', 'relationships', 'parties', 'dialog', 'attachments', 'analysis', 'extensions'];
       
       for (const section of sections) {
         // Check that section header exists
@@ -673,7 +701,7 @@ describe("Integration: App Integration", () => {
       expect(hintText).toContain('private key');
     });
 
-    test("security panel section is present", async () => {
+    test("security tab is present and accessible", async () => {
       // Load valid unsigned vCon
       const validVcon = JSON.stringify({
         vcon: "0.3.0",
@@ -688,19 +716,21 @@ describe("Integration: App Integration", () => {
       await page.type('#input-textarea', validVcon);
       await page.waitForTimeout(500);
 
-      // Switch to inspector tab if not already there
-      await page.click('#tab-inspector');
+      // Check that security tab button exists
+      const securityTab = await page.$('#tab-security');
+      expect(securityTab).not.toBeNull();
+
+      // Switch to security tab
+      await page.click('#tab-security');
       await page.waitForTimeout(100);
 
-      // Make sure the security section exists
-      const securitySection = await page.$('.section-header.section-security');
-      expect(securitySection).not.toBeNull();
+      // Check that security tab content exists
+      const securityContent = await page.$('#security-view');
+      expect(securityContent).not.toBeNull();
 
-      // Check that security section content exists
-      const securityContent = await page.$eval('.section-header.section-security', 
-        header => header.parentElement.querySelector('.section-content') !== null
-      );
-      expect(securityContent).toBe(true);
+      // Check that security status elements exist
+      const securityStatus = await page.$('#security-status');
+      expect(securityStatus).not.toBeNull();
     });
   });
 

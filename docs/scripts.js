@@ -238,7 +238,7 @@ function updateInspectorPanels(result) {
     // Update Extensions section
     updateExtensionsPanel(result.extensions);
     
-    // Update Security section
+    // Update Security tab (separate from inspector panels)
     updateSecurityPanel(result.crypto);
 }
 

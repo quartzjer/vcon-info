@@ -155,6 +155,7 @@
             <div class="tabs">
                 <button class="tab-button active" id="tab-inspector" data-tab="inspector">Inspector</button>
                 <button class="tab-button" id="tab-timeline" data-tab="timeline">Timeline</button>
+                <button class="tab-button" id="tab-security" data-tab="security">Security</button>
                 <button class="tab-button" id="tab-validation" data-tab="validation">
                     <span id="validation-tab-icon">Validation ❓</span>
                 </button>
@@ -389,143 +390,6 @@
                             </div>
                         </div>
 
-                        <!-- Security Section -->
-                        <div class="inspector-section">
-                            <div class="section-header section-security">
-                                <span class="section-title">Security</span>
-                                <button class="panel-toggle" aria-label="Toggle section">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="section-content">
-                                <div class="content-placeholder">
-                                    <div class="security-status" id="security-status">
-                                        <div class="security-item">
-                                            <span class="security-label">Format:</span>
-                                            <span class="security-value" id="security-format">Unsigned</span>
-                                            <span class="security-indicator" id="security-format-indicator">📄</span>
-                                        </div>
-                                        <div class="security-item">
-                                            <span class="security-label">Signature Status:</span>
-                                            <span class="security-value" id="security-signature-status">Not Signed</span>
-                                            <span class="security-indicator" id="security-signature-indicator">❌</span>
-                                        </div>
-                                        <div class="security-item">
-                                            <span class="security-label">Encryption Status:</span>
-                                            <span class="security-value" id="security-encryption-status">Not Encrypted</span>
-                                            <span class="security-indicator" id="security-encryption-indicator">🔓</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="signature-details" id="signature-details" style="display: none;">
-                                        <h4>Signature Information</h4>
-                                        <div class="signature-info">
-                                            <div class="detail-row">
-                                                <span class="detail-key">Algorithm:</span>
-                                                <span class="detail-value" id="signature-algorithm">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Key ID:</span>
-                                                <span class="detail-value" id="signature-kid">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">vCon UUID:</span>
-                                                <span class="detail-value" id="signature-uuid">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Certificate Chain:</span>
-                                                <span class="detail-value" id="signature-x5c">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Certificate URL:</span>
-                                                <span class="detail-value" id="signature-x5u">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Verification Status:</span>
-                                                <span class="detail-value" id="signature-verification-status">Not Verified</span>
-                                            </div>
-                                        </div>
-                                        <div class="certificate-chain" id="certificate-chain" style="display: none;">
-                                            <h5>Certificate Chain Details</h5>
-                                            <div class="certificate-list" id="certificate-list">
-                                                <!-- Certificate details will be populated here -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="encryption-details" id="encryption-details" style="display: none;">
-                                        <h4>Encryption Information</h4>
-                                        <div class="encryption-info">
-                                            <div class="detail-row">
-                                                <span class="detail-key">Algorithm:</span>
-                                                <span class="detail-value" id="encryption-algorithm">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Encoding:</span>
-                                                <span class="detail-value" id="encryption-encoding">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Recipients:</span>
-                                                <span class="detail-value" id="encryption-recipients">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">UUID:</span>
-                                                <span class="detail-value" id="encryption-uuid">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Decryption:</span>
-                                                <span class="detail-value" id="decryption-status">Pending</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Compliance:</span>
-                                                <span class="detail-value" id="encryption-compliance">-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="integrity-details" id="integrity-details" style="display: none;">
-                                        <h4>Content Integrity</h4>
-                                        <div class="integrity-info">
-                                            <div class="detail-row">
-                                                <span class="detail-key">Hash Verification:</span>
-                                                <span class="detail-value" id="hash-verification-status">Pending</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">External Files:</span>
-                                                <span class="detail-value" id="external-files-count">-</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Hash Mismatches:</span>
-                                                <span class="detail-value" id="hash-mismatches">-</span>
-                                            </div>
-                                        </div>
-                                        <div class="hash-details" id="hash-details">
-                                            <!-- Hash verification results will be populated here -->
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="key-validation" id="key-validation" style="display: none;">
-                                        <h4>Key Validation</h4>
-                                        <div class="key-info">
-                                            <div class="detail-row">
-                                                <span class="detail-key">Public Key Status:</span>
-                                                <span class="detail-value" id="public-key-status">Not Provided</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Private Key Status:</span>
-                                                <span class="detail-value" id="private-key-status">Not Provided</span>
-                                            </div>
-                                            <div class="detail-row">
-                                                <span class="detail-key">Key Format:</span>
-                                                <span class="detail-value" id="key-format">-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Extensions Section -->
                         <div class="inspector-section">
@@ -557,6 +421,134 @@
                 <div class="tab-panel" id="timeline-view">
                     <div class="timeline-container">
                         <p class="timeline-placeholder">Timeline visualization will be displayed here</p>
+                    </div>
+                </div>
+
+                <!-- Security Tab -->
+                <div class="tab-panel" id="security-view">
+                    <div class="security-container">
+                        <div class="security-status" id="security-status">
+                            <div class="security-item">
+                                <span class="security-label">Format:</span>
+                                <span class="security-value" id="security-format">Unsigned</span>
+                                <span class="security-indicator" id="security-format-indicator">📄</span>
+                            </div>
+                            <div class="security-item">
+                                <span class="security-label">Signature Status:</span>
+                                <span class="security-value" id="security-signature-status">Not Signed</span>
+                                <span class="security-indicator" id="security-signature-indicator">❌</span>
+                            </div>
+                            <div class="security-item">
+                                <span class="security-label">Encryption Status:</span>
+                                <span class="security-value" id="security-encryption-status">Not Encrypted</span>
+                                <span class="security-indicator" id="security-encryption-indicator">🔓</span>
+                            </div>
+                        </div>
+                        
+                        <div class="signature-details" id="signature-details" style="display: none;">
+                            <h4>Signature Information</h4>
+                            <div class="signature-info">
+                                <div class="detail-row">
+                                    <span class="detail-key">Algorithm:</span>
+                                    <span class="detail-value" id="signature-algorithm">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Key ID:</span>
+                                    <span class="detail-value" id="signature-kid">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">vCon UUID:</span>
+                                    <span class="detail-value" id="signature-uuid">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Certificate Chain:</span>
+                                    <span class="detail-value" id="signature-x5c">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Certificate URL:</span>
+                                    <span class="detail-value" id="signature-x5u">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Verification Status:</span>
+                                    <span class="detail-value" id="signature-verification-status">Not Verified</span>
+                                </div>
+                            </div>
+                            <div class="certificate-chain" id="certificate-chain" style="display: none;">
+                                <h5>Certificate Chain Details</h5>
+                                <div class="certificate-list" id="certificate-list">
+                                    <!-- Certificate details will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="encryption-details" id="encryption-details" style="display: none;">
+                            <h4>Encryption Information</h4>
+                            <div class="encryption-info">
+                                <div class="detail-row">
+                                    <span class="detail-key">Algorithm:</span>
+                                    <span class="detail-value" id="encryption-algorithm">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Encoding:</span>
+                                    <span class="detail-value" id="encryption-encoding">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Recipients:</span>
+                                    <span class="detail-value" id="encryption-recipients">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">UUID:</span>
+                                    <span class="detail-value" id="encryption-uuid">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Decryption:</span>
+                                    <span class="detail-value" id="decryption-status">Pending</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Compliance:</span>
+                                    <span class="detail-value" id="encryption-compliance">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="integrity-details" id="integrity-details" style="display: none;">
+                            <h4>Content Integrity</h4>
+                            <div class="integrity-info">
+                                <div class="detail-row">
+                                    <span class="detail-key">Hash Verification:</span>
+                                    <span class="detail-value" id="hash-verification-status">Pending</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">External Files:</span>
+                                    <span class="detail-value" id="external-files-count">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Hash Mismatches:</span>
+                                    <span class="detail-value" id="hash-mismatches">-</span>
+                                </div>
+                            </div>
+                            <div class="hash-details" id="hash-details">
+                                <!-- Hash verification results will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="key-validation" id="key-validation" style="display: none;">
+                            <h4>Key Validation</h4>
+                            <div class="key-info">
+                                <div class="detail-row">
+                                    <span class="detail-key">Public Key Status:</span>
+                                    <span class="detail-value" id="public-key-status">Not Provided</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Private Key Status:</span>
+                                    <span class="detail-value" id="private-key-status">Not Provided</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-key">Key Format:</span>
+                                    <span class="detail-value" id="key-format">-</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
