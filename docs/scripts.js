@@ -1377,7 +1377,7 @@ const vconApp = {
             // Fallback to minimal inline sample if fetch fails
             const fallbackData = {
                 vcon: "0.3.0",
-                uuid: "01928e10-193e-8231-b9a2-279e0d16bc46",
+                uuid: "01987d9a-3db5-7186-b6f7-396adcaf35e2",
                 created_at: "2023-12-14T18:59:45.911Z",
                 parties: [
                     {

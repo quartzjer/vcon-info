@@ -193,7 +193,7 @@ class VConProcessor {
         
         // Validate UUID format (RFC 4122)
         if (vcon.uuid) {
-            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
             if (!uuidRegex.test(vcon.uuid)) {
                 validation.errors.push({
                     field: 'uuid',
@@ -854,8 +854,8 @@ class VConProcessor {
     validateUUID(uuid) {
         if (!uuid) return false;
         
-        // RFC 4122 UUID format
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        // RFC 4122 UUID format (supports versions 1-8 for vCon compatibility)
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return uuidPattern.test(uuid);
     }
     
