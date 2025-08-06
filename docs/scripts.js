@@ -106,9 +106,7 @@ if (lockButton && keyPanel) {
 }
 
 // Input Change Handler with vCon processing
-vconInput.addEventListener('input', () => {
-    console.log('vCon input changed');
-    
+vconInput.addEventListener('input', async () => {
     const input = vconInput.value.trim();
     if (!input) {
         updateValidationStatus('unknown');
@@ -117,9 +115,19 @@ vconInput.addEventListener('input', () => {
         return;
     }
     
+    if (!vconProcessor) {
+        updateValidationStatus('fail', 'Processor not available', {
+            schema: { status: 'fail', message: 'VConProcessor not initialized' },
+            required: { status: 'pending', message: 'Cannot validate - processor error' },
+            integrity: { status: 'pending', message: 'Cannot validate - processor error' },
+            security: { status: 'pending', message: 'Cannot validate - processor error' }
+        });
+        return;
+    }
+    
     try {
         // Process vCon data
-        const result = vconProcessor.process(input);
+        const result = await vconProcessor.process(input);
         
         // Update validation status
         const validationDetails = {
@@ -1584,7 +1592,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize validation status with current textarea content
     if (vconInput && vconInput.value.trim()) {
-        vconInput.dispatchEvent(new Event('input'));
+        // Small delay to ensure processor is ready
+        setTimeout(() => {
+            vconInput.dispatchEvent(new Event('input'));
+        }, 10);
     } else {
         updateValidationStatus('unknown');
     }

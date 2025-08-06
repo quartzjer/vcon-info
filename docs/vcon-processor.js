@@ -32,7 +32,7 @@ class VConProcessor {
     }
     
     // Main processing function
-    process(vconData) {
+    async process(vconData) {
         const result = {
             isValid: false,
             validation: {},
