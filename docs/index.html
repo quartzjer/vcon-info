@@ -442,6 +442,16 @@
                                                 <span class="detail-key">Certificate URL:</span>
                                                 <span class="detail-value" id="signature-x5u">-</span>
                                             </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">Verification Status:</span>
+                                                <span class="detail-value" id="signature-verification-status">Not Verified</span>
+                                            </div>
+                                        </div>
+                                        <div class="certificate-chain" id="certificate-chain" style="display: none;">
+                                            <h5>Certificate Chain Details</h5>
+                                            <div class="certificate-list" id="certificate-list">
+                                                <!-- Certificate details will be populated here -->
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -459,6 +469,57 @@
                                             <div class="detail-row">
                                                 <span class="detail-key">Recipients:</span>
                                                 <span class="detail-value" id="encryption-recipients">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">UUID:</span>
+                                                <span class="detail-value" id="encryption-uuid">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">Decryption:</span>
+                                                <span class="detail-value" id="decryption-status">Pending</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">Compliance:</span>
+                                                <span class="detail-value" id="encryption-compliance">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="integrity-details" id="integrity-details" style="display: none;">
+                                        <h4>Content Integrity</h4>
+                                        <div class="integrity-info">
+                                            <div class="detail-row">
+                                                <span class="detail-key">Hash Verification:</span>
+                                                <span class="detail-value" id="hash-verification-status">Pending</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">External Files:</span>
+                                                <span class="detail-value" id="external-files-count">-</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">Hash Mismatches:</span>
+                                                <span class="detail-value" id="hash-mismatches">-</span>
+                                            </div>
+                                        </div>
+                                        <div class="hash-details" id="hash-details">
+                                            <!-- Hash verification results will be populated here -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="key-validation" id="key-validation" style="display: none;">
+                                        <h4>Key Validation</h4>
+                                        <div class="key-info">
+                                            <div class="detail-row">
+                                                <span class="detail-key">Public Key Status:</span>
+                                                <span class="detail-value" id="public-key-status">Not Provided</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">Private Key Status:</span>
+                                                <span class="detail-value" id="private-key-status">Not Provided</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-key">Key Format:</span>
+                                                <span class="detail-value" id="key-format">-</span>
                                             </div>
                                         </div>
                                     </div>

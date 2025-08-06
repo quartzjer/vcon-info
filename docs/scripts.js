@@ -166,9 +166,25 @@ vconInput.addEventListener('input', () => {
 // Encrypted input handler
 const encryptedInput = document.getElementById('encrypted-textarea');
 if (encryptedInput) {
-    encryptedInput.addEventListener('input', () => {
-        console.log('Encrypted vCon input changed');
-        // Future implementation: handle encrypted vCon decryption
+    encryptedInput.addEventListener('input', async () => {
+        const input = encryptedInput.value.trim();
+        if (!input) {
+            clearInspectorSections();
+            return;
+        }
+        
+        try {
+            // Process the encrypted vCon
+            const result = await vconProcessor.processVCon(input);
+            updateInspector(result);
+            updateValidationStatus(result.validation.overall.status, result.validation.overall.message);
+            updateMetadata(result.metadata);
+            updateTimeline(result);
+        } catch (error) {
+            console.error('Error processing encrypted vCon:', error);
+            updateValidationStatus('error', `Failed to process encrypted vCon: ${error.message}`);
+            clearInspectorSections();
+        }
     });
 }
 
@@ -623,12 +639,64 @@ function updateSecurityPanel(crypto) {
         encryptionIndicator.textContent = crypto.compliance?.isVConCompliant ? '✅' : '⚠️';
         
         // Show encryption details
-        encryptionDetails.style.display = 'block';
-        if (crypto.jweHeader) {
-            document.getElementById('encryption-algorithm').textContent = crypto.jweHeader.alg || '-';
-            document.getElementById('encryption-encoding').textContent = crypto.jweHeader.enc || '-';
-            document.getElementById('encryption-recipients').textContent = 
-                crypto.signatures?.length ? crypto.signatures.length : '1';
+        if (encryptionDetails) {
+            encryptionDetails.style.display = 'block';
+            
+            // Update basic encryption info
+            if (crypto.jweHeader) {
+                const algElement = document.getElementById('encryption-algorithm');
+                const encElement = document.getElementById('encryption-encoding');
+                const recipientsElement = document.getElementById('encryption-recipients');
+                const uuidElement = document.getElementById('encryption-uuid');
+                
+                if (algElement) algElement.textContent = crypto.jweProtectedHeader?.alg || 'RSA-OAEP';
+                if (encElement) encElement.textContent = crypto.jweHeader.enc || '-';
+                if (uuidElement) uuidElement.textContent = crypto.jweHeader.uuid || '-';
+                
+                // Recipients info from jweData
+                if (recipientsElement) {
+                    if (crypto.jweData?.recipientCount) {
+                        recipientsElement.textContent = `${crypto.jweData.recipientCount} recipient(s)`;
+                    } else {
+                        recipientsElement.textContent = '1 recipient';
+                    }
+                }
+            }
+            
+            // Show decryption status if attempted
+            const decryptionStatusElement = document.getElementById('decryption-status');
+            if (decryptionStatusElement) {
+                if (crypto.decrypted) {
+                    decryptionStatusElement.textContent = '✅ Decrypted Successfully';
+                    decryptionStatusElement.className = 'decryption-status success';
+                } else if (crypto.decryptionError) {
+                    decryptionStatusElement.textContent = `❌ Decryption Failed: ${crypto.decryptionError}`;
+                    decryptionStatusElement.className = 'decryption-status error';
+                } else {
+                    decryptionStatusElement.textContent = '🔒 Private key required for decryption';
+                    decryptionStatusElement.className = 'decryption-status pending';
+                }
+            }
+            
+            // Show compliance info
+            const complianceElement = document.getElementById('encryption-compliance');
+            if (complianceElement && crypto.compliance) {
+                const errors = crypto.compliance.errors || [];
+                const warnings = crypto.compliance.warnings || [];
+                
+                if (errors.length === 0 && warnings.length === 0) {
+                    complianceElement.textContent = '✅ vCon Compliant';
+                    complianceElement.className = 'compliance-status success';
+                } else if (errors.length > 0) {
+                    complianceElement.textContent = `❌ ${errors.length} error(s), ${warnings.length} warning(s)`;
+                    complianceElement.className = 'compliance-status error';
+                    complianceElement.title = errors.concat(warnings).join('; ');
+                } else {
+                    complianceElement.textContent = `⚠️ ${warnings.length} warning(s)`;
+                    complianceElement.className = 'compliance-status warning';
+                    complianceElement.title = warnings.join('; ');
+                }
+            }
         }
         
     } else if (crypto.isSigned) {
@@ -678,6 +746,205 @@ function updateSecurityPanel(crypto) {
         encryptionIndicator.textContent = '🔓';
         signatureDetails.style.display = 'none';
         encryptionDetails.style.display = 'none';
+    }
+
+    // Update certificate chain visualization
+    updateCertificateChain(crypto);
+
+    // Update integrity verification results
+    updateIntegrityResults(crypto);
+
+    // Update key validation status
+    updateKeyValidationStatus(crypto);
+}
+
+/**
+ * Update certificate chain visualization
+ * @param {Object} crypto - Crypto information
+ */
+function updateCertificateChain(crypto) {
+    const certificateChain = document.getElementById('certificate-chain');
+    const certificateList = document.getElementById('certificate-list');
+    
+    if (!certificateChain || !certificateList) return;
+
+    const x5c = crypto?.signatures?.[0]?.header?.x5c || crypto?.jwsHeader?.x5c;
+    
+    if (x5c && Array.isArray(x5c) && x5c.length > 0) {
+        certificateChain.style.display = 'block';
+        
+        let html = '';
+        x5c.forEach((cert, index) => {
+            const certPreview = cert.substring(0, 40) + '...';
+            html += `
+                <div class="certificate-item">
+                    <div class="certificate-header">
+                        <span class="certificate-index">${index}</span>
+                        <span class="certificate-type">${index === 0 ? 'End Entity' : 'CA'}</span>
+                        <span class="certificate-status">🔍 Not Parsed</span>
+                    </div>
+                    <div class="certificate-preview">
+                        <code>${certPreview}</code>
+                    </div>
+                </div>
+            `;
+        });
+        
+        certificateList.innerHTML = html;
+        
+        // Update signature verification status
+        const verificationElement = document.getElementById('signature-verification-status');
+        if (verificationElement) {
+            verificationElement.textContent = 'Certificate chain available';
+        }
+    } else {
+        certificateChain.style.display = 'none';
+        const verificationElement = document.getElementById('signature-verification-status');
+        if (verificationElement) {
+            verificationElement.textContent = 'No certificate chain';
+        }
+    }
+}
+
+/**
+ * Update integrity verification results 
+ * @param {Object} crypto - Crypto information
+ */
+function updateIntegrityResults(crypto) {
+    const integrityDetails = document.getElementById('integrity-details');
+    const hashVerificationStatus = document.getElementById('hash-verification-status');
+    const externalFilesCount = document.getElementById('external-files-count');
+    const hashMismatches = document.getElementById('hash-mismatches');
+    const hashDetails = document.getElementById('hash-details');
+    
+    if (!integrityDetails) return;
+
+    // Check if we have content hash information in the vCon data
+    // This would come from parsing dialog, attachments, analysis, etc.
+    const hasExternalFiles = crypto?.externalFiles?.length > 0;
+    const hashResults = crypto?.hashVerification || {};
+    
+    if (hasExternalFiles || Object.keys(hashResults).length > 0) {
+        integrityDetails.style.display = 'block';
+        
+        // Update hash verification status
+        if (hashVerificationStatus) {
+            const totalFiles = crypto?.externalFiles?.length || 0;
+            const verifiedFiles = Object.values(hashResults).filter(r => r.valid).length;
+            const failedFiles = Object.values(hashResults).filter(r => r.error || !r.valid).length;
+            
+            if (totalFiles === 0) {
+                hashVerificationStatus.textContent = 'No external files';
+            } else if (failedFiles === 0) {
+                hashVerificationStatus.textContent = `✅ ${verifiedFiles}/${totalFiles} verified`;
+            } else {
+                hashVerificationStatus.textContent = `⚠️ ${failedFiles}/${totalFiles} failed`;
+            }
+        }
+        
+        // Update external files count
+        if (externalFilesCount) {
+            const totalFiles = crypto?.externalFiles?.length || 0;
+            externalFilesCount.textContent = totalFiles === 0 ? 'None' : `${totalFiles} file(s)`;
+        }
+        
+        // Update hash mismatches
+        if (hashMismatches) {
+            const failedFiles = Object.values(hashResults).filter(r => r.error || !r.valid).length;
+            hashMismatches.textContent = failedFiles === 0 ? 'None' : `${failedFiles} mismatch(es)`;
+        }
+        
+        // Update detailed hash results
+        if (hashDetails && Object.keys(hashResults).length > 0) {
+            let detailsHtml = '<h5>Hash Verification Details</h5>';
+            Object.entries(hashResults).forEach(([url, result]) => {
+                const status = result.valid ? '✅ Verified' : `❌ Failed: ${result.error || 'Hash mismatch'}`;
+                detailsHtml += `
+                    <div class="hash-result-item">
+                        <div class="hash-url">${url}</div>
+                        <div class="hash-status">${status}</div>
+                        ${result.algorithm ? `<div class="hash-algorithm">Algorithm: ${result.algorithm}</div>` : ''}
+                    </div>
+                `;
+            });
+            hashDetails.innerHTML = detailsHtml;
+        }
+    } else {
+        integrityDetails.style.display = 'none';
+    }
+}
+
+/**
+ * Update key validation status
+ * @param {Object} crypto - Crypto information  
+ */
+function updateKeyValidationStatus(crypto) {
+    const keyValidation = document.getElementById('key-validation');
+    const publicKeyStatus = document.getElementById('public-key-status');
+    const privateKeyStatus = document.getElementById('private-key-status');
+    const keyFormat = document.getElementById('key-format');
+    
+    if (!keyValidation) return;
+
+    // Get key status from DOM (from key panel)
+    const publicKeyInput = document.getElementById('public-key');
+    const privateKeyInput = document.getElementById('private-key');
+    
+    const hasPublicKey = publicKeyInput?.value.trim().length > 0;
+    const hasPrivateKey = privateKeyInput?.value.trim().length > 0;
+    
+    if (hasPublicKey || hasPrivateKey || crypto?.needsKeys) {
+        keyValidation.style.display = 'block';
+        
+        // Update public key status
+        if (publicKeyStatus) {
+            if (hasPublicKey) {
+                // Try to determine key format
+                const keyValue = publicKeyInput.value.trim();
+                let format = 'Unknown';
+                let status = '✅ Provided';
+                
+                if (keyValue.includes('-----BEGIN')) {
+                    format = 'PEM';
+                } else if (keyValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(keyValue);
+                        if (parsed.kty) format = 'JWK';
+                    } catch (e) {
+                        status = '⚠️ Invalid Format';
+                    }
+                }
+                
+                publicKeyStatus.textContent = status;
+                if (keyFormat) keyFormat.textContent = format;
+            } else {
+                publicKeyStatus.textContent = crypto?.isSigned ? '⚠️ Required for verification' : 'Not Required';
+            }
+        }
+        
+        // Update private key status  
+        if (privateKeyStatus) {
+            if (hasPrivateKey) {
+                const keyValue = privateKeyInput.value.trim();
+                let status = '✅ Provided';
+                
+                if (keyValue.includes('-----BEGIN')) {
+                    // PEM format
+                } else if (keyValue.startsWith('{')) {
+                    try {
+                        JSON.parse(keyValue);
+                    } catch (e) {
+                        status = '⚠️ Invalid Format';
+                    }
+                }
+                
+                privateKeyStatus.textContent = status;
+            } else {
+                privateKeyStatus.textContent = crypto?.isEncrypted ? '⚠️ Required for decryption' : 'Not Required';
+            }
+        }
+    } else {
+        keyValidation.style.display = 'none';
     }
 }
 
@@ -763,6 +1030,22 @@ function clearTimeline() {
     if (timelineView) {
         timelineView.innerHTML = '<div class="empty-timeline">No timeline data</div>';
     }
+}
+
+/**
+ * Update inspector with result data (wrapper function for consistency)
+ * @param {Object} result - Processed vCon result from VConProcessor
+ */
+function updateInspector(result) {
+    updateInspectorPanels(result);
+}
+
+/**
+ * Update metadata panels (wrapper function for encrypted tab)
+ * @param {Object} metadata - Metadata object
+ */
+function updateMetadata(metadata) {
+    updateMetadataPanel(metadata);
 }
 
 /**

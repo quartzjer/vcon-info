@@ -23,6 +23,12 @@ class VConProcessor {
                 encryption: ['RSA-OAEP', 'RSA-OAEP-256', 'A128KW', 'A256KW', 'dir']
             }
         };
+        
+        // Initialize crypto API support for hash verification
+        this.hashSupport = {
+            available: typeof crypto !== 'undefined' && typeof crypto.subtle !== 'undefined',
+            algorithms: ['SHA-256', 'SHA-384', 'SHA-512']
+        };
     }
     
     // Main processing function
@@ -45,7 +51,9 @@ class VConProcessor {
                 canDecrypt: false,
                 canVerify: false,
                 jwsHeader: null,
-                jweHeader: null
+                jweHeader: null,
+                externalFiles: [],
+                hashVerification: {}
             }
         };
         
@@ -56,11 +64,46 @@ class VConProcessor {
             
             // Parse if string - handle both regular JSON and JWS/JWE formats
             let vcon;
-            if (result.crypto.isEncrypted || result.crypto.isSigned) {
-                // For now, just extract headers for display
+            if (result.crypto.isEncrypted) {
+                // Try to decrypt if private key is available
+                const privateKeyInput = document.getElementById('private-key');
+                if (privateKeyInput && privateKeyInput.value.trim()) {
+                    try {
+                        const decryptResult = await this.decryptJWE(vconData, privateKeyInput.value.trim());
+                        if (decryptResult.decrypted) {
+                            result.crypto.decrypted = true;
+                            result.crypto.decryptionHeaders = decryptResult.headers;
+                            
+                            // Process the decrypted content (might be signed)
+                            const decryptedResult = await this.processVCon(decryptResult.plaintext);
+                            // Merge crypto info with decrypted result
+                            decryptedResult.crypto = { ...result.crypto, ...decryptedResult.crypto };
+                            return decryptedResult;
+                        } else {
+                            result.crypto.decryptionError = decryptResult.error;
+                        }
+                    } catch (decryptError) {
+                        result.crypto.decryptionError = decryptError.message;
+                    }
+                }
+                
+                // If decryption failed or no key provided, show JWE metadata only
+                vcon = {
+                    vcon: "1.0",
+                    uuid: result.crypto.jweHeader?.uuid || "unknown",
+                    created_at: new Date().toISOString(),
+                    parties: [],
+                    dialog: [],
+                    attachments: [],
+                    analysis: []
+                };
+                result.metadata.encrypted = true;
+                
+            } else if (result.crypto.isSigned) {
+                // Extract payload for signed vCons
                 vcon = this.extractPayloadForDisplay(vconData);
                 if (!vcon) {
-                    throw new Error('Unable to process encrypted/signed vCon without proper keys');
+                    throw new Error('Unable to extract payload from signed vCon');
                 }
             } else {
                 vcon = typeof vconData === 'string' ? JSON.parse(vconData) : vconData;
@@ -94,6 +137,9 @@ class VConProcessor {
             // Collect errors and warnings
             result.errors = result.validation.errors || [];
             result.warnings = result.validation.warnings || [];
+            
+            // Collect external files for hash verification
+            result.crypto.externalFiles = this.collectExternalFiles(vcon);
             
         } catch (error) {
             result.errors.push({
@@ -1065,10 +1111,33 @@ class VConProcessor {
                     result.format = 'jwe-json';
                     result.compliance.isGeneralJSONSerialization = true;
                     
-                    // Extract unprotected header
+                    // Extract comprehensive JWE metadata
+                    result.jweData = {
+                        recipients: parsed.recipients,
+                        unprotected: parsed.unprotected || {},
+                        protected: parsed.protected,
+                        iv: parsed.iv,
+                        ciphertext: parsed.ciphertext,
+                        tag: parsed.tag,
+                        recipientCount: parsed.recipients.length
+                    };
+                    
+                    // Extract unprotected header for compatibility
                     if (parsed.unprotected) {
                         result.jweHeader = parsed.unprotected;
                     }
+                    
+                    // Extract protected header if present
+                    if (parsed.protected) {
+                        try {
+                            result.jweProtectedHeader = JSON.parse(this.base64urlDecode(parsed.protected));
+                        } catch (e) {
+                            console.warn('Failed to decode JWE protected header:', e);
+                        }
+                    }
+                    
+                    // Check vCon JWE compliance
+                    result.compliance = this.checkVConJWECompliance(result.jweHeader, result.jweProtectedHeader, parsed);
                 } else if (parsed.protected && parsed.encrypted_key && parsed.iv && parsed.ciphertext && parsed.tag) {
                     result.isEncrypted = true;
                     result.format = 'jwe-json';
@@ -1189,6 +1258,93 @@ class VConProcessor {
         return null;
     }
     
+    checkVConJWECompliance(unprotectedHeader, protectedHeader, jweObject) {
+        const compliance = {
+            isGeneralJSONSerialization: true,
+            errors: [],
+            warnings: []
+        };
+        
+        // Check for required vCon JWE fields per spec
+        if (!unprotectedHeader) {
+            compliance.errors.push('Missing unprotected header required for vCon JWE');
+        } else {
+            // Check for required uuid field
+            if (!unprotectedHeader.uuid) {
+                compliance.errors.push('Missing uuid in unprotected header required for vCon JWE');
+            } else if (!this.isValidUUID(unprotectedHeader.uuid)) {
+                compliance.errors.push('Invalid UUID format in unprotected header');
+            }
+            
+            // Check for content type
+            if (!unprotectedHeader.cty || unprotectedHeader.cty !== 'application/vcon+json') {
+                compliance.warnings.push('Missing or incorrect content type (cty) in unprotected header');
+            }
+            
+            // Check encryption algorithm
+            if (!unprotectedHeader.enc) {
+                compliance.errors.push('Missing enc parameter in unprotected header');
+            } else if (!['A128CBC-HS256', 'A256CBC-HS512', 'A128GCM', 'A256GCM'].includes(unprotectedHeader.enc)) {
+                compliance.warnings.push(`Encryption algorithm ${unprotectedHeader.enc} may not be optimal for vCon`);
+            }
+        }
+        
+        // Check recipients
+        if (jweObject.recipients && jweObject.recipients.length > 0) {
+            compliance.recipientCount = jweObject.recipients.length;
+            
+            // Validate each recipient
+            jweObject.recipients.forEach((recipient, index) => {
+                if (!recipient.header) {
+                    compliance.warnings.push(`Recipient ${index} missing header`);
+                } else {
+                    if (!recipient.header.alg || !['RSA-OAEP', 'RSA-OAEP-256'].includes(recipient.header.alg)) {
+                        compliance.warnings.push(`Recipient ${index} using non-recommended key encryption algorithm: ${recipient.header.alg}`);
+                    }
+                }
+                
+                if (!recipient.encrypted_key) {
+                    compliance.errors.push(`Recipient ${index} missing encrypted_key`);
+                }
+            });
+        } else {
+            compliance.warnings.push('No recipients found - JWE cannot be decrypted');
+        }
+        
+        // Check for required JWE parameters
+        if (!jweObject.iv) {
+            compliance.errors.push('Missing initialization vector (iv)');
+        }
+        
+        if (!jweObject.ciphertext) {
+            compliance.errors.push('Missing ciphertext');
+        }
+        
+        if (!jweObject.tag) {
+            compliance.errors.push('Missing authentication tag');
+        }
+        
+        return compliance;
+    }
+    
+    // Crypto Support Methods
+    
+    isCryptoSupported() {
+        return this.cryptoSupport.available;
+    }
+    
+    getSupportedAlgorithms() {
+        if (!this.cryptoSupport.available) {
+            return null;
+        }
+        
+        return {
+            signing: ['RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512', 'ES256', 'ES384', 'ES512'],
+            keyEncryption: ['RSA-OAEP', 'RSA-OAEP-256'],
+            contentEncryption: ['A128CBC-HS256', 'A256CBC-HS512', 'A128GCM', 'A256GCM']
+        };
+    }
+    
     // JWS/JWE Operations (requires keys)
     
     async verifyJWS(jwsToken, publicKey) {
@@ -1219,12 +1375,31 @@ class VConProcessor {
         }
         
         try {
-            // Use jose library to decrypt the JWE
-            const decrypter = new Jose.JoseJWE.Decrypter(Jose.WebCryptographer, privateKey);
+            // Handle both JWK and PEM private keys
+            let keyPromise;
+            if (typeof privateKey === 'string') {
+                // Parse PEM to JWK if needed
+                if (privateKey.includes('-----BEGIN')) {
+                    throw new Error('PEM key format not supported yet - please provide JWK format');
+                }
+                // Assume it's a JWK JSON string
+                const jwkKey = JSON.parse(privateKey);
+                keyPromise = Jose.Utils.importPrivateKey(jwkKey, 'RSA-OAEP');
+            } else if (Jose.Utils.isCryptoKey(privateKey)) {
+                keyPromise = Promise.resolve(privateKey);
+            } else {
+                // Assume it's already a JWK object
+                keyPromise = Jose.Utils.importPrivateKey(privateKey, 'RSA-OAEP');
+            }
+            
+            const importedKey = await keyPromise;
+            const decrypter = new Jose.JoseJWE.Decrypter(Jose.WebCryptographer, importedKey);
             const plaintext = await decrypter.decrypt(jweToken);
+            
             return {
                 decrypted: true,
-                plaintext: plaintext
+                plaintext: plaintext,
+                headers: decrypter.getHeaders()
             };
         } catch (error) {
             return {
@@ -1303,6 +1478,277 @@ class VConProcessor {
     // Get supported algorithms
     getSupportedAlgorithms() {
         return this.cryptoSupport.algorithms;
+    }
+
+    // Hash verification methods per IETF vCon specification
+    
+    /**
+     * Parse content_hash value according to spec
+     * Format: "algorithm-base64url_encoded_hash"
+     * @param {string|string[]} contentHash - Single hash or array of hashes
+     * @returns {Object[]} Array of parsed hash objects
+     */
+    parseContentHash(contentHash) {
+        if (!contentHash) return [];
+        
+        const hashes = Array.isArray(contentHash) ? contentHash : [contentHash];
+        return hashes.map(hash => {
+            const dashIndex = hash.indexOf('-');
+            if (dashIndex <= 0) {
+                throw new Error(`Invalid content_hash format: ${hash}`);
+            }
+            
+            const algorithm = hash.substring(0, dashIndex);
+            const hashValue = hash.substring(dashIndex + 1);
+            
+            // Validate algorithm (spec requires lowercase, no hyphens)
+            if (!/^[a-z0-9]+$/.test(algorithm)) {
+                throw new Error(`Invalid hash algorithm format: ${algorithm}`);
+            }
+            
+            // Convert algorithm name to Web Crypto API format
+            let cryptoAlgorithm;
+            switch (algorithm.toLowerCase()) {
+                case 'sha256':
+                    cryptoAlgorithm = 'SHA-256';
+                    break;
+                case 'sha384':
+                    cryptoAlgorithm = 'SHA-384';
+                    break;
+                case 'sha512':
+                    cryptoAlgorithm = 'SHA-512';
+                    break;
+                default:
+                    throw new Error(`Unsupported hash algorithm: ${algorithm}`);
+            }
+            
+            return {
+                algorithm,
+                cryptoAlgorithm,
+                hashValue,
+                originalString: hash
+            };
+        });
+    }
+
+    /**
+     * Calculate content hash of data
+     * @param {ArrayBuffer|Uint8Array|string} data - Data to hash
+     * @param {string} algorithm - Hash algorithm ('SHA-256', 'SHA-384', 'SHA-512')
+     * @returns {Promise<string>} Base64url encoded hash
+     */
+    async calculateContentHash(data, algorithm = 'SHA-512') {
+        if (!this.hashSupport.available) {
+            throw new Error('Web Crypto API not available for hash calculation');
+        }
+        
+        // Convert string to ArrayBuffer if needed
+        let buffer;
+        if (typeof data === 'string') {
+            buffer = new TextEncoder().encode(data);
+        } else if (data instanceof ArrayBuffer) {
+            buffer = data;
+        } else if (data instanceof Uint8Array) {
+            buffer = data.buffer;
+        } else {
+            throw new Error('Invalid data type for hashing');
+        }
+        
+        const hashBuffer = await crypto.subtle.digest(algorithm, buffer);
+        return this.base64urlEncode(new Uint8Array(hashBuffer));
+    }
+
+    /**
+     * Verify content hash against data
+     * @param {string} contentHash - Content hash string (algorithm-hash format)
+     * @param {ArrayBuffer|Uint8Array|string} data - Data to verify
+     * @returns {Promise<Object>} Verification result
+     */
+    async verifyContentHash(contentHash, data) {
+        try {
+            const parsed = this.parseContentHash(contentHash)[0]; // Take first hash if multiple
+            const calculatedHash = await this.calculateContentHash(data, parsed.cryptoAlgorithm);
+            
+            const isValid = calculatedHash === parsed.hashValue;
+            
+            return {
+                valid: isValid,
+                algorithm: parsed.algorithm,
+                expected: parsed.hashValue,
+                actual: calculatedHash,
+                error: null
+            };
+        } catch (error) {
+            return {
+                valid: false,
+                algorithm: null,
+                expected: null,
+                actual: null,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Fetch external content and verify its hash
+     * @param {string} url - URL to fetch
+     * @param {string|string[]} contentHash - Expected content hash(es)
+     * @returns {Promise<Object>} Fetch and verification result
+     */
+    async fetchAndVerifyContent(url, contentHash) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.arrayBuffer();
+            const hashes = this.parseContentHash(contentHash);
+            
+            // Verify against all provided hashes
+            const verifications = await Promise.all(
+                hashes.map(hash => this.verifyContentHash(hash.originalString, data))
+            );
+            
+            const allValid = verifications.every(v => v.valid);
+            const firstError = verifications.find(v => v.error);
+            
+            return {
+                success: response.ok,
+                status: response.status,
+                contentType: response.headers.get('content-type'),
+                size: data.byteLength,
+                hashVerification: {
+                    valid: allValid,
+                    results: verifications,
+                    error: firstError?.error || null
+                },
+                data: allValid ? data : null // Only return data if hash verifies
+            };
+        } catch (error) {
+            return {
+                success: false,
+                status: null,
+                contentType: null,
+                size: null,
+                hashVerification: {
+                    valid: false,
+                    results: [],
+                    error: error.message
+                },
+                data: null
+            };
+        }
+    }
+
+    /**
+     * Check if hash algorithms are supported
+     * @returns {boolean} True if hash verification is available
+     */
+    isHashVerificationSupported() {
+        return this.hashSupport.available;
+    }
+
+    /**
+     * Get supported hash algorithms
+     * @returns {string[]} Array of supported algorithm names
+     */
+    getSupportedHashAlgorithms() {
+        return this.hashSupport.available ? this.hashSupport.algorithms : [];
+    }
+
+    /**
+     * Collect external files with content_hash from vCon data
+     * @param {Object} vcon - vCon data object
+     * @returns {Array} Array of external file objects
+     */
+    collectExternalFiles(vcon) {
+        const externalFiles = [];
+        
+        // Check dialog entries
+        if (vcon.dialog && Array.isArray(vcon.dialog)) {
+            vcon.dialog.forEach((dialog, index) => {
+                if (dialog.url && dialog.content_hash) {
+                    externalFiles.push({
+                        url: dialog.url,
+                        content_hash: dialog.content_hash,
+                        type: 'dialog',
+                        index: index,
+                        mediatype: dialog.mediatype || dialog.mimetype,
+                        filename: dialog.filename
+                    });
+                }
+            });
+        }
+        
+        // Check attachment entries
+        if (vcon.attachments && Array.isArray(vcon.attachments)) {
+            vcon.attachments.forEach((attachment, index) => {
+                if (attachment.url && attachment.content_hash) {
+                    externalFiles.push({
+                        url: attachment.url,
+                        content_hash: attachment.content_hash,
+                        type: 'attachment',
+                        index: index,
+                        mediatype: attachment.mediatype || attachment.mimetype,
+                        filename: attachment.filename
+                    });
+                }
+            });
+        }
+        
+        // Check analysis entries
+        if (vcon.analysis && Array.isArray(vcon.analysis)) {
+            vcon.analysis.forEach((analysis, index) => {
+                if (analysis.url && analysis.content_hash) {
+                    externalFiles.push({
+                        url: analysis.url,
+                        content_hash: analysis.content_hash,
+                        type: 'analysis',
+                        index: index,
+                        mediatype: analysis.mediatype || analysis.mimetype,
+                        filename: analysis.filename
+                    });
+                }
+            });
+        }
+        
+        // Check redacted vCon references
+        if (vcon.redacted && vcon.redacted.url && vcon.redacted.content_hash) {
+            externalFiles.push({
+                url: vcon.redacted.url,
+                content_hash: vcon.redacted.content_hash,
+                type: 'redacted_vcon',
+                index: 0
+            });
+        }
+        
+        // Check appended vCon references
+        if (vcon.appended && vcon.appended.url && vcon.appended.content_hash) {
+            externalFiles.push({
+                url: vcon.appended.url,
+                content_hash: vcon.appended.content_hash,
+                type: 'appended_vcon',
+                index: 0
+            });
+        }
+        
+        // Check group vCon references
+        if (vcon.group && Array.isArray(vcon.group)) {
+            vcon.group.forEach((groupItem, index) => {
+                if (groupItem.url && groupItem.content_hash) {
+                    externalFiles.push({
+                        url: groupItem.url,
+                        content_hash: groupItem.content_hash,
+                        type: 'group_vcon',
+                        index: index,
+                        uuid: groupItem.uuid
+                    });
+                }
+            });
+        }
+        
+        return externalFiles;
     }
 }
 

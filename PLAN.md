@@ -86,43 +86,43 @@ This document outlines the detailed implementation plan to upgrade the vCon Info
 **Goal**: Implement signing and encryption support per JWS/JWE standards
 
 ### 2.1 Signed vCon Support (JWS)
-- [ ] Detect JWS structure in input
-- [ ] Parse JWS header and payload
-- [ ] Add signature verification using public key
-- [ ] Display signature status in new Security panel
-- [ ] Show signer information (alg, kid, x5c)
-- [ ] Handle multiple signatures
+- [x] Detect JWS structure in input
+- [x] Parse JWS header and payload
+- [x] Add signature verification using public key
+- [x] Display signature status in new Security panel
+- [x] Show signer information (alg, kid, x5c)
+- [x] Handle multiple signatures
 
 **New files**: `docs/jws-handler.js`  
 **Files to modify**: `docs/vcon-processor.js`, `docs/scripts.js`, `docs/index.html`
 
 ### 2.2 Encrypted vCon Support (JWE)
-- [ ] Complete encrypted tab functionality
-- [ ] Detect JWE structure
-- [ ] Implement decryption with private key
-- [ ] Support multiple recipients
-- [ ] Display encryption metadata
-- [ ] Handle nested signed-then-encrypted vCons
+- [x] Complete encrypted tab functionality
+- [x] Detect JWE structure
+- [x] Implement decryption with private key
+- [x] Support multiple recipients
+- [x] Display encryption metadata
+- [x] Handle nested signed-then-encrypted vCons
 
 **New files**: `docs/jwe-handler.js`  
 **Files to modify**: `docs/vcon-processor.js`, `docs/scripts.js`
 
 ### 2.3 Security Panel
-- [ ] Create new "Security" inspector section
-- [ ] Display signing status and details
-- [ ] Show encryption status and algorithm
-- [ ] Add certificate chain visualization
-- [ ] Implement key validation status
-- [ ] Add integrity check results
+- [x] Create new "Security" inspector section
+- [x] Display signing status and details
+- [x] Show encryption status and algorithm
+- [x] Add certificate chain visualization
+- [x] Implement key validation status
+- [x] Add integrity check results
 
 **Files to modify**: `docs/index.html`, `docs/style.css`, `docs/scripts.js`
 
 ### 2.4 Content Hash Verification
-- [ ] Implement SHA-256/SHA-512 hash calculation
-- [ ] Verify content_hash for external URLs
-- [ ] Display verification status in UI
-- [ ] Add hash mismatch warnings
-- [ ] Support different hash algorithms
+- [x] Implement SHA-256/SHA-512 hash calculation
+- [x] Verify content_hash for external URLs
+- [x] Display verification status in UI
+- [x] Add hash mismatch warnings
+- [x] Support different hash algorithms
 
 **Files to modify**: `docs/vcon-processor.js`
 
