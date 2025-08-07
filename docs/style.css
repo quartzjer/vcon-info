@@ -1763,3 +1763,87 @@ body {
         transform: none;
     }
 }
+
+/* Icon Styling */
+.icon-lock,
+.icon-eye,
+.icon-document,
+.icon-error,
+.icon-unlocked,
+.icon-locked,
+.icon-signed,
+.icon-shield,
+.icon-pending {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.icon-inline {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+/* Validation Icon Colors */
+.icon-validation-unknown {
+    filter: brightness(0) saturate(100%) invert(56%) sepia(6%) saturate(622%) hue-rotate(176deg) brightness(94%) contrast(90%);
+}
+
+.icon-validation-good {
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+}
+
+.icon-validation-warning {
+    filter: brightness(0) saturate(100%) invert(72%) sepia(98%) saturate(1866%) hue-rotate(1deg) brightness(106%) contrast(104%);
+}
+
+.icon-validation-fail {
+    filter: brightness(0) saturate(100%) invert(37%) sepia(93%) saturate(7471%) hue-rotate(356deg) brightness(91%) contrast(135%);
+}
+
+/* Security Panel Icon Styling */
+.security-indicator img {
+    vertical-align: middle;
+}
+
+/* Validation Tab Icon */
+#validation-tab-icon img {
+    vertical-align: middle;
+    margin-left: 0.25rem;
+}
+
+/* Validation Status Icon */
+#validation-status-icon img {
+    vertical-align: middle;
+    margin-right: 0.5rem;
+}
+
+/* Panel Toggle Eye Icon */
+.panel-toggle img {
+    transition: opacity 0.2s;
+}
+
+.panel-toggle.collapsed img {
+    opacity: 0.5;
+}
+
+/* Lock Button Icon */
+.lock-button img {
+    transition: filter 0.2s;
+}
+
+.lock-button.active img {
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+}
+
+/* Example Icon */
+.example-icon img {
+    vertical-align: middle;
+    opacity: 0.7;
+}
+
+/* Hash Status Inline Icons */
+.hash-status-inline img {
+    display: inline-block;
+    vertical-align: middle;
+}

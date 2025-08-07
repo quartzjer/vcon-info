@@ -28,11 +28,11 @@ function updateSecurityPanel(crypto) {
     
     if (!crypto) {
         formatElement.textContent = 'Unsigned';
-        formatIndicator.textContent = '📄';
+        formatIndicator.innerHTML = '<img src="icons/20/solid/document.svg" alt="Document" width="20" height="20" class="icon-document">';
         signatureStatus.textContent = 'Not Signed';
-        signatureIndicator.textContent = '❌';
+        signatureIndicator.innerHTML = '<img src="icons/20/solid/x-circle.svg" alt="Not Signed" width="20" height="20" class="icon-error">';
         encryptionStatus.textContent = 'Not Encrypted';
-        encryptionIndicator.textContent = '🔓';
+        encryptionIndicator.innerHTML = '<img src="icons/20/solid/lock-open.svg" alt="Not Encrypted" width="20" height="20" class="icon-unlocked">';
         signatureDetails.style.display = 'none';
         encryptionDetails.style.display = 'none';
         return;
@@ -42,14 +42,14 @@ function updateSecurityPanel(crypto) {
     if (crypto.isEncrypted) {
         formatElement.textContent = crypto.format === 'jwe-json' ? 'JWE (JSON Serialization)' : 
                                    crypto.format === 'jwe-compact' ? 'JWE (Compact)' : 'Encrypted';
-        formatIndicator.textContent = '🔒';
+        formatIndicator.innerHTML = '<img src="icons/20/solid/lock-closed.svg" alt="Encrypted" width="20" height="20" class="icon-locked">';
         
         // Update encryption status
         encryptionStatus.textContent = crypto.compliance?.isGeneralJSONSerialization ? 
                                       'Encrypted (vCon Compliant)' : 
                                       crypto.compliance?.errors?.length > 0 ? 
                                       'Encrypted (Non-Compliant)' : 'Encrypted';
-        encryptionIndicator.textContent = crypto.compliance?.isVConCompliant ? '✅' : '⚠️';
+        encryptionIndicator.innerHTML = crypto.compliance?.isVConCompliant ? '<img src="icons/20/solid/check-circle.svg" alt="Valid" width="20" height="20" class="icon-validation-good">' : '<img src="icons/20/solid/exclamation-triangle.svg" alt="Warning" width="20" height="20" class="icon-validation-warning">';
         
         // Show encryption details
         if (encryptionDetails) {
@@ -80,13 +80,13 @@ function updateSecurityPanel(crypto) {
             const decryptionStatusElement = document.getElementById('decryption-status');
             if (decryptionStatusElement) {
                 if (crypto.decrypted) {
-                    decryptionStatusElement.textContent = '✅ Decrypted Successfully';
+                    decryptionStatusElement.innerHTML = '<img src="icons/16/solid/check-circle.svg" alt="Success" width="16" height="16" class="icon-inline icon-validation-good"> Decrypted Successfully';
                     decryptionStatusElement.className = 'decryption-status success';
                 } else if (crypto.decryptionError) {
-                    decryptionStatusElement.textContent = `❌ Decryption Failed: ${crypto.decryptionError}`;
+                    decryptionStatusElement.innerHTML = `<img src="icons/16/solid/x-circle.svg" alt="Error" width="16" height="16" class="icon-inline icon-validation-fail"> Decryption Failed: ${crypto.decryptionError}`;
                     decryptionStatusElement.className = 'decryption-status error';
                 } else {
-                    decryptionStatusElement.textContent = '🔒 Private key required for decryption';
+                    decryptionStatusElement.innerHTML = '<img src="icons/16/solid/lock-closed.svg" alt="Locked" width="16" height="16" class="icon-inline icon-locked"> Private key required for decryption';
                     decryptionStatusElement.className = 'decryption-status pending';
                 }
             }
@@ -98,14 +98,14 @@ function updateSecurityPanel(crypto) {
                 const warnings = crypto.compliance.warnings || [];
                 
                 if (errors.length === 0 && warnings.length === 0) {
-                    complianceElement.textContent = '✅ vCon Compliant';
+                    complianceElement.innerHTML = '<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good"> vCon Compliant';
                     complianceElement.className = 'compliance-status success';
                 } else if (errors.length > 0) {
-                    complianceElement.textContent = `❌ ${errors.length} error(s), ${warnings.length} warning(s)`;
+                    complianceElement.innerHTML = `<img src="icons/16/solid/x-circle.svg" alt="Error" width="16" height="16" class="icon-inline icon-validation-fail"> ${errors.length} error(s), ${warnings.length} warning(s)`;
                     complianceElement.className = 'compliance-status error';
                     complianceElement.title = errors.concat(warnings).join('; ');
                 } else {
-                    complianceElement.textContent = `⚠️ ${warnings.length} warning(s)`;
+                    complianceElement.innerHTML = `<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning"> ${warnings.length} warning(s)`;
                     complianceElement.className = 'compliance-status warning';
                     complianceElement.title = warnings.join('; ');
                 }
@@ -115,7 +115,7 @@ function updateSecurityPanel(crypto) {
     } else if (crypto.isSigned) {
         formatElement.textContent = crypto.format === 'jws-json' ? 'JWS (JSON Serialization)' : 
                                    crypto.format === 'jws-compact' ? 'JWS (Compact)' : 'Signed';
-        formatIndicator.textContent = '✍️';
+        formatIndicator.innerHTML = '<img src="icons/20/solid/pencil-square.svg" alt="Signed" width="20" height="20" class="icon-signed">';
         
         // Update signature status
         const isCompliant = crypto.compliance?.isVConCompliant;
@@ -123,7 +123,7 @@ function updateSecurityPanel(crypto) {
         
         signatureStatus.textContent = isCompliant ? 'Signed (vCon Compliant)' :
                                      hasErrors ? 'Signed (Non-Compliant)' : 'Signed';
-        signatureIndicator.textContent = isCompliant ? '✅' : hasErrors ? '⚠️' : '🔏';
+        signatureIndicator.innerHTML = isCompliant ? '<img src="icons/20/solid/check-circle.svg" alt="Valid" width="20" height="20" class="icon-validation-good">' : hasErrors ? '<img src="icons/20/solid/exclamation-triangle.svg" alt="Warning" width="20" height="20" class="icon-validation-warning">' : '<img src="icons/20/solid/shield-check.svg" alt="Signed" width="20" height="20" class="icon-shield">';
         
         // Show signature details
         signatureDetails.style.display = 'block';
@@ -147,16 +147,16 @@ function updateSecurityPanel(crypto) {
         }
         
         encryptionStatus.textContent = 'Not Encrypted';
-        encryptionIndicator.textContent = '🔓';
+        encryptionIndicator.innerHTML = '<img src="icons/20/solid/lock-open.svg" alt="Not Encrypted" width="20" height="20" class="icon-unlocked">';
         encryptionDetails.style.display = 'none';
         
     } else {
         formatElement.textContent = 'Unsigned';
-        formatIndicator.textContent = '📄';
+        formatIndicator.innerHTML = '<img src="icons/20/solid/document.svg" alt="Document" width="20" height="20" class="icon-document">';
         signatureStatus.textContent = 'Not Signed';
-        signatureIndicator.textContent = '❌';
+        signatureIndicator.innerHTML = '<img src="icons/20/solid/x-circle.svg" alt="Not Signed" width="20" height="20" class="icon-error">';
         encryptionStatus.textContent = 'Not Encrypted';
-        encryptionIndicator.textContent = '🔓';
+        encryptionIndicator.innerHTML = '<img src="icons/20/solid/lock-open.svg" alt="Not Encrypted" width="20" height="20" class="icon-unlocked">';
         signatureDetails.style.display = 'none';
         encryptionDetails.style.display = 'none';
     }
@@ -194,7 +194,7 @@ function updateCertificateChain(crypto) {
                     <div class="certificate-header">
                         <span class="certificate-index">${index}</span>
                         <span class="certificate-type">${index === 0 ? 'End Entity' : 'CA'}</span>
-                        <span class="certificate-status">🔍 Not Parsed</span>
+                        <span class="certificate-status"><img src="icons/16/solid/magnifying-glass.svg" alt="Not Parsed" width="16" height="16" class="icon-inline"> Not Parsed</span>
                     </div>
                     <div class="certificate-preview">
                         <code>${certPreview}</code>
@@ -249,9 +249,9 @@ function updateIntegrityResults(crypto) {
             if (totalFiles === 0) {
                 hashVerificationStatus.textContent = 'No external files';
             } else if (failedFiles === 0) {
-                hashVerificationStatus.textContent = `✅ ${verifiedFiles}/${totalFiles} verified`;
+                hashVerificationStatus.innerHTML = `<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good"> ${verifiedFiles}/${totalFiles} verified`;
             } else {
-                hashVerificationStatus.textContent = `⚠️ ${failedFiles}/${totalFiles} failed`;
+                hashVerificationStatus.innerHTML = `<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning"> ${failedFiles}/${totalFiles} failed`;
             }
         }
         
@@ -271,7 +271,7 @@ function updateIntegrityResults(crypto) {
         if (hashDetails && Object.keys(hashResults).length > 0) {
             let detailsHtml = '<h5>Hash Verification Details</h5>';
             Object.entries(hashResults).forEach(([url, result]) => {
-                const status = result.valid ? '✅ Verified' : `❌ Failed: ${result.error || 'Hash mismatch'}`;
+                const status = result.valid ? '<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good"> Verified' : `<img src="icons/16/solid/x-circle.svg" alt="Error" width="16" height="16" class="icon-inline icon-validation-fail"> Failed: ${result.error || 'Hash mismatch'}`;
                 detailsHtml += `
                     <div class="hash-result-item">
                         <div class="hash-url">${url}</div>
@@ -315,7 +315,7 @@ function updateKeyValidationStatus(crypto) {
                 // Try to determine key format
                 const keyValue = publicKeyInput.value.trim();
                 let format = 'Unknown';
-                let status = '✅ Provided';
+                let status = '<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good"> Provided';
                 
                 if (keyValue.includes('-----BEGIN')) {
                     format = 'PEM';
@@ -324,14 +324,14 @@ function updateKeyValidationStatus(crypto) {
                         const parsed = JSON.parse(keyValue);
                         if (parsed.kty) format = 'JWK';
                     } catch (e) {
-                        status = '⚠️ Invalid Format';
+                        status = '<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning"> Invalid Format';
                     }
                 }
                 
-                publicKeyStatus.textContent = status;
+                publicKeyStatus.innerHTML = status;
                 if (keyFormat) keyFormat.textContent = format;
             } else {
-                publicKeyStatus.textContent = crypto?.isSigned ? '⚠️ Required for verification' : 'Not Required';
+                publicKeyStatus.innerHTML = crypto?.isSigned ? '<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning"> Required for verification' : 'Not Required';
             }
         }
         
@@ -339,7 +339,7 @@ function updateKeyValidationStatus(crypto) {
         if (privateKeyStatus) {
             if (hasPrivateKey) {
                 const keyValue = privateKeyInput.value.trim();
-                let status = '✅ Provided';
+                let status = '<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good"> Provided';
                 
                 if (keyValue.includes('-----BEGIN')) {
                     // PEM format
@@ -347,13 +347,13 @@ function updateKeyValidationStatus(crypto) {
                     try {
                         JSON.parse(keyValue);
                     } catch (e) {
-                        status = '⚠️ Invalid Format';
+                        status = '<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning"> Invalid Format';
                     }
                 }
                 
-                privateKeyStatus.textContent = status;
+                privateKeyStatus.innerHTML = status;
             } else {
-                privateKeyStatus.textContent = crypto?.isEncrypted ? '⚠️ Required for decryption' : 'Not Required';
+                privateKeyStatus.innerHTML = crypto?.isEncrypted ? '<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning"> Required for decryption' : 'Not Required';
             }
         }
     } else {

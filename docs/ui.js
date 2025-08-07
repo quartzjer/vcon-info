@@ -202,7 +202,7 @@ function createExampleItem(filename) {
     const type = getExampleType(filename);
     
     item.innerHTML = `
-        <span class="example-icon">📄</span>
+        <span class="example-icon"><img src="icons/20/solid/document.svg" alt="Document" width="20" height="20" class="icon-document"></span>
         <div class="example-content">
             <div class="example-name">${escapeHtml(name)}</div>
             <div class="example-type">${escapeHtml(filename)}</div>
@@ -371,9 +371,7 @@ function updateRelationshipsPanel(metadata) {
                         <span class="detail-value">
                             <a href="${escapeHtml(metadata.redacted.url)}" class="relationship-link" target="_blank">
                                 View Original
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
-                                </svg>
+                                <img src="icons/12/solid/arrow-top-right-on-square.svg" alt="External" width="12" height="12" class="icon-inline">
                             </a>
                         </span>
                     </div>` : ''}
@@ -401,9 +399,7 @@ function updateRelationshipsPanel(metadata) {
                         <span class="detail-value">
                             <a href="${escapeHtml(metadata.appended.url)}" class="relationship-link" target="_blank">
                                 View Previous
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
-                                </svg>
+                                <img src="icons/12/solid/arrow-top-right-on-square.svg" alt="External" width="12" height="12" class="icon-inline">
                             </a>
                         </span>
                     </div>` : ''}
@@ -755,22 +751,22 @@ function updateValidationStatus(status = "unknown", message = "", details = {}) 
     
     // Icon and text mapping
     const statusConfig = {
-        unknown: { icon: '❓', text: 'Unknown', tabText: 'Validation ❓' },
-        good: { icon: '✅', text: 'Valid', tabText: 'Validation ✅' },
-        warning: { icon: '⚠️', text: 'Warning', tabText: 'Validation ⚠️' },
-        fail: { icon: '❌', text: 'Invalid', tabText: 'Validation ❌' }
+        unknown: { icon: '<img src="icons/16/solid/question-mark-circle.svg" alt="Unknown" width="16" height="16" class="icon-inline icon-validation-unknown">', text: 'Unknown', tabText: 'Validation <img src="icons/16/solid/question-mark-circle.svg" alt="Unknown" width="16" height="16" class="icon-inline icon-validation-unknown">' },
+        good: { icon: '<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good">', text: 'Valid', tabText: 'Validation <img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-inline icon-validation-good">' },
+        warning: { icon: '<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning">', text: 'Warning', tabText: 'Validation <img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-inline icon-validation-warning">' },
+        fail: { icon: '<img src="icons/16/solid/x-circle.svg" alt="Invalid" width="16" height="16" class="icon-inline icon-validation-fail">', text: 'Invalid', tabText: 'Validation <img src="icons/16/solid/x-circle.svg" alt="Invalid" width="16" height="16" class="icon-inline icon-validation-fail">' }
     };
     
     const config = statusConfig[status] || statusConfig.unknown;
     
     // Update tab icon
     if (tabIcon) {
-        tabIcon.textContent = config.tabText;
+        tabIcon.innerHTML = config.tabText;
     }
     
     // Update status display
     if (statusIcon) {
-        statusIcon.textContent = config.icon;
+        statusIcon.innerHTML = config.icon;
     }
     
     if (statusText) {
@@ -821,13 +817,13 @@ function updateValidationDetails(status, details = {}) {
             
             if (icon && text) {
                 const iconMap = {
-                    pending: '⏳',
-                    good: '✅',
-                    warning: '⚠️',
-                    fail: '❌'
+                    pending: '<img src="icons/16/solid/clock.svg" alt="Pending" width="16" height="16" class="icon-pending">',
+                    good: '<img src="icons/16/solid/check-circle.svg" alt="Valid" width="16" height="16" class="icon-validation-good">',
+                    warning: '<img src="icons/16/solid/exclamation-triangle.svg" alt="Warning" width="16" height="16" class="icon-validation-warning">',
+                    fail: '<img src="icons/16/solid/x-circle.svg" alt="Invalid" width="16" height="16" class="icon-validation-fail">'
                 };
                 
-                icon.textContent = iconMap[sectionData.status] || '⏳';
+                icon.innerHTML = iconMap[sectionData.status] || '<img src="icons/16/solid/clock.svg" alt="Pending" width="16" height="16" class="icon-pending">';
                 text.textContent = sectionData.message || 'Processing...';
             }
         }
