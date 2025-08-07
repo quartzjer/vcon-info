@@ -45,6 +45,7 @@ Simple single-page application with minimal architecture:
 - `docs/index.html` - Main HTML with embedded vCon sample data and UI structure
 - `docs/scripts.js` - All JavaScript functionality in one file
 - `docs/style.css` - Custom CSS styling
+- `docs/icons/` - Heroicons SVG icon pack (16px, 20px, 24px sizes with solid/outline variants)
 - `serve.js` - Bun development server
 - `tests/` - Integration test configuration
 
@@ -101,6 +102,7 @@ The application provides a foundation for vCon format support:
 - `docs/index.html` - Main HTML structure with embedded sample data
 - `docs/style.css` - Custom CSS styling
 - `docs/scripts.js` - All JavaScript application logic
+- `docs/icons/` - Heroicons SVG icon library with 300+ icons in multiple sizes
 - `package.json` - Bun dependencies and test scripts
 - `serve.js` - Development server configuration
 - `.github/workflows/deploy.yml` - GitHub Actions deployment
@@ -124,6 +126,7 @@ The application provides a foundation for vCon format support:
 - UI state preserved during development (tab selection, collapsed sections)
 - Test new features by adding to `tests/integration/app-integration.test.js`
 - Visual changes can be verified with screenshot tests in `tests/snapshot.png`
+- Heroicons available at `icons/24/solid/icon-name.svg` or `icons/24/outline/icon-name.svg`
 
 ### Validation Approach
 - **DO NOT** run the development server to validate UI changes or fixes
