@@ -1305,6 +1305,10 @@ body {
     color: #ef4444;
 }
 
+.footer-link img {
+    filter: invert(35%) sepia(98%) saturate(7462%) hue-rotate(353deg) brightness(102%) contrast(93%);
+}
+
 .footer-link {
     color: var(--text-secondary);
     text-decoration: none;
