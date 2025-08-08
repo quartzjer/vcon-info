@@ -358,21 +358,25 @@ body {
 .upload-container {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-lg);
+    flex-direction: column;
+    padding: 0;
 }
 
 .upload-drop-zone {
+    flex: 1;
     width: 100%;
-    max-width: 400px;
+    min-height: 400px;
     padding: var(--spacing-xl);
     background-color: var(--bg-editor);
     border: 2px dashed var(--border-color);
-    border-radius: 0.5rem;
+    border-radius: 0;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .upload-drop-zone:hover {
@@ -393,6 +397,46 @@ body {
 .upload-text {
     color: var(--text-secondary);
     font-size: 0.875rem;
+}
+
+.upload-feedback {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    animation: fade-in 0.3s ease;
+    z-index: 10;
+}
+
+.upload-feedback-success {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--validation-good);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.upload-feedback-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--validation-fail);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.upload-drop-zone {
+    position: relative;
 }
 
 /* Examples Tab Styles */

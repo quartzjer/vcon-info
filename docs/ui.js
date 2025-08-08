@@ -144,17 +144,81 @@ function initializeUpload() {
 }
 
 function handleFile(file) {
+    // Validate file type
+    const allowedExtensions = ['.json', '.vcon'];
+    const allowedMimeTypes = ['application/json', 'text/plain'];
+    
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+    const hasValidMimeType = allowedMimeTypes.includes(file.type) || file.type === '';
+    
+    if (!hasValidExtension && !hasValidMimeType) {
+        alert('Invalid file type. Please upload a .vcon or .json file.');
+        return;
+    }
+    
+    // Check file size (limit to 10MB for safety)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('File too large. Please upload a file smaller than 10MB.');
+        return;
+    }
+    
     const reader = new FileReader();
     reader.onload = (e) => {
-        const content = e.target.result;
-        // Switch to paste tab and update textarea
-        document.getElementById('tab-paste').click();
-        if (vconInput) {
-            vconInput.value = content;
-            vconInput.dispatchEvent(new Event('input'));
+        try {
+            const content = e.target.result;
+            
+            // Basic JSON validation
+            JSON.parse(content);
+            
+            // Switch to paste tab and update textarea
+            document.getElementById('tab-paste').click();
+            if (vconInput) {
+                vconInput.value = content;
+                vconInput.dispatchEvent(new Event('input'));
+            }
+            
+            // Show success feedback in upload tab
+            showUploadFeedback('success', `Successfully loaded ${file.name}`);
+            
+        } catch (error) {
+            alert(`Invalid JSON file: ${error.message}`);
+            showUploadFeedback('error', `Failed to load ${file.name}: Invalid JSON`);
         }
     };
+    
+    reader.onerror = () => {
+        alert('Error reading file. Please try again.');
+        showUploadFeedback('error', `Failed to read ${file.name}`);
+    };
+    
     reader.readAsText(file);
+}
+
+function showUploadFeedback(type, message) {
+    const dropZone = document.querySelector('.upload-drop-zone');
+    if (!dropZone) return;
+    
+    // Create feedback element
+    const feedback = document.createElement('div');
+    feedback.className = `upload-feedback upload-feedback-${type}`;
+    feedback.textContent = message;
+    
+    // Remove any existing feedback
+    const existingFeedback = dropZone.querySelector('.upload-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+    
+    // Add feedback to drop zone
+    dropZone.appendChild(feedback);
+    
+    // Remove feedback after 3 seconds
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.remove();
+        }
+    }, 3000);
 }
 
 // Examples functionality

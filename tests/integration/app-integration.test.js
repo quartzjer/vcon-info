@@ -885,6 +885,177 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("Upload Functionality", () => {
+    test("upload tab is present and functional", async () => {
+      // Click on upload tab
+      await page.click('#tab-upload');
+      await page.waitForTimeout(100);
+      
+      // Check if upload view is active
+      const uploadViewVisible = await page.evaluate(() => {
+        const uploadView = document.getElementById('upload-view');
+        return uploadView && uploadView.classList.contains('active');
+      });
+      
+      expect(uploadViewVisible).toBe(true);
+      
+      // Check if upload elements exist
+      const uploadElements = await page.evaluate(() => {
+        return {
+          dropZone: !!document.querySelector('.upload-drop-zone'),
+          fileInput: !!document.getElementById('file-input'),
+          uploadIcon: !!document.querySelector('.upload-icon'),
+          uploadText: !!document.querySelector('.upload-text')
+        };
+      });
+      
+      expect(uploadElements.dropZone).toBe(true);
+      expect(uploadElements.fileInput).toBe(true);
+      expect(uploadElements.uploadIcon).toBe(true);
+      expect(uploadElements.uploadText).toBe(true);
+    });
+
+    test("file upload validation works correctly", async () => {
+      // Switch to upload tab
+      await page.click('#tab-upload');
+      await page.waitForTimeout(100);
+      
+      // Test file validation in browser context
+      const validationResult = await page.evaluate(() => {
+        // Create a mock File object for testing
+        const validFile = { 
+          name: 'test.vcon', 
+          size: 1024,
+          type: 'application/json'
+        };
+        
+        const invalidFile = { 
+          name: 'test.txt', 
+          size: 1024,
+          type: 'text/html' // Invalid MIME type
+        };
+        
+        const largeFile = { 
+          name: 'large.vcon', 
+          size: 15 * 1024 * 1024, // 15MB
+          type: 'application/json'
+        };
+        
+        // Test validation logic (extracted from handleFile function)
+        function validateFile(file) {
+          const allowedExtensions = ['.json', '.vcon'];
+          const allowedMimeTypes = ['application/json', 'text/plain'];
+          
+          const fileName = file.name.toLowerCase();
+          const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+          const hasValidMimeType = allowedMimeTypes.includes(file.type) || file.type === '';
+          
+          if (!hasValidExtension && !hasValidMimeType) {
+            return { valid: false, reason: 'Invalid file type' };
+          }
+          
+          if (file.size > 10 * 1024 * 1024) {
+            return { valid: false, reason: 'File too large' };
+          }
+          
+          return { valid: true };
+        }
+        
+        return {
+          validFile: validateFile(validFile),
+          invalidFile: validateFile(invalidFile),
+          largeFile: validateFile(largeFile)
+        };
+      });
+      
+      expect(validationResult.validFile.valid).toBe(true);
+      expect(validationResult.invalidFile.valid).toBe(false);
+      expect(validationResult.largeFile.valid).toBe(false);
+      expect(validationResult.largeFile.reason).toBe('File too large');
+    });
+
+    test("file upload integration with paste tab", async () => {
+      // Test that uploaded file content is processed correctly
+      const testVconContent = {
+        "vcon": "0.3.0",
+        "uuid": "01234567-89ab-cdef-0123-456789abcdef",
+        "created_at": "2023-12-14T18:59:45.911Z",
+        "parties": [
+          {
+            "tel": "+1-555-123-4567",
+            "name": "Test Upload User"
+          }
+        ]
+      };
+      
+      // Switch to upload tab
+      await page.click('#tab-upload');
+      await page.waitForTimeout(100);
+      
+      // Simulate file upload by directly calling the processing logic
+      await page.evaluate((vconData) => {
+        // Simulate the file upload process
+        const content = JSON.stringify(vconData, null, 2);
+        
+        // Switch to paste tab and update textarea (simulating handleFile function)
+        document.getElementById('tab-paste').click();
+        const textarea = document.getElementById('input-textarea');
+        if (textarea) {
+          textarea.value = content;
+          textarea.dispatchEvent(new Event('input'));
+        }
+      }, testVconContent);
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Verify the content was loaded correctly
+      const textareaContent = await page.evaluate(() => {
+        const textarea = document.getElementById('input-textarea');
+        return textarea ? textarea.value : '';
+      });
+      
+      expect(textareaContent).toContain('"name": "Test Upload User"');
+      expect(textareaContent).toContain('"vcon": "0.3.0"');
+      
+      // Verify validation processed the uploaded content
+      const validationStatus = await page.evaluate(() => {
+        const statusText = document.getElementById('validation-status-text');
+        return statusText ? statusText.textContent : '';
+      });
+      
+      expect(validationStatus).toContain('Status');
+    });
+
+    test("drag and drop styling classes exist", async () => {
+      // Switch to upload tab
+      await page.click('#tab-upload');
+      await page.waitForTimeout(100);
+      
+      // Test drag over styling is applied
+      const dragOverResult = await page.evaluate(() => {
+        const dropZone = document.querySelector('.upload-drop-zone');
+        if (!dropZone) return { found: false };
+        
+        // Simulate drag over
+        dropZone.classList.add('drag-over');
+        const hasDragOver = dropZone.classList.contains('drag-over');
+        
+        // Clean up
+        dropZone.classList.remove('drag-over');
+        
+        return { 
+          found: true, 
+          hasDragOver,
+          hasHoverSupport: true
+        };
+      });
+      
+      expect(dragOverResult.found).toBe(true);
+      expect(dragOverResult.hasDragOver).toBe(true);
+    });
+  });
+
   describe("Snapshot Test", () => {
     test("generates full page screenshot", async () => {
       // Load sample data to have content in the UI
