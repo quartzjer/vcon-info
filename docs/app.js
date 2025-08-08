@@ -80,8 +80,12 @@ function setupInputHandler() {
             UI.updateValidationStatus('unknown');
             UI.clearInspectorPanels();
             UI.clearTimeline();
+            UI.clearJSONView();
             return;
         }
+        
+        // Update JSON view
+        UI.updateJSONView(input);
         
         if (!vconProcessor) {
             UI.updateValidationStatus('fail', 'Processor not available', {

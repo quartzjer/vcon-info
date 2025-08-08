@@ -921,6 +921,185 @@ function initializeUI() {
     });
 }
 
+/**
+ * JSON Viewer functionality with syntax highlighting and collapsible objects/arrays
+ */
+
+/**
+ * Update the JSON tab with formatted JSON
+ * @param {string} jsonText - The JSON text to display
+ */
+function updateJSONView(jsonText) {
+    const container = document.getElementById('json-container');
+    if (!container) return;
+    
+    if (!jsonText || jsonText.trim() === '') {
+        container.innerHTML = '<div class="json-empty">No JSON data to display</div>';
+        return;
+    }
+    
+    try {
+        const parsedJSON = JSON.parse(jsonText);
+        const formattedHTML = formatJSON(parsedJSON);
+        container.innerHTML = formattedHTML;
+        
+        // Add event listeners to toggle buttons
+        addToggleListeners(container);
+        
+    } catch (error) {
+        container.innerHTML = `
+            <div class="json-error">
+                <strong>Invalid JSON:</strong><br>
+                ${escapeHtml(error.message)}
+            </div>
+        `;
+    }
+}
+
+/**
+ * Format JSON with syntax highlighting and collapsible structure
+ * @param {any} obj - The JSON object to format
+ * @param {number} indent - Current indentation level
+ * @returns {string} Formatted HTML string
+ */
+function formatJSON(obj, indent = 0) {
+    const indentStr = '  '.repeat(indent);
+    
+    if (obj === null) {
+        return `<span class="json-null">null</span>`;
+    }
+    
+    if (typeof obj === 'boolean') {
+        return `<span class="json-boolean">${obj}</span>`;
+    }
+    
+    if (typeof obj === 'number') {
+        return `<span class="json-number">${obj}</span>`;
+    }
+    
+    if (typeof obj === 'string') {
+        return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+    }
+    
+    if (Array.isArray(obj)) {
+        if (obj.length === 0) {
+            return `<span class="json-punctuation">[]</span>`;
+        }
+        
+        const toggleId = generateToggleId();
+        const summary = `${obj.length} item${obj.length === 1 ? '' : 's'}`;
+        
+        let html = `<div class="json-line">`;
+        html += `<button class="json-toggle" data-toggle="${toggleId}">▼</button>`;
+        html += `<span class="json-punctuation">[</span>`;
+        html += `<span class="json-summary" style="display: none;">${summary}</span>`;
+        html += `</div>`;
+        
+        html += `<div class="json-content" id="${toggleId}">`;
+        obj.forEach((item, index) => {
+            html += `<div class="json-line">${indentStr}  ${formatJSON(item, indent + 1)}`;
+            if (index < obj.length - 1) {
+                html += `<span class="json-punctuation">,</span>`;
+            }
+            html += `</div>`;
+        });
+        html += `</div>`;
+        
+        html += `<div class="json-line">${indentStr}<span class="json-punctuation">]</span></div>`;
+        return html;
+    }
+    
+    if (typeof obj === 'object') {
+        const keys = Object.keys(obj);
+        if (keys.length === 0) {
+            return `<span class="json-punctuation">{}</span>`;
+        }
+        
+        const toggleId = generateToggleId();
+        const summary = `${keys.length} propert${keys.length === 1 ? 'y' : 'ies'}`;
+        
+        let html = `<div class="json-line">`;
+        html += `<button class="json-toggle" data-toggle="${toggleId}">▼</button>`;
+        html += `<span class="json-punctuation">{</span>`;
+        html += `<span class="json-summary" style="display: none;">${summary}</span>`;
+        html += `</div>`;
+        
+        html += `<div class="json-content" id="${toggleId}">`;
+        keys.forEach((key, index) => {
+            const value = obj[key];
+            html += `<div class="json-line">${indentStr}  `;
+            html += `<span class="json-key">"${escapeHtml(key)}"</span>`;
+            html += `<span class="json-punctuation">: </span>`;
+            html += formatJSON(value, indent + 1);
+            if (index < keys.length - 1) {
+                html += `<span class="json-punctuation">,</span>`;
+            }
+            html += `</div>`;
+        });
+        html += `</div>`;
+        
+        html += `<div class="json-line">${indentStr}<span class="json-punctuation">}</span></div>`;
+        return html;
+    }
+    
+    return `<span>${escapeHtml(String(obj))}</span>`;
+}
+
+/**
+ * Generate a unique toggle ID
+ */
+let toggleIdCounter = 0;
+function generateToggleId() {
+    return `json-toggle-${++toggleIdCounter}`;
+}
+
+/**
+ * Add event listeners to toggle buttons
+ * @param {HTMLElement} container - The container element
+ */
+function addToggleListeners(container) {
+    const toggleButtons = container.querySelectorAll('.json-toggle');
+    
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const targetId = button.getAttribute('data-toggle');
+            const content = document.getElementById(targetId);
+            const summary = button.parentElement.querySelector('.json-summary');
+            
+            if (content && summary) {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    // Expand
+                    content.classList.remove('collapsed');
+                    button.classList.remove('collapsed');
+                    button.textContent = '▼';
+                    summary.style.display = 'none';
+                } else {
+                    // Collapse
+                    content.classList.add('collapsed');
+                    button.classList.add('collapsed');
+                    button.textContent = '▶';
+                    summary.style.display = 'inline';
+                }
+            }
+        });
+    });
+}
+
+/**
+ * Clear the JSON view
+ */
+function clearJSONView() {
+    const container = document.getElementById('json-container');
+    if (container) {
+        container.innerHTML = '<div class="json-empty">No JSON data to display</div>';
+    }
+}
+
 // Export functions for use by other modules
 window.UI = {
     updateInspectorPanels,
@@ -938,5 +1117,7 @@ window.UI = {
     autoExpandPanel,
     updateValidationStatus,
     initializeUI,
-    vconInput
+    vconInput,
+    updateJSONView,
+    clearJSONView
 };
