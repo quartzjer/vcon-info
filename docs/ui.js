@@ -1126,17 +1126,27 @@ function clearJSONView() {
  */
 
 /**
- * Add clipboard icons to all detail-value elements in a container
+ * Add clipboard icons to all value elements in a container
  * @param {HTMLElement} container - The container to add clipboard functionality to
  */
 function addClipboardIcons(container) {
+    // Handle detail rows (metadata, relationships, etc.)
     const detailRows = container.querySelectorAll('.detail-row');
-    
     detailRows.forEach(row => {
         const detailValue = row.querySelector('.detail-value');
         if (detailValue && !detailValue.querySelector('.clipboard-icon')) {
             const clipboardIcon = createClipboardIcon(detailValue);
             detailValue.appendChild(clipboardIcon);
+        }
+    });
+    
+    // Handle identifier rows (party tel, email, etc.)
+    const identifiers = container.querySelectorAll('.identifier');
+    identifiers.forEach(identifier => {
+        const idValue = identifier.querySelector('.id-value');
+        if (idValue && !idValue.querySelector('.clipboard-icon')) {
+            const clipboardIcon = createClipboardIcon(idValue);
+            idValue.appendChild(clipboardIcon);
         }
     });
 }

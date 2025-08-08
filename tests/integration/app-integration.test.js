@@ -1132,6 +1132,35 @@ describe("Integration: App Integration", () => {
       
       expect(clipboardTest).toBe(true);
     });
+
+    test("clipboard functionality works in party identifier rows", async () => {
+      // Load sample data first
+      await page.evaluate(() => {
+        return window.vconApp.loadSample();
+      });
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Test that clipboard icons exist in party identifier rows
+      const partyClipboardTest = await page.evaluate(() => {
+        const identifiers = document.querySelectorAll('.identifier');
+        let foundPartyClipboardWithText = false;
+        
+        identifiers.forEach(identifier => {
+          const clipboardIcon = identifier.querySelector('.clipboard-icon');
+          const idValue = identifier.querySelector('.id-value');
+          
+          if (clipboardIcon && idValue && idValue.textContent.trim()) {
+            foundPartyClipboardWithText = true;
+          }
+        });
+        
+        return foundPartyClipboardWithText;
+      });
+      
+      expect(partyClipboardTest).toBe(true);
+    });
   });
 
   describe("Snapshot Test", () => {
