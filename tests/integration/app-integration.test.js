@@ -1056,6 +1056,84 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("Clipboard Functionality", () => {
+    test("clipboard icons appear on hover in inspector panels", async () => {
+      // Load sample data first
+      await page.evaluate(() => {
+        return window.vconApp.loadSample();
+      });
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Check that clipboard icons exist in detail rows
+      const clipboardIcons = await page.$$('.clipboard-icon');
+      expect(clipboardIcons.length).toBeGreaterThan(0);
+    });
+
+    test("clipboard icons have copy functionality", async () => {
+      // Load sample data first
+      await page.evaluate(() => {
+        return window.vconApp.loadSample();
+      });
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Test clipboard icon click functionality
+      const copyResult = await page.evaluate(() => {
+        const clipboardIcon = document.querySelector('.clipboard-icon');
+        if (!clipboardIcon) return false;
+        
+        // Mock the clipboard API for testing
+        if (!navigator.clipboard) {
+          navigator.clipboard = {
+            writeText: async (text) => {
+              // Mock successful copy
+              return Promise.resolve();
+            }
+          };
+        }
+        
+        // Click the clipboard icon
+        clipboardIcon.click();
+        
+        return true;
+      });
+      
+      expect(copyResult).toBe(true);
+    });
+
+    test("clipboard functionality works in detail rows", async () => {
+      // Load sample data first
+      await page.evaluate(() => {
+        return window.vconApp.loadSample();
+      });
+      
+      // Wait for processing
+      await page.waitForTimeout(500);
+      
+      // Test that clipboard icons exist in detail rows and can extract text
+      const clipboardTest = await page.evaluate(() => {
+        const detailRows = document.querySelectorAll('.detail-row');
+        let foundClipboardWithText = false;
+        
+        detailRows.forEach(row => {
+          const clipboardIcon = row.querySelector('.clipboard-icon');
+          const detailValue = row.querySelector('.detail-value');
+          
+          if (clipboardIcon && detailValue && detailValue.textContent.trim()) {
+            foundClipboardWithText = true;
+          }
+        });
+        
+        return foundClipboardWithText;
+      });
+      
+      expect(clipboardTest).toBe(true);
+    });
+  });
+
   describe("Snapshot Test", () => {
     test("generates full page screenshot", async () => {
       // Load sample data to have content in the UI

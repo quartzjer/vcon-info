@@ -398,6 +398,9 @@ function updateMetadataPanel(metadata) {
     `;
     
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -518,6 +521,9 @@ function updateRelationshipsPanel(metadata) {
     
     html += '</div>';
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -558,6 +564,9 @@ function updatePartiesPanel(parties) {
     `).join('');
     
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -608,6 +617,9 @@ function updateDialogPanel(dialogs) {
     `).join('');
     
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -646,6 +658,9 @@ function updateAttachmentsPanel(attachments) {
     `).join('');
     
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -685,6 +700,9 @@ function updateAnalysisPanel(analyses) {
     `).join('');
     
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -711,6 +729,9 @@ function updateExtensionsPanel(extensions) {
     `).join('');
     
     content.innerHTML = html;
+    
+    // Add clipboard icons to detail rows
+    addClipboardIcons(content);
 }
 
 /**
@@ -1100,6 +1121,118 @@ function clearJSONView() {
     }
 }
 
+/**
+ * Clipboard Copy Functionality
+ */
+
+/**
+ * Add clipboard icons to all detail-value elements in a container
+ * @param {HTMLElement} container - The container to add clipboard functionality to
+ */
+function addClipboardIcons(container) {
+    const detailRows = container.querySelectorAll('.detail-row');
+    
+    detailRows.forEach(row => {
+        const detailValue = row.querySelector('.detail-value');
+        if (detailValue && !detailValue.querySelector('.clipboard-icon')) {
+            const clipboardIcon = createClipboardIcon(detailValue);
+            detailValue.appendChild(clipboardIcon);
+        }
+    });
+}
+
+/**
+ * Create a clipboard icon element
+ * @param {HTMLElement} targetElement - The element whose text content will be copied
+ * @returns {HTMLElement} The clipboard icon element
+ */
+function createClipboardIcon(targetElement) {
+    const icon = document.createElement('div');
+    icon.className = 'clipboard-icon';
+    icon.innerHTML = '<img src="icons/24/outline/clipboard.svg" alt="Copy" width="16" height="16">';
+    icon.title = 'Copy to clipboard';
+    
+    icon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyToClipboard(targetElement, icon);
+    });
+    
+    return icon;
+}
+
+/**
+ * Copy text content to clipboard and provide visual feedback
+ * @param {HTMLElement} element - The element whose text content to copy
+ * @param {HTMLElement} iconElement - The clipboard icon element for visual feedback
+ */
+async function copyToClipboard(element, iconElement) {
+    // Get the text content, excluding the clipboard icon itself
+    const clonedElement = element.cloneNode(true);
+    const clipboardIcon = clonedElement.querySelector('.clipboard-icon');
+    if (clipboardIcon) {
+        clipboardIcon.remove();
+    }
+    
+    // Get the text content, stripping HTML tags but preserving basic structure
+    let textToCopy = clonedElement.textContent || clonedElement.innerText || '';
+    
+    // Clean up the text (remove extra whitespace, etc.)
+    textToCopy = textToCopy.trim();
+    
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            // Use the modern Clipboard API if available
+            await navigator.clipboard.writeText(textToCopy);
+        } else {
+            // Fallback for older browsers or non-secure contexts
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+        
+        // Visual feedback - change icon to checkmark temporarily
+        showCopyFeedback(iconElement, true);
+        
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        showCopyFeedback(iconElement, false);
+    }
+}
+
+/**
+ * Show visual feedback for copy operation
+ * @param {HTMLElement} iconElement - The clipboard icon element
+ * @param {boolean} success - Whether the copy operation was successful
+ */
+function showCopyFeedback(iconElement, success) {
+    const originalIcon = iconElement.innerHTML;
+    const originalTitle = iconElement.title;
+    
+    if (success) {
+        iconElement.innerHTML = '<img src="icons/24/outline/check.svg" alt="Copied!" width="16" height="16">';
+        iconElement.title = 'Copied!';
+        iconElement.classList.add('copied');
+    } else {
+        iconElement.innerHTML = '<img src="icons/24/outline/x-mark.svg" alt="Copy failed" width="16" height="16">';
+        iconElement.title = 'Copy failed';
+        iconElement.classList.add('copy-failed');
+    }
+    
+    // Reset to original state after 2 seconds
+    setTimeout(() => {
+        iconElement.innerHTML = originalIcon;
+        iconElement.title = originalTitle;
+        iconElement.classList.remove('copied', 'copy-failed');
+    }, 2000);
+}
+
 // Export functions for use by other modules
 window.UI = {
     updateInspectorPanels,
@@ -1119,5 +1252,7 @@ window.UI = {
     initializeUI,
     vconInput,
     updateJSONView,
-    clearJSONView
+    clearJSONView,
+    addClipboardIcons,
+    copyToClipboard
 };
