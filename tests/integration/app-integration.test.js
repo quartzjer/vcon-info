@@ -219,6 +219,39 @@ describe("Integration: App Integration", () => {
     });
   });
 
+  describe("Timeline Display", () => {
+    test("handles invalid values gracefully", async () => {
+      const badVcon = JSON.stringify({
+        vcon: "0.3.0",
+        uuid: "123e4567-e89b-12d3-a456-426614174000",
+        created_at: "2023-12-14T18:59:45.911Z",
+        parties: [{ name: "Alice" }],
+        dialog: [{
+          type: "recording",
+          start: "not-a-date",
+          party_history: [{
+            time: { epoch: 123456 },
+            party: 0,
+            event: { action: "join" }
+          }]
+        }]
+      });
+
+      await page.evaluate(() => {
+        document.getElementById('input-textarea').value = '';
+      });
+      await page.type('#input-textarea', badVcon);
+      await page.waitForTimeout(500);
+
+      await page.click('#tab-timeline');
+      await page.waitForSelector('#timeline-view .timeline-event');
+
+      const timelineText = await page.$eval('#timeline-view', el => el.textContent);
+      expect(timelineText).not.toContain('Invalid Date');
+      expect(timelineText).not.toContain('[object Object]');
+    });
+  });
+
   describe("Inspector Tree", () => {
     test("tree container exists and is accessible", async () => {
       // Ensure we're on inspector tab

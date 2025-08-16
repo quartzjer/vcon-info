@@ -741,29 +741,55 @@ function updateExtensionsPanel(extensions) {
 function updateTimeline(timeline) {
     const timelineView = document.getElementById('timeline-view');
     if (!timelineView) return;
-    
+
     if (!timeline || timeline.length === 0) {
         timelineView.innerHTML = '<div class="empty-timeline">No timeline events to display</div>';
         return;
     }
-    
+
+    const formatTime = (time) => {
+        const date = time instanceof Date ? time : new Date(time);
+        if (!isNaN(date.getTime())) {
+            return date.toLocaleString();
+        }
+        if (typeof time === 'object') {
+            try { return JSON.stringify(time); } catch { return 'Unknown time'; }
+        }
+        return String(time || 'Unknown time');
+    };
+
+    const formatText = (text) => {
+        if (text === null || text === undefined) return '';
+        if (typeof text === 'object') {
+            try { return JSON.stringify(text); } catch { return String(text); }
+        }
+        return String(text);
+    };
+
     const html = `
         <div class="timeline-container">
-            ${timeline.map(event => `
-                <div class="timeline-event ${event.type}">
-                    <div class="event-time">${new Date(event.time).toLocaleString()}</div>
-                    <div class="event-description">${escapeHtml(event.description)}</div>
-                    ${event.details ? `
+            ${timeline.map(event => {
+                const timeStr = formatTime(event.time);
+                const description = formatText(event.description);
+                const type = typeof event.type === 'string' ? event.type : 'unknown';
+                const detailsHtml = event.details ? `
                     <div class="event-details">
-                        ${Object.entries(event.details).map(([key, value]) => 
-                            `<span class="detail">${key}: ${escapeHtml(String(value))}</span>`
-                        ).join(', ')}
-                    </div>` : ''}
+                        ${Object.entries(event.details).map(([key, value]) => {
+                            const valStr = formatText(value);
+                            return `<span class="detail">${escapeHtml(key)}: ${escapeHtml(valStr)}</span>`;
+                        }).join(', ')}
+                    </div>` : '';
+                return `
+                <div class="timeline-event ${escapeHtml(type)}">
+                    <div class="event-time">${escapeHtml(timeStr)}</div>
+                    <div class="event-description">${escapeHtml(description)}</div>
+                    ${detailsHtml}
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     `;
-    
+
     timelineView.innerHTML = html;
 }
 
