@@ -1,6 +1,13 @@
 // vCon Info - Validator Module
 // Handles vCon validation logic and detailed validation functions
 
+let Utils;
+if (typeof module !== 'undefined' && module.exports) {
+    Utils = require('./utils.js');
+} else if (typeof window !== 'undefined') {
+    Utils = window.Utils;
+}
+
 /**
  * Parse and validate vCon data
  * @param {string} input - Raw vCon input
@@ -455,7 +462,7 @@ function checkVersionSpecificFields(vcon, version) {
         if (!obj || typeof obj !== 'object') return;
         
         // Check for v0.0.1 -> v0.0.2 field changes
-        if (version >= '0.0.2') {
+        if (Utils.compareVersions(version, '0.0.2') >= 0) {
             if (obj.mimetype) {
                 warnings.push(`${path}mimetype deprecated in v0.0.2, use mediatype instead`);
             }
@@ -464,8 +471,8 @@ function checkVersionSpecificFields(vcon, version) {
             }
         }
         
-        // Check for v0.0.2 -> v0.3.0 field changes  
-        if (version >= '0.3.0') {
+        // Check for v0.0.2 -> v0.3.0 field changes
+        if (Utils.compareVersions(version, '0.3.0') >= 0) {
             if (obj['transfer-target']) {
                 warnings.push(`${path}transfer-target deprecated in v0.3.0, use transfer_target instead`);
             }
@@ -475,7 +482,7 @@ function checkVersionSpecificFields(vcon, version) {
         }
         
         // Check for fields that shouldn't exist in older versions
-        if (version < '0.0.2') {
+        if (Utils.compareVersions(version, '0.0.2') < 0) {
             if (obj.mediatype) {
                 warnings.push(`${path}mediatype not available in v${version}, use mimetype instead`);
             }
@@ -484,7 +491,7 @@ function checkVersionSpecificFields(vcon, version) {
             }
         }
         
-        if (version < '0.3.0') {
+        if (Utils.compareVersions(version, '0.3.0') < 0) {
             if (obj.transfer_target) {
                 warnings.push(`${path}transfer_target not available in v${version}, use transfer-target instead`);
             }
@@ -546,7 +553,7 @@ function isValidMediaType(mediaType) {
 }
 
 // Export functions for use by other modules
-window.Validator = {
+const Validator = {
     parseVcon,
     performDetailedValidation,
     validatePartyObject,
@@ -557,3 +564,11 @@ window.Validator = {
     isStandardMediaType,
     isValidMediaType
 };
+
+if (typeof window !== 'undefined') {
+    window.Validator = Validator;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Validator;
+}

@@ -94,6 +94,23 @@ function isValidGMLPos(gmlpos) {
 }
 
 /**
+ * Compare two semantic version strings
+ * @param {string} a - first version
+ * @param {string} b - second version
+ * @returns {number} 1 if a>b, -1 if a<b, 0 if equal
+ */
+function compareVersions(a, b) {
+    const parse = v => v.split('.').map(num => parseInt(num, 10));
+    const [a1 = 0, a2 = 0, a3 = 0] = parse(a);
+    const [b1 = 0, b2 = 0, b3 = 0] = parse(b);
+
+    if (a1 !== b1) return a1 > b1 ? 1 : -1;
+    if (a2 !== b2) return a2 > b2 ? 1 : -1;
+    if (a3 !== b3) return a3 > b3 ? 1 : -1;
+    return 0;
+}
+
+/**
  * Check if a value has meaningful content (not empty)
  * @param {any} value - Value to check
  * @returns {boolean} True if value has meaningful content
@@ -380,13 +397,14 @@ function setNestedProperty(obj, path, value) {
 }
 
 // Export functions for use by other modules
-window.Utils = {
+const Utils = {
     escapeHtml,
     isValidUUID,
     isValidRFC3339Date,
     isValidTelURL,
     isValidEmail,
     isValidGMLPos,
+    compareVersions,
     hasValidContent,
     formatDate,
     toSafeFilename,
@@ -403,3 +421,11 @@ window.Utils = {
     getNestedProperty,
     setNestedProperty
 };
+
+if (typeof window !== 'undefined') {
+    window.Utils = Utils;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Utils;
+}

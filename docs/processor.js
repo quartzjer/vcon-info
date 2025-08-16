@@ -3,8 +3,8 @@
 
 class VConProcessor {
     constructor() {
-        // vCon version support
-        this.supportedVersions = ['0.0.1', '0.3.0', '1.0.0'];
+        // vCon version support aligned with draft-ietf-vcon-vcon-core-00
+        this.supportedVersions = ['0.0.1', '0.0.2', '0.3.0'];
         
         // Required fields as per spec
         this.requiredFields = ['vcon', 'uuid', 'created_at', 'parties'];
