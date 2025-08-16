@@ -585,22 +585,34 @@ class VConProcessor {
     // Generate timeline from vCon data
     generateTimeline(vcon, processedData) {
         const events = [];
-        
+
+        const parseTime = (value) => {
+            if (!value) return null;
+            if (value instanceof Date) return value;
+            if (typeof value === 'object') {
+                if (value.iso) return new Date(value.iso);
+                if (value.timestamp) return new Date(value.timestamp);
+                if (value.display) return new Date(value.display);
+                return new Date(value);
+            }
+            return new Date(value);
+        };
+
         // Add creation event
         if (vcon.created_at) {
             events.push({
-                time: new Date(vcon.created_at),
+                time: parseTime(vcon.created_at),
                 type: 'system',
                 description: 'vCon created',
                 details: { uuid: vcon.uuid }
             });
         }
-        
+
         // Add dialog events
         processedData.dialog.forEach((dialog, index) => {
             if (dialog.start) {
                 events.push({
-                    time: new Date(dialog.start),
+                    time: parseTime(dialog.start),
                     type: 'dialog_start',
                     description: `${dialog.type} started`,
                     details: {
@@ -610,10 +622,10 @@ class VConProcessor {
                     }
                 });
             }
-            
+
             if (dialog.end) {
                 events.push({
-                    time: new Date(dialog.end),
+                    time: parseTime(dialog.end),
                     type: 'dialog_end',
                     description: `${dialog.type} ended`,
                     details: {
@@ -622,12 +634,12 @@ class VConProcessor {
                     }
                 });
             }
-            
+
             // Add party history events
             if (dialog.party_history) {
                 dialog.party_history.forEach(event => {
                     events.push({
-                        time: new Date(event.time),
+                        time: parseTime(event.time),
                         type: `party_${event.event}`,
                         description: `Party ${event.party} ${event.event}`,
                         details: event
@@ -635,12 +647,12 @@ class VConProcessor {
                 });
             }
         });
-        
+
         // Add attachment events
         processedData.attachments.forEach((attachment, index) => {
             if (attachment.start) {
                 events.push({
-                    time: new Date(attachment.start),
+                    time: parseTime(attachment.start),
                     type: 'attachment',
                     description: `${attachment.type} attached`,
                     details: {
@@ -651,20 +663,24 @@ class VConProcessor {
                 });
             }
         });
-        
+
         // Add update event
         if (vcon.updated_at && vcon.updated_at !== vcon.created_at) {
             events.push({
-                time: new Date(vcon.updated_at),
+                time: parseTime(vcon.updated_at),
                 type: 'system',
                 description: 'vCon updated',
                 details: {}
             });
         }
-        
+
         // Sort events by time
-        events.sort((a, b) => a.time - b.time);
-        
+        events.sort((a, b) => {
+            const at = a.time instanceof Date && !isNaN(a.time.getTime()) ? a.time.getTime() : 0;
+            const bt = b.time instanceof Date && !isNaN(b.time.getTime()) ? b.time.getTime() : 0;
+            return at - bt;
+        });
+
         return events;
     }
     
