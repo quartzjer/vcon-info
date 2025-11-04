@@ -26,7 +26,7 @@
       "mediatype": "audio/x-wav",
       "filename": "call-recording.wav",
       "body": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
-      "encoding": "base64"
+      "encoding": "base64url"
     }
   ],
   "attachments": [
