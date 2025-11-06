@@ -1,12 +1,12 @@
-# vCon ZIP Bundle Specification
+# vCon Zip Bundle (.vconz) Specification
 
 ## Abstract
 
-This document defines the ZIP file format for bundling one or more vCon (Virtual Conversation) data containers with all their associated media files, attachments, and analysis data into a single, self-contained archive. This specification enables offline processing, simplified distribution, automatic file deduplication, and ensures data integrity while maintaining compatibility with the vCon JSON format as defined in [draft-ietf-vcon-vcon-core].
+This document defines the vCon Zip Bundle (`.vconz`) file format for bundling one or more vCon (Virtual Conversation) data containers with all their associated media files, attachments, and analysis data into a single, self-contained archive. This specification enables offline processing, simplified distribution, automatic file deduplication, and ensures data integrity while maintaining compatibility with the vCon JSON format as defined in [draft-ietf-vcon-vcon-core].
 
 ## 1. Introduction
 
-vCons support both inline content (base64-encoded in the JSON) and externally referenced files (via HTTPS URLs with content hashes). While external references enable efficient storage and network transfer, they create dependencies on external resources that may become unavailable over time. The vCon ZIP bundle format addresses this by:
+vCons support both inline content (base64-encoded in the JSON) and externally referenced files (via HTTPS URLs with content hashes). While external references enable efficient storage and network transfer, they create dependencies on external resources that may become unavailable over time. The vCon Zip Bundle (`.vconz`) format addresses this by:
 
 1. **Self-containment**: All referenced files are included within the ZIP archive
 2. **Multi-vCon support**: Multiple vCons can be bundled together with automatic file deduplication
@@ -15,12 +15,12 @@ vCons support both inline content (base64-encoded in the JSON) and externally re
 5. **Simplicity**: Flat structure with hash-based file naming eliminates the need for mapping manifests
 6. **Offline processing**: No network dependencies after bundle creation
 
-## 2. ZIP File Structure
+## 2. File Structure
 
-The vCon ZIP bundle MUST follow this simplified structure designed for multi-vCon support and ease of use:
+The vCon Zip Bundle (`.vconz` file) MUST follow this simplified structure designed for multi-vCon support and ease of use:
 
 ```
-bundle.vcon.zip
+bundle.vconz
 ├── manifest.json                              # Bundle format identifiers
 ├── files/                                     # All media files (flat, deduplicated)
 │   ├── sha512-GLy6IPa...UQ.wav               # Hash-named with file extensions
@@ -463,7 +463,7 @@ extensions/
 
 ### 10.1 Media Type Registration
 
-This specification defines a new media type for vCon ZIP bundles and requests IANA registration:
+This specification defines a new media type for vCon Zip Bundle (`.vconz`) files and requests IANA registration:
 
 **Type name:** application
 **Subtype name:** vcon+zip
@@ -481,7 +481,7 @@ This specification defines a new media type for vCon ZIP bundles and requests IA
 
 **Additional information:**
 - **Magic number:** ZIP signature (0x504B0304) with manifest.json as first entry
-- **File extensions:** .vcon.zip
+- **File extensions:** .vconz
 - **Macintosh file type code:** Not assigned
 - **Uniform Type Identifier:** public.vcon-zip-bundle
 
@@ -547,7 +547,7 @@ Implementations SHOULD provide validation for:
 ### 12.1 Single vCon Bundle (Unsigned)
 
 ```
-simple-call.vcon.zip
+simple-call.vconz
 ├── manifest.json                              # Format: vcon-bundle v2.0
 ├── files/
 │   ├── sha512-GLy6IPa...UQ.wav               # Audio recording
@@ -559,7 +559,7 @@ simple-call.vcon.zip
 ### 12.2 Multi-vCon Bundle with Shared Files
 
 ```
-support-case-bundle.vcon.zip
+support-case-bundle.vconz
 ├── manifest.json
 ├── files/
 │   ├── sha512-Call1Audio...ABC.wav           # First call recording
@@ -577,7 +577,7 @@ support-case-bundle.vcon.zip
 ### 12.3 Signed vCon with Encrypted Attachment
 
 ```
-secure-conference.vcon.zip
+secure-conference.vconz
 ├── manifest.json
 ├── files/
 │   ├── sha512-VideoConf...PQR.mp4            # Video recording
@@ -590,7 +590,7 @@ secure-conference.vcon.zip
 ### 12.4 Group of Related vCons
 
 ```
-conversation-thread.vcon.zip
+conversation-thread.vconz
 ├── manifest.json
 ├── files/
 │   ├── sha512-EmailThread...ABC.json         # Email conversation
@@ -606,7 +606,7 @@ conversation-thread.vcon.zip
 ### 12.5 Redacted vCon Bundle
 
 ```
-redacted-support-call.vcon.zip
+redacted-support-call.vconz
 ├── manifest.json
 ├── files/
 │   ├── sha512-RedactedAudio...ABC.wav        # PII redacted audio
@@ -620,7 +620,7 @@ redacted-support-call.vcon.zip
 ### 12.6 vCon with Extension
 
 ```
-mimi-messages.vcon.zip
+mimi-messages.vconz
 ├── manifest.json
 ├── files/
 │   └── sha512-ChatMessages...ABC.json        # MIMI message content
@@ -636,7 +636,7 @@ mimi-messages.vcon.zip
 ### 12.7 Minimal Bundle (Empty Arrays)
 
 ```
-minimal.vcon.zip
+minimal.vconz
 ├── manifest.json
 └── vcons/
     └── 01955480-aaaa-bbbb-cccc-ddddeeeeeeee.json  # vCon with empty dialog/analysis/attachments arrays
@@ -723,7 +723,7 @@ If a previous version 1.0 format existed with per-vCon metadata folders:
 
 **Version 1.0 Structure (hypothetical):**
 ```
-bundle.vcon.zip
+bundle.vconz
 ├── vcon.json
 ├── dialog/
 ├── attachments/
