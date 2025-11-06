@@ -2,7 +2,7 @@
 
 ## Abstract
 
-This document defines the vCon Zip Bundle (`.vconz`) file format for bundling one or more vCon (Virtual Conversation) data containers with all their associated media files, attachments, and analysis data into a single, self-contained archive. This specification enables offline processing, simplified distribution, automatic file deduplication, and ensures data integrity while maintaining compatibility with the vCon JSON format as defined in [draft-ietf-vcon-vcon-core].
+This document defines the vCon Zip Bundle (`.vconz`) file format for packaging one or more vCon conversation data containers with their associated media files into a single, self-contained ZIP archive. While vCons support external file references via HTTPS URLs with content hashes, these dependencies create availability and portability challenges. The vCon Zip Bundle addresses this through a standardized archive format that includes all referenced files, supports multiple vCons with automatic deduplication based on content hashes, preserves data integrity through hash verification, and enables offline processing. This specification maintains full compatibility with all vCon security forms (unsigned, signed, encrypted) as defined in [draft-ietf-vcon-vcon-core].
 
 ## 1. Introduction
 
@@ -197,70 +197,70 @@ To discover all vCons in a bundle and their relationships:
 Bundle creators MUST handle different vCon security forms appropriately:
 
 **For Unsigned vCons:**
-1. Parse JSON directly to identify external references
-2. Proceed with standard file resolution
+1. MUST parse JSON directly to identify external references
+2. MUST proceed with standard file resolution
 
 **For Signed vCons (JWS):**
 1. MUST preserve complete JWS structure in the output vCon file
-2. MAY verify signature before processing (RECOMMENDED)
-3. Parse base64url-decoded payload to identify external references
-4. Resolve external files based on payload content
+2. SHOULD verify signature before processing
+3. MUST parse base64url-decoded payload to identify external references
+4. MUST resolve external files based on payload content
 
 **For Encrypted vCons (JWE):**
 1. MUST preserve complete JWE structure in the output vCon file
 2. Bundle creator MUST have decryption capability to resolve external references
 3. If decryption keys unavailable, bundle creation MUST fail with appropriate error
-4. Parse decrypted content (which may be signed) to identify external references
-5. After file resolution, save original encrypted JWE structure (not decrypted content)
+4. MUST parse decrypted content (which may itself be signed) to identify external references
+5. MUST save original encrypted JWE structure after file resolution (not decrypted content)
 
 ### 6.2 External File Resolution
 
 For each vCon being bundled:
 
-1. **Parse vCon content** according to security form to identify all external references:
+1. **Parse vCon content**: MUST parse according to security form to identify all external references:
    - `dialog[]` entries with `url` and `content_hash`
    - `attachments[]` entries with `url` and `content_hash`
    - `analysis[]` entries with `url` and `content_hash`
    - `group[]` entries with `url` and `content_hash` (for referenced vCons)
    - `redacted.url` and `redacted.content_hash` (for unredacted vCons)
 
-2. **Validate URLs**: Ensure HTTPS protocol and accessible endpoints
+2. **Validate URLs**: MUST ensure HTTPS protocol and validate URL accessibility
 
-3. **Download files** from HTTPS URLs with proper error handling and retry logic
+3. **Download files**: MUST download from HTTPS URLs with proper error handling and retry logic
 
-4. **Verify content hashes**: Against downloaded content using ALL provided hash algorithms
+4. **Verify content hashes**: MUST verify against downloaded content using ALL provided hash algorithms
    - MUST fail if any hash does not match
    - MUST support SHA-512 as primary algorithm
 
-5. **Determine file extension**: Using priority defined in Section 4.2
+5. **Determine file extension**: MUST determine using priority defined in Section 4.2
 
-6. **Generate filename**: `[primary-content-hash].[extension]`
+6. **Generate filename**: MUST use pattern `[primary-content-hash].[extension]`
 
-7. **Check for duplicates**: If file already exists in `files/` with same hash, skip (deduplication)
+7. **Check for duplicates**: If file already exists in `files/` with same hash, MUST skip (automatic deduplication)
 
-8. **Store file**: Add to `files/` directory if not already present
+8. **Store file**: MUST add to `files/` directory if not already present
 
 ### 6.3 Multi-vCon Bundle Creation
 
 When bundling multiple vCons:
 
-1. **Collect all vCons** to be included in the bundle
+1. **Collect all vCons**: MUST identify all vCons to be included in the bundle
 
-2. **Resolve files for each vCon** following Section 6.2
+2. **Resolve files for each vCon**: MUST follow procedures in Section 6.2 for each vCon
 
-3. **Automatic deduplication**: Files with identical content_hash values are stored only once
+3. **Automatic deduplication**: Files with identical content_hash values MUST be stored only once
    - This is especially useful when multiple vCons reference the same recording, attachment, or analysis
 
-4. **Store each vCon**: As `vcons/[uuid].json` preserving original security form
+4. **Store each vCon**: MUST store as `vcons/[uuid].json` while preserving original security form
 
 5. **Handle vCon references**:
-   - If a vCon references another vCon (via Group or Redacted), decide whether to include it
-   - If including referenced vCons, add them to the `vcons/` directory
+   - Bundle creator SHOULD include referenced vCons (via Group or Redacted objects) when available
+   - If including referenced vCons, MUST add them to the `vcons/` directory
    - UUIDs in the vCon JSON enable discovery without additional manifests
 
 ### 6.4 Bundle Assembly
 
-1. **Create ZIP structure**:
+1. **Create ZIP structure**: MUST create the following directory structure:
    ```
    manifest.json
    files/
@@ -268,26 +268,26 @@ When bundling multiple vCons:
    extensions/ (if applicable)
    ```
 
-2. **Write manifest.json** with format identifiers
+2. **Write manifest.json**: MUST write with required format identifiers
 
-3. **Add all files** to `files/` directory with hash-based names
+3. **Add all files**: MUST add to `files/` directory with hash-based names
 
-4. **Add all vCons** to `vcons/` directory as `[uuid].json`
+4. **Add all vCons**: MUST add to `vcons/` directory as `[uuid].json`
 
-5. **Add extensions** if vCons use extensions (Section 9)
+5. **Add extensions**: If vCons use extensions (Section 8), MUST include extension data
 
-6. **Create ZIP archive** with appropriate compression settings
+6. **Create ZIP archive**: MUST create with appropriate compression settings
 
 ### 6.5 Bundle Validation
 
 Bundle creators MUST perform these validation steps:
 
-1. **Hash verification**: All content hashes match downloaded content (all algorithms)
-2. **File completeness**: All external references from all vCons are resolved and bundled
-3. **Security form integrity**: Original signatures/encryption structures remain intact
-4. **UUID uniqueness**: No duplicate vCon UUIDs in `vcons/` directory
-5. **File accessibility**: All files in `files/` are referenced by at least one vCon
-6. **Manifest validity**: Top-level manifest.json is valid JSON with required fields
+1. **Hash verification**: MUST verify all content hashes match downloaded content (all algorithms)
+2. **File completeness**: MUST ensure all external references from all vCons are resolved and bundled
+3. **Security form integrity**: MUST verify original signatures/encryption structures remain intact
+4. **UUID uniqueness**: MUST verify no duplicate vCon UUIDs exist in `vcons/` directory
+5. **File accessibility**: SHOULD verify all files in `files/` are referenced by at least one vCon
+6. **Manifest validity**: MUST verify top-level manifest.json is valid JSON with all required fields
 
 ## 7. Bundle Extraction and Usage
 
@@ -350,12 +350,12 @@ To access a file referenced in a vCon:
 To restore external references and republish vCons:
 
 1. **Upload files** to accessible HTTPS URLs
-   - Files may be uploaded to any URL scheme desired
-   - Original directory structure (dialog/attachments/analysis) is not required
+   - Files MAY be uploaded to any URL scheme desired
+   - Original directory structure (dialog/attachments/analysis) need not be preserved
 
 2. **Create new vCon** with updated external URLs
-   - Original vCon JSON remains unchanged in the bundle
-   - New vCon has updated `url` fields pointing to new locations
+   - Original vCon JSON MUST remain unchanged in the bundle
+   - New vCon MUST have updated `url` fields pointing to new locations
 
 3. **Maintain ALL content_hash values** for integrity
    - Hash values MUST NOT change (they verify file integrity)
@@ -651,10 +651,10 @@ minimal.vconz
 Implementations MUST handle these error conditions:
 
 **External File Resolution Errors:**
-- **Network failures**: Retry with exponential backoff, fail after maximum attempts
+- **Network failures**: SHOULD retry with exponential backoff, MUST fail after maximum attempts
 - **Hash mismatches**: MUST fail bundle creation with detailed error message showing expected vs actual hash
 - **Missing files**: MUST fail bundle creation unless explicitly configured to skip
-- **Access denied (403/401)**: MUST fail with security error, do not retry
+- **Access denied (403/401)**: MUST fail with security error, MUST NOT retry
 
 **vCon Security Form Errors:**
 - **Invalid JWS signatures**: Bundle creators SHOULD warn but MAY continue
