@@ -58,15 +58,13 @@ The top-level manifest contains only essential bundle format identifiers:
 ```json
 {
   "format": "vcon-bundle",
-  "version": "2.0",
-  "bundle_type": "multi-vcon"
+  "version": "1.0"
 }
 ```
 
 **Parameters:**
 - `format`: MUST be "vcon-bundle"
-- `version`: Bundle format version (this specification defines version "2.0")
-- `bundle_type`: MUST be "multi-vcon" for bundles following this specification
+- `version`: Bundle format version (this specification defines version "1.0")
 
 Bundle consumers discover vCons by scanning the `vcons/` directory. No vCon enumeration is maintained in the manifest.
 
@@ -91,7 +89,9 @@ Each vCon is stored in the `vcons/` directory as `[uuid].json`:
 - Encrypted payload (which may contain a signed vCon)
 - All encryption metadata required for decryption
 
-Bundle creators MUST NOT modify the vCon content, decrypt encrypted vCons (except for file resolution), or remove signatures.
+Bundle creators MUST NOT modify the vCon content, decrypt encrypted vCons, or remove signatures.
+
+Bundle creators MAY extract embedded files from an unsigned or unencrypted vCon and replace them with external references. When doing so, the creator MUST upload the extracted content to an accessible HTTPS URL, compute the appropriate content_hash, and update the vCon JSON to include the `url` and `content_hash` fields while removing inline `body` and `encoding` fields.
 
 ### 3.3 File Lookup Mechanism
 
@@ -99,8 +99,8 @@ To resolve a file reference from a vCon:
 
 1. Read the `content_hash` field from the vCon object (dialog, attachment, or analysis)
 2. Extract the hash algorithm and value (e.g., `"sha512-GLy6IPa..."`)
-3. Look in `files/` for a file matching the pattern `[content_hash].[extension]`
-4. The extension is determined by the file's media type (see Section 4.2)
+3. Look in `files/` for files matching `[content_hash]` with any extension
+4. The extension is provided for unzip/extraction friendliness and is determined by the file's media type (see Section 4.2)
 
 Example: If a dialog entry has `"content_hash": "sha512-GLy6IPaIUM1...UQ"` and `"mediatype": "audio/wav"`, the file will be located at `files/sha512-GLy6IPaIUM1...UQ.wav`.
 
@@ -150,14 +150,6 @@ When a vCon references files with multiple content hashes (as per vCon specifica
 
 Example: If `content_hash` is `["sha256-Abc...", "sha512-Def..."]`, the file SHOULD be named `sha512-Def....ext`.
 
-### 4.4 Multi-Channel Media Handling
-
-For multi-channel audio/video recordings where the vCon specifies channel-to-party mappings:
-
-1. **Single file**: Store as single hash-named file if channels are multiplexed in one recording
-2. **Channel mapping**: Party-to-channel relationships are preserved in the vCon's dialog object
-3. **Separate channels**: If channels are stored as separate files, each MUST have its own content_hash and file entry in the vCon
-
 ## 5. vCon References and Relationships
 
 ### 5.1 Group Objects
@@ -167,26 +159,15 @@ vCons may reference other vCons through Group Objects (Section 4.6 of [draft-iet
 When a vCon references another vCon via a Group Object:
 - The referenced vCon SHOULD be included in the bundle as a separate file in `vcons/[uuid].json`
 - The Group Object's `uuid` field enables discovery of the referenced vCon
-- If the Group Object includes `url` and `content_hash`, these are for external resolution (not bundle-internal references)
+- If the Group Object includes a `url` with a `content_hash`, the bundler MAY include a copy of the URL-based reference in the bundle
+- Bundle readers SHOULD check if the content_hash exists in the bundle's `files/` directory before attempting external URL resolution
 
-### 5.2 Redacted vCons
-
-Redacted vCons reference their unredacted versions via the `redacted` parameter (Section 4.1.8 of [draft-ietf-vcon-vcon-core]).
-
-When a vCon references an unredacted version:
-- The unredacted vCon MAY be included in the bundle as `vcons/[uuid].json` (where uuid is from `redacted.uuid`)
-- The `redacted.uuid` field enables discovery of the unredacted vCon
-- Bundle creators MUST respect access control requirements for unredacted vCons
-- If the unredacted vCon is not included, external resolution uses `redacted.url` and `redacted.content_hash`
-
-### 5.3 Referenced vCon Discovery
+### 5.2 Referenced vCon Discovery
 
 To discover all vCons in a bundle and their relationships:
 
 1. Scan `vcons/` directory for all `*.json` files
-2. For each vCon, check for:
-   - `group[]` array entries with `uuid` fields
-   - `redacted.uuid` field
+2. For each vCon, check for `group[]` array entries with `uuid` fields
 3. Verify that referenced vCons are present in the bundle (if intended)
 4. Build relationship graph of vCons based on these references
 
@@ -208,9 +189,9 @@ Bundle creators MUST handle different vCon security forms appropriately:
 
 **For Encrypted vCons (JWE):**
 1. MUST preserve complete JWE structure in the output vCon file
-2. Bundle creator MUST have decryption capability to resolve external references
-3. If decryption keys unavailable, bundle creation MUST fail with appropriate error
-4. MUST parse decrypted content (which may itself be signed) to identify external references
+2. If decryption keys are available, bundle creator SHOULD decrypt to resolve external references
+3. If decryption keys are unavailable, the bundle creator MUST include the encrypted vCon without resolving external references or including associated files
+4. When keys are available, MUST parse decrypted content (which may itself be signed) to identify external references
 5. MUST save original encrypted JWE structure after file resolution (not decrypted content)
 
 ### 6.2 External File Resolution
@@ -222,7 +203,6 @@ For each vCon being bundled:
    - `attachments[]` entries with `url` and `content_hash`
    - `analysis[]` entries with `url` and `content_hash`
    - `group[]` entries with `url` and `content_hash` (for referenced vCons)
-   - `redacted.url` and `redacted.content_hash` (for unredacted vCons)
 
 2. **Validate URLs**: MUST ensure HTTPS protocol and validate URL accessibility
 
@@ -254,7 +234,7 @@ When bundling multiple vCons:
 4. **Store each vCon**: MUST store as `vcons/[uuid].json` while preserving original security form
 
 5. **Handle vCon references**:
-   - Bundle creator SHOULD include referenced vCons (via Group or Redacted objects) when available
+   - Bundle creator SHOULD include referenced vCons (via Group objects) when available
    - If including referenced vCons, MUST add them to the `vcons/` directory
    - UUIDs in the vCon JSON enable discovery without additional manifests
 
@@ -304,8 +284,7 @@ Bundle consumers MUST follow this extraction process:
 
 3. **Load manifest.json** and verify:
    - `format` is "vcon-bundle"
-   - `version` is supported (e.g., "2.0")
-   - `bundle_type` is "multi-vcon"
+   - `version` is supported (e.g., "1.0")
 
 4. **Discover vCons**: Scan `vcons/` directory for all `*.json` files
 
@@ -341,28 +320,10 @@ To access a file referenced in a vCon:
 - Consumers MAY choose to process unsigned payloads with appropriate warnings
 
 **For Encrypted vCons:**
-- Bundle consumers MUST have appropriate decryption keys
-- Decryption failure MUST result in processing failure
+- Bundle consumers MAY have appropriate decryption keys
+- Decryption is optional and only possible if keys are available
+- If decryption keys are unavailable, consumers MAY process the encrypted vCon metadata without accessing the encrypted payload
 - Decrypted content may itself be signed and require signature verification
-
-### 7.4 Re-publishing
-
-To restore external references and republish vCons:
-
-1. **Upload files** to accessible HTTPS URLs
-   - Files MAY be uploaded to any URL scheme desired
-   - Original directory structure (dialog/attachments/analysis) need not be preserved
-
-2. **Create new vCon** with updated external URLs
-   - Original vCon JSON MUST remain unchanged in the bundle
-   - New vCon MUST have updated `url` fields pointing to new locations
-
-3. **Maintain ALL content_hash values** for integrity
-   - Hash values MUST NOT change (they verify file integrity)
-
-4. **Preserve security form** if recreating signed/encrypted vCons
-
-5. **Validate** that new URLs return correct content with matching hashes
 
 ## 8. Extensibility
 
@@ -392,7 +353,7 @@ extensions/
   "extension_name": "mimi-messages",
   "extension_version": "1.0",
   "vcon_version_compatibility": ["0.3.0"],
-  "bundle_format_version": "2.0",
+  "bundle_format_version": "1.0",
   "description": "MIMI protocol message support for vCon"
 }
 ```
@@ -400,8 +361,7 @@ extensions/
 ### 8.2 Bundle Format Versioning
 
 - Bundle format version MUST be tracked in manifest.json
-- This specification defines version "2.0" (multi-vCon with simplified structure)
-- Version "1.0" (if it existed) would be single-vCon with metadata folders
+- This specification defines version "1.0" (multi-vCon with simplified structure)
 - Forward/backward compatibility handled via version negotiation
 - New versions MAY add directories or fields to manifest.json
 - New versions MUST NOT break existing core structure
@@ -469,7 +429,7 @@ This specification defines a new media type for vCon Zip Bundle (`.vconz`) files
 **Subtype name:** vcon+zip
 **Required parameters:** None
 **Optional parameters:**
-- version: Bundle format version (default "2.0")
+- version: Bundle format version (default "1.0")
 - vcon-version: Source vCon specification version
 
 **Encoding considerations:** Binary (ZIP archive)
@@ -505,7 +465,7 @@ Implementations MUST support:
 - Standard ZIP format with specified directory structure
 - vCon discovery via `vcons/` directory scanning
 - File lookup via content_hash values in vCon JSON
-- Group object and redacted vCon reference handling
+- Group object reference handling
 
 ### 11.2 Recommended Features
 
@@ -536,7 +496,7 @@ Implementations SHOULD provide validation for:
 
 - Bundle structure completeness (required directories and files)
 - Content hash verification (all algorithms)
-- vCon relationship integrity (group references, redacted references)
+- vCon relationship integrity (group references)
 - Security form preservation (signatures/encryption intact)
 - UUID uniqueness across all vCons
 - File reference completeness (all referenced files present)
@@ -548,7 +508,7 @@ Implementations SHOULD provide validation for:
 
 ```
 simple-call.vconz
-├── manifest.json                              # Format: vcon-bundle v2.0
+├── manifest.json                              # Format: vcon-bundle v1.0
 ├── files/
 │   ├── sha512-GLy6IPa...UQ.wav               # Audio recording
 │   └── sha512-Transcript...XYZ.json          # Generated transcript
@@ -614,7 +574,7 @@ redacted-support-call.vconz
 │   └── sha512-RedactedTranscript...GHI.json  # Redacted transcript
 └── vcons/
     ├── 01955460-aaaa-bbbb-cccc-ddddeeeeeeee.json  # Unredacted vCon (original)
-    └── 01955461-ffff-gggg-hhhh-iiiijjjjkkkk.json  # Redacted vCon (references original via redacted.uuid)
+    └── 01955461-ffff-gggg-hhhh-iiiijjjjkkkk.json  # Redacted vCon with PII removed
 ```
 
 ### 12.6 vCon with Extension
@@ -666,7 +626,7 @@ Implementations MUST handle these error conditions:
 - **Invalid vCon structure**: MUST fail with schema validation errors
 - **Missing UUID**: MUST fail (UUID required for filename)
 - **Duplicate UUIDs**: MUST fail or prompt user for conflict resolution
-- **Broken vCon references**: WARN if group[] or redacted references non-existent vCons
+- **Broken vCon references**: WARN if group[] references non-existent vCons
 
 ### 13.2 Bundle Extraction Errors
 
@@ -717,11 +677,11 @@ Implementations MUST handle these extraction scenarios:
 - No files added to `files/` directory for inline content
 - Content remains embedded in the vCon JSON
 
-## 14. Migration from Version 1.0
+## 14. Migration from Legacy Formats
 
-If a previous version 1.0 format existed with per-vCon metadata folders:
+If a previous legacy format existed with per-vCon metadata folders:
 
-**Version 1.0 Structure (hypothetical):**
+**Legacy Structure (hypothetical):**
 ```
 bundle.vconz
 ├── vcon.json
@@ -734,12 +694,12 @@ bundle.vconz
     └── relationships.json
 ```
 
-**Migration to Version 2.0:**
+**Migration to Version 1.0:**
 
 1. Move `vcon.json` to `vcons/[uuid].json`
 2. Move all files from `dialog/`, `attachments/`, `analysis/` to flat `files/` directory
 3. Remove `metadata/` folder (information redundant with vCon JSON)
-4. Create minimal `manifest.json` with version 2.0
+4. Create minimal `manifest.json` with version 1.0
 5. For multi-vCon migration, repeat for each vCon and deduplicate files by hash
 
 ## References
