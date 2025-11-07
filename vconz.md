@@ -1,12 +1,12 @@
 ---
 title: vCon Zip Bundle
 abbrev: vcon-zip-bundle
-docname: draft-miller-vcon-zip-bundle-01
+docname: draft-miller-vcon-zip-bundle-00
 category: info
 ipr: trust200902
 area: ART
 wg: vCon
-stream: Independent
+stream: independent
 keyword:
   - vCon
   - zip
@@ -25,34 +25,17 @@ author:
 normative:
   RFC2119:
   RFC8174:
-  RFC7515:
-  RFC7516:
-  RFC6234:
   I-D.ietf-vcon-vcon-core:
     title: "The JSON format for vCon"
     author:
       - name: Thomas McCarthy-Howe
     date: 2024
-  PKWARE:
-    title: "PKWARE ZIP File Format Specification"
-    target: https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
 
 informative:
-  RFC2046:
-  RFC3986:
-  I-D.ietf-vcon-overview:
-    title: "vCon Overview"
-    author:
-      - name: Thomas McCarthy-Howe
-    date: 2024
-  FIPS180-4:
-    title: "Secure Hash Standard (SHS)"
-    target: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
-    date: 2015
 
 --- abstract
 
-This document defines the vCon Zip Bundle (`.vconz`) file format for packaging one or more vCon conversation data containers with their associated media files into a single, self-contained ZIP archive. While vCons support external file references via HTTPS URLs with content hashes, these dependencies create availability and portability challenges. The vCon Zip Bundle addresses this through a standardized archive format that includes all referenced files, supports multiple vCons with automatic deduplication based on content hashes, preserves data integrity through hash verification, and enables offline processing. This specification maintains full compatibility with all vCon security forms (unsigned, signed, encrypted) as defined in {{!I-D.ietf-vcon-vcon-core}}.
+This document defines the vCon Zip Bundle (`.vconz`) file format for packaging one or more vCon conversation data containers with their associated media files into a single, self-contained ZIP archive. While vCons support external file references via HTTPS URLs with content hashes, these dependencies create availability and portability challenges. The vCon Zip Bundle addresses this through a standardized archive format that includes all referenced files, supports multiple vCons with automatic deduplication based on content hashes, preserves data integrity through hash verification, and enables offline processing. This specification maintains full compatibility with all vCon security forms (unsigned, signed, encrypted) as defined in the vCon core specification.
 
 --- middle
 
@@ -824,22 +807,12 @@ The author would like to thank the vCon working group for their contributions an
 
 # Change Log {#changelog}
 
-## draft-miller-vcon-zip-bundle-01
-
-- Converted to kramdown-rfc format
-- Added proper YAML front matter
-- Added Requirements Language section with BCP14 boilerplate
-- Converted all references to proper citation format
-- Added IAL IDs to all major sections for cross-referencing
-- Updated internal cross-references to use {{anchor}} syntax
-- Added proper artwork blocks with titles and IDs
-- Reorganized references into normative and informative sections
-- Enhanced IANA considerations section
-
 ## draft-miller-vcon-zip-bundle-00
 
-- Initial version defining vCon Zip Bundle format
+- Initial version defining vCon Zip Bundle format in kramdown-rfc
 - Multi-vCon support with automatic deduplication
-- Simplified flat file structure
-- Hash-based file naming conventions
-- Support for all vCon security forms
+- Simplified flat file structure with hash-based naming
+- Support for all vCon security forms (unsigned, signed, encrypted)
+- Complete IANA media type registration
+- Comprehensive security considerations
+- Implementation guidelines and examples

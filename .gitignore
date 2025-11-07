@@ -22,3 +22,9 @@ Thumbs.db
 
 # Test outputs
 tests/snapshot.png
+
+# Environment variables
+.env
+
+# IETF Author Tools output
+vconz/
