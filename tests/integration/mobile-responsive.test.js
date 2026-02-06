@@ -1,24 +1,18 @@
 import { beforeAll, afterAll, describe, it, expect } from 'bun:test';
 import puppeteer from 'puppeteer';
-import { spawn } from 'child_process';
+import { startTestServer } from "../setup/test-server.js";
 
 let browser;
 let page;
 let server;
-
-const BASE_URL = 'http://localhost:8080';
+let baseUrl;
 
 describe('Mobile Responsiveness Tests', () => {
   beforeAll(async () => {
-    // Start the development server
-    server = spawn('bun', ['run', 'serve'], {
-      stdio: 'pipe',
-      detached: false
-    });
-    
-    // Wait for server to start
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    const testServer = startTestServer();
+    server = testServer.server;
+    baseUrl = testServer.baseUrl;
+
     browser = await puppeteer.launch({ 
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -27,19 +21,15 @@ describe('Mobile Responsiveness Tests', () => {
   });
 
   afterAll(async () => {
-    if (browser) {
-      await browser.close();
-    }
-    if (server) {
-      server.kill();
-    }
+    if (browser) await browser.close();
+    if (server) server.stop();
   });
 
   describe('Mobile Layout', () => {
     it('should stack panels vertically on mobile screens', async () => {
       // Set mobile viewport
       await page.setViewport({ width: 375, height: 667 }); // iPhone SE size
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.main-content');
       
       const gridColumns = await page.evaluate(() => {
@@ -54,7 +44,7 @@ describe('Mobile Responsiveness Tests', () => {
 
     it('should have touch-friendly button sizes on mobile', async () => {
       await page.setViewport({ width: 375, height: 667 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       
       const lockButton = await page.$('.lock-button');
       const buttonBox = await lockButton.boundingBox();
@@ -66,7 +56,7 @@ describe('Mobile Responsiveness Tests', () => {
 
     it('should stack tabs vertically on very small screens', async () => {
       await page.setViewport({ width: 320, height: 568 }); // iPhone 5 size
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.tabs');
       
       const flexDirection = await page.evaluate(() => {
@@ -79,7 +69,7 @@ describe('Mobile Responsiveness Tests', () => {
 
     it('should adjust header layout on mobile', async () => {
       await page.setViewport({ width: 480, height: 800 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.header-container');
       
       const flexDirection = await page.evaluate(() => {
@@ -95,7 +85,7 @@ describe('Mobile Responsiveness Tests', () => {
     it('should have proper layout on tablet screens', async () => {
       // Set tablet viewport
       await page.setViewport({ width: 768, height: 1024 }); // iPad size
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.main-content');
       
       const gridColumns = await page.evaluate(() => {
@@ -110,7 +100,7 @@ describe('Mobile Responsiveness Tests', () => {
 
     it('should allow tab wrapping on tablets', async () => {
       await page.setViewport({ width: 768, height: 1024 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.tabs');
       
       const flexWrap = await page.evaluate(() => {
@@ -126,7 +116,7 @@ describe('Mobile Responsiveness Tests', () => {
     it('should maintain two-column layout on desktop', async () => {
       // Set desktop viewport
       await page.setViewport({ width: 1200, height: 800 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.main-content');
       
       const gridColumns = await page.evaluate(() => {
@@ -143,7 +133,7 @@ describe('Mobile Responsiveness Tests', () => {
   describe('Interactive Elements', () => {
     it('should have working tabs on mobile', async () => {
       await page.setViewport({ width: 375, height: 667 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       
       // Wait for page to load
       await page.waitForSelector('.tab-button');
@@ -158,7 +148,7 @@ describe('Mobile Responsiveness Tests', () => {
 
     it('should expand/collapse sections on mobile', async () => {
       await page.setViewport({ width: 375, height: 667 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       
       // Wait for inspector elements to load
       await page.waitForSelector('.section-header .panel-toggle');
@@ -190,7 +180,7 @@ describe('Mobile Responsiveness Tests', () => {
   describe('Text Readability', () => {
     it('should have appropriate font sizes on mobile', async () => {
       await page.setViewport({ width: 375, height: 667 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.brand-title');
       
       const fontSize = await page.evaluate(() => {
@@ -205,7 +195,7 @@ describe('Mobile Responsiveness Tests', () => {
 
     it('should have readable code text on mobile', async () => {
       await page.setViewport({ width: 375, height: 667 });
-      await page.goto(BASE_URL);
+      await page.goto(baseUrl);
       await page.waitForSelector('.code-textarea');
       
       const fontSize = await page.evaluate(() => {

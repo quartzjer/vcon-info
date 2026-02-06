@@ -1,21 +1,29 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import puppeteer from 'puppeteer';
+import { startTestServer } from '../setup/test-server.js';
 
 describe('vCon Validation Tests', () => {
     let browser;
     let page;
+    let server;
+    let baseUrl;
 
     beforeAll(async () => {
+        const testServer = startTestServer();
+        server = testServer.server;
+        baseUrl = testServer.baseUrl;
+
         browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
         page = await browser.newPage();
-        await page.goto('http://localhost:8080', { waitUntil: 'networkidle0' });
+        await page.goto(baseUrl, { waitUntil: 'networkidle0' });
     });
 
     afterAll(async () => {
-        await browser.close();
+        if (browser) await browser.close();
+        if (server) server.stop();
     });
 
     describe('Required Fields Validation', () => {

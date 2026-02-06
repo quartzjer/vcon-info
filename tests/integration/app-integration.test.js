@@ -1,44 +1,34 @@
 // Integration Tests: App Integration with Puppeteer
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from "bun:test";
 import puppeteer from "puppeteer";
-import { spawn } from "child_process";
+import { startTestServer } from "../setup/test-server.js";
 
 describe("Integration: App Integration", () => {
   let browser;
   let page;
   let server;
-  const PORT = 8081; // Use different port to avoid conflicts
-  const BASE_URL = `http://localhost:${PORT}`;
+  let baseUrl;
 
   beforeAll(async () => {
-    // Start test server
-    server = spawn("bun", ["run", "serve"], {
-      env: { ...process.env, PORT: PORT.toString() },
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
+    const testServer = startTestServer();
+    server = testServer.server;
+    baseUrl = testServer.baseUrl;
 
-    // Wait for server to start
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Launch browser
     browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
+    page = await browser.newPage();
   });
 
   afterAll(async () => {
-    if (browser) {
-      await browser.close();
-    }
-    if (server) {
-      server.kill('SIGTERM');
-    }
+    if (browser) await browser.close();
+    if (server) server.stop();
   });
 
   beforeEach(async () => {
     page = await browser.newPage();
-    await page.goto(BASE_URL);
+    await page.goto(baseUrl);
     
     // Wait for app to initialize
     await page.waitForSelector('#input-textarea', { timeout: 5000 });
