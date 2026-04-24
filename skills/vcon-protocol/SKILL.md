@@ -1,6 +1,10 @@
 ---
 name: vcon-protocol
-description: Provides authoritative guidance for working with the vCon conversation JSON container defined in IETF drafts, including top-level schema, parties, dialog, analysis, attachments, inline and external content rules, content_hash formats, extension and critical handling, and unsigned, signed, and encrypted security forms. Helps an agent validate vCon structures, explain version drift, compare CC, MIMI, Consent, and Lifecycle specifications, and cite source drafts for implementation and interoperability decisions.
+description: >
+  Authoritative vCon conversation JSON guidance (IETF drafts). Schema,
+  parties, dialog, analysis, attachments, inline/external content,
+  content_hash, extensions, unsigned/signed/encrypted forms. TRIGGER:
+  vCon, virtual conversation, conversation JSON, IETF vcon.
 ---
 
 # vCon Protocol Knowledge
